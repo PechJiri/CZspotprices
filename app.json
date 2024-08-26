@@ -1,0 +1,2426 @@
+{
+  "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
+  "id": "com.spotprice.cz",
+  "version": "1.0.0",
+  "compatibility": "12.0.0",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "CZ spot prices",
+    "cs": "CZ spotové ceny"
+  },
+  "description": {
+    "en": "Get your CZ spot prices with distribution fees",
+    "cs": "Získejte své spotové ceny s distribučními poplatky"
+  },
+  "category": [
+    "energy"
+  ],
+  "permissions": [],
+  "icon": "/assets/icon.svg",
+  "images": {
+    "small": "/assets/images/app_small.png",
+    "large": "/assets/images/app_large.png",
+    "xlarge": "/assets/images/app_xlarge.png"
+  },
+  "author": {
+    "name": "Jiri Pech",
+    "email": "jiri.pech@centrum.cz"
+  },
+  "brandColor": "#333333",
+  "source": "https://",
+  "homepage": "https://",
+  "support": "mailto:jiri.pech@centrum.cz",
+  "homeyCommunityTopicId": 0,
+  "flow": {
+    "triggers": [
+      {
+        "id": "current-price-lower-than-trigger",
+        "title": {
+          "en": "Current price is lower than",
+          "cs": "Aktuální cena je nižší než"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": {
+              "en": "Price",
+              "cs": "Cena"
+            }
+          }
+        ],
+        "titleFormatted": {
+          "en": "Current price is lower than [[price]] CZK",
+          "cs": "Aktuální cena je nižší než [[price]] CZK"
+        }
+      },
+      {
+        "id": "current-price-higher-than-trigger",
+        "title": {
+          "en": "Current price is higher than",
+          "cs": "Aktuální cena je vyšší než"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": {
+              "en": "Price",
+              "cs": "Cena"
+            }
+          }
+        ],
+        "titleFormatted": {
+          "en": "Current price is higher than [[price]] CZK",
+          "cs": "Aktuální cena je vyšší než [[price]] CZK"
+        }
+      },
+      {
+        "id": "current-price-index-trigger",
+        "title": {
+          "en": "Current price index is",
+          "cs": "Aktuální cenový index je"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          },
+          {
+            "name": "index",
+            "type": "dropdown",
+            "title": {
+              "en": "Price Index",
+              "cs": "Cenový index"
+            },
+            "values": [
+              {
+                "id": "low",
+                "title": {
+                  "en": "Low",
+                  "cs": "Nízký"
+                }
+              },
+              {
+                "id": "medium",
+                "title": {
+                  "en": "Medium",
+                  "cs": "Střední"
+                }
+              },
+              {
+                "id": "high",
+                "title": {
+                  "en": "High",
+                  "cs": "Vysoký"
+                }
+              },
+              {
+                "id": "unknown",
+                "title": {
+                  "en": "Unknown",
+                  "cs": "Neznámý"
+                }
+              }
+            ]
+          }
+        ],
+        "titleFormatted": {
+          "en": "Current price index is [[index]]",
+          "cs": "Aktuální cenový index je [[index]]"
+        }
+      }
+    ],
+    "conditions": [
+      {
+        "id": "price-lower-than-condition",
+        "title": {
+          "en": "Price is lower than",
+          "cs": "Cena je nižší než"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": {
+              "en": "Price",
+              "cs": "Cena"
+            }
+          }
+        ],
+        "titleFormatted": {
+          "en": "Price is lower than [[price]] CZK",
+          "cs": "Cena je nižší než [[price]] CZK"
+        }
+      },
+      {
+        "id": "price-higher-than-condition",
+        "title": {
+          "en": "Price is higher than",
+          "cs": "Cena je vyšší než"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          },
+          {
+            "name": "price",
+            "type": "number",
+            "title": {
+              "en": "Price",
+              "cs": "Cena"
+            }
+          }
+        ],
+        "titleFormatted": {
+          "en": "Price is higher than [[price]] CZK",
+          "cs": "Cena je vyšší než [[price]] CZK"
+        }
+      },
+      {
+        "id": "price-index-is-condition",
+        "title": {
+          "en": "Price index is",
+          "cs": "Cenový index je"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          },
+          {
+            "name": "index",
+            "type": "dropdown",
+            "title": {
+              "en": "Price Index",
+              "cs": "Cenový index"
+            },
+            "values": [
+              {
+                "id": "low",
+                "title": {
+                  "en": "Low",
+                  "cs": "Nízký"
+                }
+              },
+              {
+                "id": "medium",
+                "title": {
+                  "en": "Medium",
+                  "cs": "Střední"
+                }
+              },
+              {
+                "id": "high",
+                "title": {
+                  "en": "High",
+                  "cs": "Vysoký"
+                }
+              },
+              {
+                "id": "unknown",
+                "title": {
+                  "en": "Unknown",
+                  "cs": "Neznámý"
+                }
+              }
+            ]
+          }
+        ],
+        "titleFormatted": {
+          "en": "Price index is [[index]]",
+          "cs": "Cenový index je [[index]]"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "id": "update_data_via_api",
+        "title": {
+          "en": "Update data via API",
+          "cs": "Aktualizovat data přes API"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          }
+        ],
+        "titleFormatted": {
+          "en": "Update data via API",
+          "cs": "Aktualizovat data přes API"
+        }
+      }
+    ]
+  },
+  "drivers": [
+    {
+      "id": "cz-spot-prices",
+      "name": {
+        "en": "CZ spot prices",
+        "cs": "CZ spotové ceny"
+      },
+      "class": "sensor",
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "cloud"
+      ],
+      "capabilities": [
+        "measure_current_spot_price_CZK",
+        "measure_current_spot_index",
+        "hour_price_CZK_0",
+        "hour_price_index_0",
+        "hour_price_CZK_1",
+        "hour_price_index_1",
+        "hour_price_CZK_2",
+        "hour_price_index_2",
+        "hour_price_CZK_3",
+        "hour_price_index_3",
+        "hour_price_CZK_4",
+        "hour_price_index_4",
+        "hour_price_CZK_5",
+        "hour_price_index_5",
+        "hour_price_CZK_6",
+        "hour_price_index_6",
+        "hour_price_CZK_7",
+        "hour_price_index_7",
+        "hour_price_CZK_8",
+        "hour_price_index_8",
+        "hour_price_CZK_9",
+        "hour_price_index_9",
+        "hour_price_CZK_10",
+        "hour_price_index_10",
+        "hour_price_CZK_11",
+        "hour_price_index_11",
+        "hour_price_CZK_12",
+        "hour_price_index_12",
+        "hour_price_CZK_13",
+        "hour_price_index_13",
+        "hour_price_CZK_14",
+        "hour_price_index_14",
+        "hour_price_CZK_15",
+        "hour_price_index_15",
+        "hour_price_CZK_16",
+        "hour_price_index_16",
+        "hour_price_CZK_17",
+        "hour_price_index_17",
+        "hour_price_CZK_18",
+        "hour_price_index_18",
+        "hour_price_CZK_19",
+        "hour_price_index_19",
+        "hour_price_CZK_20",
+        "hour_price_index_20",
+        "hour_price_CZK_21",
+        "hour_price_index_21",
+        "hour_price_CZK_22",
+        "hour_price_index_22",
+        "hour_price_CZK_23",
+        "hour_price_index_23"
+      ],
+      "capabilitiesOptions": {
+        "measure_current_spot_price_CZK": {
+          "title": {
+            "en": "Current Spot Price (CZK)",
+            "cs": "Aktuální spotová cena (CZK)"
+          },
+          "units": {
+            "en": "CZK"
+          },
+          "decimals": 2,
+          "icon": "/assets/images/price_icon.svg"
+        },
+        "measure_current_spot_index": {
+          "title": {
+            "en": "Current Spot Price Index",
+            "cs": "Aktuální spotový index"
+          },
+          "values": [
+            {
+              "id": "low",
+              "title": {
+                "en": "Low",
+                "cs": "Nízký"
+              }
+            },
+            {
+              "id": "medium",
+              "title": {
+                "en": "Medium",
+                "cs": "Střední"
+              }
+            },
+            {
+              "id": "high",
+              "title": {
+                "en": "High",
+                "cs": "Vysoký"
+              }
+            },
+            {
+              "id": "unknown",
+              "title": {
+                "en": "Unknown",
+                "cs": "Neznámý"
+              }
+            }
+          ]
+        },
+        "hour_price_CZK_0": {
+          "title": {
+            "en": "Price at 00:00 (CZK)",
+            "cs": "Cena ve 00:00 (CZK)"
+          },
+          "units": {
+            "en": "CZK"
+          },
+          "decimals": 2,
+          "icon": "/assets/images/price_icon.svg"
+        },
+        "hour_price_index_0": {
+          "title": {
+            "en": "Price Index at 00:00",
+            "cs": "Index ceny ve 00:00"
+          },
+          "values": [
+            {
+              "id": "low",
+              "title": {
+                "en": "Low",
+                "cs": "Nízký"
+              }
+            },
+            {
+              "id": "medium",
+              "title": {
+                "en": "Medium",
+                "cs": "Střední"
+              }
+            },
+            {
+              "id": "high",
+              "title": {
+                "en": "High",
+                "cs": "Vysoký"
+              }
+            },
+            {
+              "id": "unknown",
+              "title": {
+                "en": "Unknown",
+                "cs": "Neznámý"
+              }
+            }
+          ]
+        },
+        "hour_price_CZK_23": {
+          "title": {
+            "en": "Price at 23:00 (CZK)",
+            "cs": "Cena ve 23:00 (CZK)"
+          },
+          "units": {
+            "en": "CZK"
+          },
+          "decimals": 2,
+          "icon": "/assets/images/price_icon.svg"
+        },
+        "hour_price_index_23": {
+          "title": {
+            "en": "Price Index at 23:00",
+            "cs": "Index ceny ve 23:00"
+          },
+          "values": [
+            {
+              "id": "low",
+              "title": {
+                "en": "Low",
+                "cs": "Nízký"
+              }
+            },
+            {
+              "id": "medium",
+              "title": {
+                "en": "Medium",
+                "cs": "Střední"
+              }
+            },
+            {
+              "id": "high",
+              "title": {
+                "en": "High",
+                "cs": "Vysoký"
+              }
+            },
+            {
+              "id": "unknown",
+              "title": {
+                "en": "Unknown",
+                "cs": "Neznámý"
+              }
+            }
+          ]
+        }
+      },
+      "images": {
+        "small": "/drivers/cz-spot-prices/assets/images/device_small.png",
+        "large": "/drivers/cz-spot-prices/assets/images/device_large.png",
+        "xlarge": "/drivers/cz-spot-prices/assets/images/device_xlarge.png"
+      },
+      "mobile": {
+        "components": [
+          {
+            "id": "current_spot_price",
+            "capabilities": [
+              "measure_current_spot_price_CZK",
+              "measure_current_spot_index"
+            ]
+          },
+          {
+            "id": "hour_prices",
+            "capabilities": [
+              "hour_price_CZK_0",
+              "hour_price_CZK_1",
+              "hour_price_CZK_2",
+              "hour_price_CZK_3",
+              "hour_price_CZK_4",
+              "hour_price_CZK_5",
+              "hour_price_CZK_6",
+              "hour_price_CZK_7",
+              "hour_price_CZK_8",
+              "hour_price_CZK_9",
+              "hour_price_CZK_10",
+              "hour_price_CZK_11",
+              "hour_price_CZK_12",
+              "hour_price_CZK_13",
+              "hour_price_CZK_14",
+              "hour_price_CZK_15",
+              "hour_price_CZK_16",
+              "hour_price_CZK_17",
+              "hour_price_CZK_18",
+              "hour_price_CZK_19",
+              "hour_price_CZK_20",
+              "hour_price_CZK_21",
+              "hour_price_CZK_22",
+              "hour_price_CZK_23"
+            ]
+          },
+          {
+            "id": "hour_indexes",
+            "capabilities": [
+              "hour_price_index_0",
+              "hour_price_index_1",
+              "hour_price_index_2",
+              "hour_price_index_3",
+              "hour_price_index_4",
+              "hour_price_index_5",
+              "hour_price_index_6",
+              "hour_price_index_7",
+              "hour_price_index_8",
+              "hour_price_index_9",
+              "hour_price_index_10",
+              "hour_price_index_11",
+              "hour_price_index_12",
+              "hour_price_index_13",
+              "hour_price_index_14",
+              "hour_price_index_15",
+              "hour_price_index_16",
+              "hour_price_index_17",
+              "hour_price_index_18",
+              "hour_price_index_19",
+              "hour_price_index_20",
+              "hour_price_index_21",
+              "hour_price_index_22",
+              "hour_price_index_23"
+            ]
+          }
+        ]
+      },
+      "flow": {
+        "triggers": [
+          {
+            "id": "current-price-lower-than-trigger",
+            "title": {
+              "en": "Current price is lower than",
+              "cs": "Aktuální cena je nižší než"
+            },
+            "args": [
+              {
+                "name": "price",
+                "type": "number",
+                "title": {
+                  "en": "Price",
+                  "cs": "Cena"
+                }
+              }
+            ],
+            "titleFormatted": {
+              "en": "Current price is lower than [[price]] CZK",
+              "cs": "Aktuální cena je nižší než [[price]] CZK"
+            }
+          },
+          {
+            "id": "current-price-higher-than-trigger",
+            "title": {
+              "en": "Current price is higher than",
+              "cs": "Aktuální cena je vyšší než"
+            },
+            "args": [
+              {
+                "name": "price",
+                "type": "number",
+                "title": {
+                  "en": "Price",
+                  "cs": "Cena"
+                }
+              }
+            ],
+            "titleFormatted": {
+              "en": "Current price is higher than [[price]] CZK",
+              "cs": "Aktuální cena je vyšší než [[price]] CZK"
+            }
+          },
+          {
+            "id": "current-price-index-trigger",
+            "title": {
+              "en": "Current price index is",
+              "cs": "Aktuální cenový index je"
+            },
+            "args": [
+              {
+                "name": "index",
+                "type": "enum",
+                "title": {
+                  "en": "Price Index",
+                  "cs": "Cenový index"
+                },
+                "values": [
+                  {
+                    "id": "low",
+                    "title": {
+                      "en": "Low",
+                      "cs": "Nízký"
+                    }
+                  },
+                  {
+                    "id": "medium",
+                    "title": {
+                      "en": "Medium",
+                      "cs": "Střední"
+                    }
+                  },
+                  {
+                    "id": "high",
+                    "title": {
+                      "en": "High",
+                      "cs": "Vysoký"
+                    }
+                  },
+                  {
+                    "id": "unknown",
+                    "title": {
+                      "en": "Unknown",
+                      "cs": "Neznámý"
+                    }
+                  }
+                ]
+              }
+            ],
+            "titleFormatted": {
+              "en": "Current price index is [[index]]",
+              "cs": "Aktuální cenový index je [[index]]"
+            }
+          }
+        ],
+        "conditions": [
+          {
+            "id": "price-lower-than-condition",
+            "title": {
+              "en": "Price is lower than",
+              "cs": "Cena je nižší než"
+            },
+            "args": [
+              {
+                "name": "price",
+                "type": "number",
+                "title": {
+                  "en": "Price",
+                  "cs": "Cena"
+                }
+              }
+            ],
+            "titleFormatted": {
+              "en": "Price is lower than [[price]] CZK",
+              "cs": "Cena je nižší než [[price]] CZK"
+            }
+          },
+          {
+            "id": "price-higher-than-condition",
+            "title": {
+              "en": "Price is higher than",
+              "cs": "Cena je vyšší než"
+            },
+            "args": [
+              {
+                "name": "price",
+                "type": "number",
+                "title": {
+                  "en": "Price",
+                  "cs": "Cena"
+                }
+              }
+            ],
+            "titleFormatted": {
+              "en": "Price is higher than [[price]] CZK",
+              "cs": "Cena je vyšší než [[price]] CZK"
+            }
+          },
+          {
+            "id": "price-index-is-condition",
+            "title": {
+              "en": "Price index is",
+              "cs": "Cenový index je"
+            },
+            "args": [
+              {
+                "name": "index",
+                "type": "enum",
+                "title": {
+                  "en": "Price Index",
+                  "cs": "Cenový index"
+                },
+                "values": [
+                  {
+                    "id": "low",
+                    "title": {
+                      "en": "Low",
+                      "cs": "Nízký"
+                    }
+                  },
+                  {
+                    "id": "medium",
+                    "title": {
+                      "en": "Medium",
+                      "cs": "Střední"
+                    }
+                  },
+                  {
+                    "id": "high",
+                    "title": {
+                      "en": "High",
+                      "cs": "Vysoký"
+                    }
+                  },
+                  {
+                    "id": "unknown",
+                    "title": {
+                      "en": "Unknown",
+                      "cs": "Neznámý"
+                    }
+                  }
+                ]
+              }
+            ],
+            "titleFormatted": {
+              "en": "Price index is [[index]]",
+              "cs": "Cenový index je [[index]]"
+            }
+          }
+        ],
+        "actions": [
+          {
+            "id": "update_data_via_api",
+            "title": {
+              "en": "Update data via API",
+              "cs": "Aktualizovat data přes API"
+            },
+            "args": []
+          }
+        ]
+      },
+      "pair": [
+        {
+          "id": "list_my_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_my_devices"
+          }
+        },
+        {
+          "id": "add_my_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "id": "update_interval",
+          "type": "number",
+          "label": {
+            "en": "Pooling interval for current price (in hours)",
+            "cs": "Interval aktualizace aktuální ceny (v hodinách)"
+          },
+          "hint": {
+            "en": "Set the interval for fetching the current price from the API.",
+            "cs": "Nastavte interval pro získání aktuální ceny z API."
+          },
+          "value": 1,
+          "min": 1
+        },
+        {
+          "id": "high_tariff_price",
+          "type": "number",
+          "label": {
+            "en": "Distribution price for high tariff (CZK)",
+            "cs": "Cena za distribuci ve vysokém tarifu (CZK)"
+          },
+          "hint": {
+            "en": "Enter the distribution price during high tariff hours.",
+            "cs": "Zadejte cenu za distribuci během hodin vysokého tarifu."
+          },
+          "value": 0,
+          "min": 0
+        },
+        {
+          "id": "low_tariff_price",
+          "type": "number",
+          "label": {
+            "en": "Distribution price for low tariff (CZK)",
+            "cs": "Cena za distribuci v nízkém tarifu (CZK)"
+          },
+          "hint": {
+            "en": "Enter the distribution price during low tariff hours.",
+            "cs": "Zadejte cenu za distribuci během hodin nízkého tarifu."
+          },
+          "value": 0,
+          "min": 0
+        },
+        {
+          "id": "tariff_hours",
+          "type": "group",
+          "label": {
+            "en": "Low Tariff Hours",
+            "cs": "Hodiny nízkého tarifu"
+          },
+          "children": [
+            {
+              "id": "hour_0",
+              "type": "checkbox",
+              "label": {
+                "en": "00:00 - 00:59",
+                "cs": "00:00 - 00:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_1",
+              "type": "checkbox",
+              "label": {
+                "en": "01:00 - 01:59",
+                "cs": "01:00 - 01:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_2",
+              "type": "checkbox",
+              "label": {
+                "en": "02:00 - 02:59",
+                "cs": "02:00 - 02:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_3",
+              "type": "checkbox",
+              "label": {
+                "en": "03:00 - 03:59",
+                "cs": "03:00 - 03:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_4",
+              "type": "checkbox",
+              "label": {
+                "en": "04:00 - 04:59",
+                "cs": "04:00 - 04:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_5",
+              "type": "checkbox",
+              "label": {
+                "en": "05:00 - 05:59",
+                "cs": "05:00 - 05:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_6",
+              "type": "checkbox",
+              "label": {
+                "en": "06:00 - 06:59",
+                "cs": "06:00 - 06:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_7",
+              "type": "checkbox",
+              "label": {
+                "en": "07:00 - 07:59",
+                "cs": "07:00 - 07:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_8",
+              "type": "checkbox",
+              "label": {
+                "en": "08:00 - 08:59",
+                "cs": "08:00 - 08:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_9",
+              "type": "checkbox",
+              "label": {
+                "en": "09:00 - 09:59",
+                "cs": "09:00 - 09:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_10",
+              "type": "checkbox",
+              "label": {
+                "en": "10:00 - 10:59",
+                "cs": "10:00 - 10:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_11",
+              "type": "checkbox",
+              "label": {
+                "en": "11:00 - 11:59",
+                "cs": "11:00 - 11:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_12",
+              "type": "checkbox",
+              "label": {
+                "en": "12:00 - 12:59",
+                "cs": "12:00 - 12:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_13",
+              "type": "checkbox",
+              "label": {
+                "en": "13:00 - 13:59",
+                "cs": "13:00 - 13:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_14",
+              "type": "checkbox",
+              "label": {
+                "en": "14:00 - 14:59",
+                "cs": "14:00 - 14:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_15",
+              "type": "checkbox",
+              "label": {
+                "en": "15:00 - 15:59",
+                "cs": "15:00 - 15:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_16",
+              "type": "checkbox",
+              "label": {
+                "en": "16:00 - 16:59",
+                "cs": "16:00 - 16:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_17",
+              "type": "checkbox",
+              "label": {
+                "en": "17:00 - 17:59",
+                "cs": "17:00 - 17:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_18",
+              "type": "checkbox",
+              "label": {
+                "en": "18:00 - 18:59",
+                "cs": "18:00 - 18:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_19",
+              "type": "checkbox",
+              "label": {
+                "en": "19:00 - 19:59",
+                "cs": "19:00 - 19:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_20",
+              "type": "checkbox",
+              "label": {
+                "en": "20:00 - 20:59",
+                "cs": "20:00 - 20:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_21",
+              "type": "checkbox",
+              "label": {
+                "en": "21:00 - 21:59",
+                "cs": "21:00 - 21:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_22",
+              "type": "checkbox",
+              "label": {
+                "en": "22:00 - 22:59",
+                "cs": "22:00 - 22:59"
+              },
+              "value": false
+            },
+            {
+              "id": "hour_23",
+              "type": "checkbox",
+              "label": {
+                "en": "23:00 - 23:59",
+                "cs": "23:00 - 23:59"
+              },
+              "value": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "capabilities": {
+    "hour_price_CZK_0": {
+      "type": "number",
+      "title": {
+        "en": "Hour 0 Price (CZK)",
+        "cs": "Cena od 0 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_1": {
+      "type": "number",
+      "title": {
+        "en": "Hour 1 Price (CZK)",
+        "cs": "Cena od 1 hodiny (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_10": {
+      "type": "number",
+      "title": {
+        "en": "Hour 10 Price (CZK)",
+        "cs": "Cena od 10 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_11": {
+      "type": "number",
+      "title": {
+        "en": "Hour 11 Price (CZK)",
+        "cs": "Cena od 11 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_12": {
+      "type": "number",
+      "title": {
+        "en": "Hour 12 Price (CZK)",
+        "cs": "Cena od 12 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_13": {
+      "type": "number",
+      "title": {
+        "en": "Hour 13 Price (CZK)",
+        "cs": "Cena od 13 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_14": {
+      "type": "number",
+      "title": {
+        "en": "Hour 14 Price (CZK)",
+        "cs": "Cena od 14 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_15": {
+      "type": "number",
+      "title": {
+        "en": "Hour 15 Price (CZK)",
+        "cs": "Cena od 15 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_16": {
+      "type": "number",
+      "title": {
+        "en": "Hour 16 Price (CZK)",
+        "cs": "Cena od 16 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_17": {
+      "type": "number",
+      "title": {
+        "en": "Hour 17 Price (CZK)",
+        "cs": "Cena od 17 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_18": {
+      "type": "number",
+      "title": {
+        "en": "Hour 18 Price (CZK)",
+        "cs": "Cena od 18 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_19": {
+      "type": "number",
+      "title": {
+        "en": "Hour 19 Price (CZK)",
+        "cs": "Cena od 19 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_2": {
+      "type": "number",
+      "title": {
+        "en": "Hour 2 Price (CZK)",
+        "cs": "Cena od 2 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_20": {
+      "type": "number",
+      "title": {
+        "en": "Hour 20 Price (CZK)",
+        "cs": "Cena od 20 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_21": {
+      "type": "number",
+      "title": {
+        "en": "Hour 21 Price (CZK)",
+        "cs": "Cena od 21 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_22": {
+      "type": "number",
+      "title": {
+        "en": "Hour 22 Price (CZK)",
+        "cs": "Cena od 22 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_23": {
+      "type": "number",
+      "title": {
+        "en": "Hour 23 Price (CZK)",
+        "cs": "Cena od 23 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_3": {
+      "type": "number",
+      "title": {
+        "en": "Hour 3 Price (CZK)",
+        "cs": "Cena od 3 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_4": {
+      "type": "number",
+      "title": {
+        "en": "Hour 4 Price (CZK)",
+        "cs": "Cena od 4 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_5": {
+      "type": "number",
+      "title": {
+        "en": "Hour 5 Price (CZK)",
+        "cs": "Cena od 5 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_6": {
+      "type": "number",
+      "title": {
+        "en": "Hour 6 Price (CZK)",
+        "cs": "Cena od 6 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_7": {
+      "type": "number",
+      "title": {
+        "en": "Hour 7 Price (CZK)",
+        "cs": "Cena od 7 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_8": {
+      "type": "number",
+      "title": {
+        "en": "Hour 8 Price (CZK)",
+        "cs": "Cena od 8 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_CZK_9": {
+      "type": "number",
+      "title": {
+        "en": "Hour 9 Price (CZK)",
+        "cs": "Cena od 9 hodin (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
+    "hour_price_index_0": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 0 Price Index",
+        "cs": "Index ceny od 0 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_1": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 1 Price Index",
+        "cs": "Index ceny od 1 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_10": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 10 Price Index",
+        "cs": "Index ceny od 10 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_11": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 11 Price Index",
+        "cs": "Index ceny od 11 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_12": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 12 Price Index",
+        "cs": "Index ceny od 12 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_13": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 13 Price Index",
+        "cs": "Index ceny od 13 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_14": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 14 Price Index",
+        "cs": "Index ceny od 14 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_15": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 15 Price Index",
+        "cs": "Index ceny od 15 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_16": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 16 Price Index",
+        "cs": "Index ceny od 16 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_17": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 17 Price Index",
+        "cs": "Index ceny od 17 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_18": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 18 Price Index",
+        "cs": "Index ceny od 18 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_19": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 19 Price Index",
+        "cs": "Index ceny od 19 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_2": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 2 Price Index",
+        "cs": "Index ceny od 2 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_20": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 20 Price Index",
+        "cs": "Index ceny od 20 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_21": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 21 Price Index",
+        "cs": "Index ceny od 21 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_22": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 22 Price Index",
+        "cs": "Index ceny od 22 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_23": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 23 Price Index",
+        "cs": "Index ceny od 23 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_3": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 3 Price Index",
+        "cs": "Index ceny od 3 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_4": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 4 Price Index",
+        "cs": "Index ceny od 4 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_5": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 5 Price Index",
+        "cs": "Index ceny od 5 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_6": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 6 Price Index",
+        "cs": "Index ceny od 6 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_7": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 7 Price Index",
+        "cs": "Index ceny od 7 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_8": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 8 Price Index",
+        "cs": "Index ceny od 8 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "hour_price_index_9": {
+      "type": "enum",
+      "title": {
+        "en": "Hour 9 Price Index",
+        "cs": "Index ceny od 9 hodin"
+      },
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Index_icon.svg"
+    },
+    "measure_current_spot_index": {
+      "type": "enum",
+      "title": {
+        "en": "Current Spot Price Index",
+        "cs": "Aktuální spotový index"
+      },
+      "getable": true,
+      "setable": false,
+      "insights": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Actual_icon.svg",
+      "values": [
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "cs": "Nízký"
+          }
+        },
+        {
+          "id": "medium",
+          "title": {
+            "en": "Medium",
+            "cs": "Střední"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "cs": "Vysoký"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown",
+            "cs": "Neznámý"
+          }
+        }
+      ]
+    },
+    "measure_current_spot_price_CZK": {
+      "type": "number",
+      "title": {
+        "en": "Current Spot Price (CZK)",
+        "cs": "Aktuální spotová cena (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 0,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "icon": "/assets/images/Actual_icon.svg"
+    }
+  }
+}

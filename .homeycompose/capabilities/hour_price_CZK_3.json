@@ -1,0 +1,15 @@
+{
+    "type": "number",
+    "title": {
+      "en": "Hour 3 Price (CZK)",
+      "cs": "Cena od 3 hodin (CZK)"
+    },
+    "units": "CZK",
+    "decimals": 2,
+    "insights": true,
+    "getable": true,
+    "setable": false,
+    "uiComponent": "sensor",
+    "icon": "/assets/images/Price_icon.svg"
+  }
+  

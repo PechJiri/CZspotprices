@@ -1,0 +1,270 @@
+[
+  {
+    "id": "update_interval",
+    "type": "number",
+    "label": {
+      "en": "Pooling interval for current price (in hours)",
+      "cs": "Interval aktualizace aktuální ceny (v hodinách)"
+    },
+    "hint": {
+      "en": "Set the interval for fetching the current price from the API.",
+      "cs": "Nastavte interval pro získání aktuální ceny z API."
+    },
+    "value": 1,
+    "min": 1
+  },
+  {
+    "id": "high_tariff_price",
+    "type": "number",
+    "label": {
+      "en": "Distribution price for high tariff (CZK)",
+      "cs": "Cena za distribuci ve vysokém tarifu (CZK)"
+    },
+    "hint": {
+      "en": "Enter the distribution price during high tariff hours.",
+      "cs": "Zadejte cenu za distribuci během hodin vysokého tarifu."
+    },
+    "value": 0,
+    "min": 0
+  },
+  {
+    "id": "low_tariff_price",
+    "type": "number",
+    "label": {
+      "en": "Distribution price for low tariff (CZK)",
+      "cs": "Cena za distribuci v nízkém tarifu (CZK)"
+    },
+    "hint": {
+      "en": "Enter the distribution price during low tariff hours.",
+      "cs": "Zadejte cenu za distribuci během hodin nízkého tarifu."
+    },
+    "value": 0,
+    "min": 0
+  },
+  {
+    "id": "tariff_hours",
+    "type": "group",
+    "label": {
+      "en": "Low Tariff Hours",
+      "cs": "Hodiny nízkého tarifu"
+    },
+    "children": [
+      {
+        "id": "hour_0",
+        "type": "checkbox",
+        "label": {
+          "en": "00:00 - 00:59",
+          "cs": "00:00 - 00:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_1",
+        "type": "checkbox",
+        "label": {
+          "en": "01:00 - 01:59",
+          "cs": "01:00 - 01:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_2",
+        "type": "checkbox",
+        "label": {
+          "en": "02:00 - 02:59",
+          "cs": "02:00 - 02:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_3",
+        "type": "checkbox",
+        "label": {
+          "en": "03:00 - 03:59",
+          "cs": "03:00 - 03:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_4",
+        "type": "checkbox",
+        "label": {
+          "en": "04:00 - 04:59",
+          "cs": "04:00 - 04:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_5",
+        "type": "checkbox",
+        "label": {
+          "en": "05:00 - 05:59",
+          "cs": "05:00 - 05:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_6",
+        "type": "checkbox",
+        "label": {
+          "en": "06:00 - 06:59",
+          "cs": "06:00 - 06:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_7",
+        "type": "checkbox",
+        "label": {
+          "en": "07:00 - 07:59",
+          "cs": "07:00 - 07:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_8",
+        "type": "checkbox",
+        "label": {
+          "en": "08:00 - 08:59",
+          "cs": "08:00 - 08:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_9",
+        "type": "checkbox",
+        "label": {
+          "en": "09:00 - 09:59",
+          "cs": "09:00 - 09:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_10",
+        "type": "checkbox",
+        "label": {
+          "en": "10:00 - 10:59",
+          "cs": "10:00 - 10:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_11",
+        "type": "checkbox",
+        "label": {
+          "en": "11:00 - 11:59",
+          "cs": "11:00 - 11:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_12",
+        "type": "checkbox",
+        "label": {
+          "en": "12:00 - 12:59",
+          "cs": "12:00 - 12:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_13",
+        "type": "checkbox",
+        "label": {
+          "en": "13:00 - 13:59",
+          "cs": "13:00 - 13:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_14",
+        "type": "checkbox",
+        "label": {
+          "en": "14:00 - 14:59",
+          "cs": "14:00 - 14:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_15",
+        "type": "checkbox",
+        "label": {
+          "en": "15:00 - 15:59",
+          "cs": "15:00 - 15:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_16",
+        "type": "checkbox",
+        "label": {
+          "en": "16:00 - 16:59",
+          "cs": "16:00 - 16:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_17",
+        "type": "checkbox",
+        "label": {
+          "en": "17:00 - 17:59",
+          "cs": "17:00 - 17:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_18",
+        "type": "checkbox",
+        "label": {
+          "en": "18:00 - 18:59",
+          "cs": "18:00 - 18:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_19",
+        "type": "checkbox",
+        "label": {
+          "en": "19:00 - 19:59",
+          "cs": "19:00 - 19:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_20",
+        "type": "checkbox",
+        "label": {
+          "en": "20:00 - 20:59",
+          "cs": "20:00 - 20:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_21",
+        "type": "checkbox",
+        "label": {
+          "en": "21:00 - 21:59",
+          "cs": "21:00 - 21:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_22",
+        "type": "checkbox",
+        "label": {
+          "en": "22:00 - 22:59",
+          "cs": "22:00 - 22:59"
+        },
+        "value": false
+      },
+      {
+        "id": "hour_23",
+        "type": "checkbox",
+        "label": {
+          "en": "23:00 - 23:59",
+          "cs": "23:00 - 23:59"
+        },
+        "value": false
+      }
+    ]
+  }
+]

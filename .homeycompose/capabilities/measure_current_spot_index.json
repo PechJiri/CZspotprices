@@ -1,0 +1,42 @@
+{
+  "type": "enum",
+  "title": {
+    "en": "Current Spot Price Index",
+    "cs": "Aktuální spotový index"
+  },
+  "getable": true,
+  "setable": false,
+  "insights": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/Actual_icon.svg",
+  "values": [
+    {
+      "id": "low",
+      "title": {
+        "en": "Low",
+        "cs": "Nízký"
+      }
+    },
+    {
+      "id": "medium",
+      "title": {
+        "en": "Medium",
+        "cs": "Střední"
+      }
+    },
+    {
+      "id": "high",
+      "title": {
+        "en": "High",
+        "cs": "Vysoký"
+      }
+    },
+    {
+      "id": "unknown",
+      "title": {
+        "en": "Unknown",
+        "cs": "Neznámý"
+      }
+    }
+  ]
+}

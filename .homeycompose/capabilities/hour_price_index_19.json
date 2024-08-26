@@ -1,0 +1,42 @@
+{
+    "type": "enum",
+    "title": {
+      "en": "Hour 19 Price Index",
+      "cs": "Index ceny od 19 hodin"
+    },
+    "values": [
+      {
+        "id": "low",
+        "title": {
+          "en": "Low",
+          "cs": "Nízký"
+        }
+      },
+      {
+        "id": "medium",
+        "title": {
+          "en": "Medium",
+          "cs": "Střední"
+        }
+      },
+      {
+        "id": "high",
+        "title": {
+          "en": "High",
+          "cs": "Vysoký"
+        }
+      },
+      {
+        "id": "unknown",
+        "title": {
+          "en": "Unknown",
+          "cs": "Neznámý"
+        }
+      }
+    ],
+    "getable": true,
+    "setable": false,
+    "uiComponent": "sensor",
+    "icon": "/assets/images/Index_icon.svg"
+  }
+  
