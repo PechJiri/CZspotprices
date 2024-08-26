@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 class SpotPriceAPI {
   constructor(homey) {
     this.homey = homey;
@@ -18,7 +16,7 @@ class SpotPriceAPI {
   async getCurrentPriceCZK(device) {
     const url = `${this.baseUrl}/get-actual-price-czk`;
     try {
-      const response = await fetch(url);
+      const response = await this.fetchUrl(url);
       await this.logRequestAndResponse(url, response);
 
       const responseText = await response.text();
@@ -34,6 +32,7 @@ class SpotPriceAPI {
 
       // Připočítání příslušného poplatku
       const finalPrice = basePrice + (isLowTariff ? lowTariffPrice : highTariffPrice);
+      this.homey.log(`Calculated final price for current hour (${currentHour}):`, finalPrice);
       return finalPrice;
     } catch (error) {
       this.homey.error('Error fetching current spot price in CZK:', error);
@@ -45,7 +44,7 @@ class SpotPriceAPI {
   async getCurrentPriceIndex() {
     const url = `${this.baseUrl}/get-actual-price-level`;
     try {
-      const response = await fetch(url);
+      const response = await this.fetchUrl(url);
       await this.logRequestAndResponse(url, response);
 
       const responseText = await response.text();
@@ -60,7 +59,7 @@ class SpotPriceAPI {
   async getDailyPrices(device) {
     const url = `${this.baseUrl}/get-prices-json`;
     try {
-      const response = await fetch(url);
+      const response = await this.fetchUrl(url);
       await this.logRequestAndResponse(url, response);
 
       const responseText = await response.text();
@@ -74,6 +73,7 @@ class SpotPriceAPI {
       hoursToday.forEach(hourData => {
         const tariffPrice = this.isLowTariff(hourData.hour, tariffHours) ? lowTariffPrice : highTariffPrice;
         hourData.priceCZK += tariffPrice;
+        this.homey.log(`Updated price for hour ${hourData.hour}:`, hourData.priceCZK);
       });
 
       return hoursToday;
@@ -136,6 +136,12 @@ class SpotPriceAPI {
     } else {
       this.homey.error(`Capability ${capability} value is invalid:`, value);
     }
+  }
+
+  // Pomocná funkce pro fetch s podporou ESM
+  async fetchUrl(url) {
+    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    return fetch(url);
   }
 }
 

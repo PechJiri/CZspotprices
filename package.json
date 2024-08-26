@@ -5,5 +5,8 @@
   "scripts": {},
   "devDependencies": {
     "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.7"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2"
   }
 }

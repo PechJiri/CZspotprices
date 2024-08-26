@@ -1,12 +1,22 @@
 'use strict';
 
 const Homey = require('homey');
-const SpotPriceAPI = require('./api'); // Předpoklad, že api.js je ve stejném adresáři
+const SpotPriceAPI = require('./api');
 
 class CZSpotPricesDevice extends Homey.Device {
 
   async onInit() {
     this.log('CZ Spot Prices device has been initialized');
+
+    // Získání ID zařízení z úložiště nebo nastavení výchozího
+    const deviceId = this.getData().id || this.getStoreValue('device_id');
+    if (!deviceId) {
+      const newDeviceId = this.generateDeviceId();
+      this.setStoreValue('device_id', newDeviceId);
+      this.log('Generated new device ID:', newDeviceId);
+    } else {
+      this.log('Using existing device ID:', deviceId);
+    }
 
     // Připojení k API
     this.spotPriceApi = new SpotPriceAPI(this.homey);
@@ -60,17 +70,29 @@ class CZSpotPricesDevice extends Homey.Device {
 
   async onSettings({ oldSettings, newSettings, changedKeys }) {
     this.log('CZ Spot Prices device settings were changed');
+    this.log('Old Settings:', oldSettings);
+    this.log('New Settings:', newSettings);
+    this.log('Changed Keys:', changedKeys);
 
+    // Uložení změněných nastavení
+    changedKeys.forEach((key) => {
+      this.homey.settings.set(key, newSettings[key]);
+      this.log(`Setting ${key} updated to:`, newSettings[key]);
+    });
+
+    // Změna intervalu pro získávání dat, pokud byl update_interval změněn
     if (changedKeys.includes('update_interval')) {
       this.startDataFetchInterval(newSettings.update_interval);
+      this.log('Data fetch interval updated to:', newSettings.update_interval);
     }
 
-    // Znovu načte data
+    // Znovu načte data z API
     await this.fetchAndUpdateSpotPrices();
   }
 
   async fetchAndUpdateSpotPrices() {
     try {
+      this.log('Fetching and updating spot prices...');
       const currentPrice = await this.spotPriceApi.getCurrentPriceCZK(this);
       const currentIndex = await this.spotPriceApi.getCurrentPriceIndex();
       const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
@@ -157,6 +179,12 @@ class CZSpotPricesDevice extends Homey.Device {
     this.dataFetchInterval = this.homey.setInterval(async () => {
       await this.fetchAndUpdateSpotPrices();
     }, 1000 * 60 * 60 * interval); // Interval v hodinách
+  }
+
+  generateDeviceId() {
+    const deviceId = this.homey.util.generateUniqueId();
+    this.log('Generated new device ID:', deviceId);
+    return deviceId;
   }
 }
 

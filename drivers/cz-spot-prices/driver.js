@@ -83,8 +83,8 @@ class CZSpotPricesDriver extends Homey.Driver {
   async onPairListDevices() {
     this.log("onPairListDevices called");
     try {
-      // Vygenerujeme unikátní ID pomocí crypto
-      const deviceId = crypto.randomUUID(); // Generujeme unikátní UUID
+      // Generujeme unikátní ID pomocí crypto.randomUUID()
+      const deviceId = crypto.randomUUID(); 
       const deviceName = 'CZ Spot Prices Device';
 
       this.log(`Device found: Name - ${deviceName}, ID - ${deviceId}`);
