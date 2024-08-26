@@ -1,6 +1,7 @@
 'use strict';
 
 const Homey = require('homey');
+const crypto = require('crypto'); // Importujeme knihovnu crypto
 
 class CZSpotPricesDriver extends Homey.Driver {
 
@@ -82,7 +83,13 @@ class CZSpotPricesDriver extends Homey.Driver {
   async onPairListDevices() {
     this.log("onPairListDevices called");
     try {
-      return [{ name: 'CZ Spot Prices Device', data: { id: 'cz_spot_prices_device' } }];
+      // Vygenerujeme unikátní ID pomocí crypto
+      const deviceId = crypto.randomUUID(); // Generujeme unikátní UUID
+      const deviceName = 'CZ Spot Prices Device';
+
+      this.log(`Device found: Name - ${deviceName}, ID - ${deviceId}`);
+      return [{ name: deviceName, data: { id: deviceId } }];
+      
     } catch (error) {
       this.log("Error during pairing:", error);
       throw error;
