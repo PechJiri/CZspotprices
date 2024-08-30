@@ -40,6 +40,21 @@ class SpotPriceAPI {
     }
   }
 
+  // Funkce pro získání aktuálního indexu (low, medium, high, unknown)
+  async getCurrentPriceIndex() {
+    const url = `${this.baseUrl}/get-actual-price-level`;
+    try {
+      const response = await this.fetchUrl(url);
+      await this.logRequestAndResponse(url, response);
+
+      const responseText = await response.text();
+      return responseText.trim(); // Vrátíme textovou hodnotu bez dalšího zpracování
+    } catch (error) {
+      this.homey.error('Error fetching current spot price index:', error);
+      throw error;
+    }
+  }
+
   // Funkce pro získání cen a indexů pro jednotlivé hodiny dne
   async getDailyPrices(device) {
     const url = `${this.baseUrl}/get-prices-json`;
@@ -59,21 +74,6 @@ class SpotPriceAPI {
         const tariffPrice = this.isLowTariff(hourData.hour, tariffHours) ? lowTariffPrice : highTariffPrice;
         hourData.priceCZK += tariffPrice;
         this.homey.log(`Updated price for hour ${hourData.hour}:`, hourData.priceCZK);
-      });
-
-      // Seřazení hodin podle ceny pro nastavení indexů
-      const sortedPrices = [...hoursToday].sort((a, b) => a.priceCZK - b.priceCZK);
-
-      // Nastavení indexů cen podle seřazených cen
-      sortedPrices.forEach((hourData, index) => {
-        if (index < 8) {
-          hourData.level = 'low';
-        } else if (index < 16) {
-          hourData.level = 'medium';
-        } else {
-          hourData.level = 'high';
-        }
-        this.homey.log(`Set price index for hour ${hourData.hour}:`, hourData.level);
       });
 
       return hoursToday;

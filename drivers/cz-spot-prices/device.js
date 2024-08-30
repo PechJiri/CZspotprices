@@ -176,9 +176,27 @@ class CZSpotPricesDevice extends Homey.Device {
       this.homey.clearInterval(this.dataFetchInterval);
     }
 
-    this.dataFetchInterval = this.homey.setInterval(async () => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const nextIntervalHour = Math.ceil(currentHour / interval) * interval;
+    let msUntilNextInterval = ((nextIntervalHour - currentHour) * 60 * 60 - now.getMinutes() * 60 - now.getSeconds()) * 1000 + 1000;
+
+    // Pokud je již nyní v příštím intervalu (např. při změně intervalu na kratší),
+    // je třeba čekat až do dalšího intervalu, který bude za n hodin
+    if (msUntilNextInterval <= 0) {
+      msUntilNextInterval += interval * 60 * 60 * 1000;
+    }
+
+    // Startujeme první fetch po správném časovém intervalu
+    this.homey.setTimeout(async () => {
       await this.fetchAndUpdateSpotPrices();
-    }, 1000 * 60 * 60 * interval); // Interval v hodinách
+
+      // Poté nastavujeme interval podle zvoleného intervalu
+      this.dataFetchInterval = this.homey.setInterval(async () => {
+        await this.fetchAndUpdateSpotPrices();
+      }, interval * 60 * 60 * 1000); // Interval v hodinách
+
+    }, msUntilNextInterval);
   }
 
   generateDeviceId() {

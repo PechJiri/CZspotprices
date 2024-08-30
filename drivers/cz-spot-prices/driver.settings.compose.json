@@ -15,10 +15,10 @@
     "id": "high_tariff_price",
     "type": "number",
     "label": {
-      "en": "Distribution price for high tariff (CZK)"
+      "en": "Distribution price for high tariff without VAT (CZK)"
     },
     "hint": {
-      "en": "Enter the distribution price during high tariff hours."
+      "en": "Enter the distribution price  without VAT during high tariff hours."
     },
     "value": 0,
     "min": 0
@@ -27,10 +27,10 @@
     "id": "low_tariff_price",
     "type": "number",
     "label": {
-      "en": "Distribution price for low tariff (CZK)"
+      "en": "Distribution price for low tariff without VAT  (CZK)"
     },
     "hint": {
-      "en": "Enter the distribution price during low tariff hours."
+      "en": "Enter the distribution price without VAT during low tariff hours."
     },
     "value": 0,
     "min": 0

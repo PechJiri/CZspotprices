@@ -4,5 +4,8 @@
   },
   "1.0.1": {
     "en": "bug fix"
+  },
+  "1.0.2": {
+    "en": "Removed CS translations for certification, changes in API calls"
   }
 }
