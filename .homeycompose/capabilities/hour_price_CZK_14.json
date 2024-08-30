@@ -1,8 +1,7 @@
 {
     "type": "number",
     "title": {
-      "en": "Hour 14 Price (CZK)",
-      "cs": "Cena od 14 hodin (CZK)"
+      "en": "Hour 14 Price (CZK)"
     },
     "units": "CZK",
     "decimals": 2,

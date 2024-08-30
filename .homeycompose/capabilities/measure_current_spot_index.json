@@ -1,8 +1,7 @@
 {
   "type": "enum",
   "title": {
-    "en": "Current Spot Price Index",
-    "cs": "Aktuální spotový index"
+    "en": "Current Spot Price Index"
   },
   "getable": true,
   "setable": false,
@@ -13,29 +12,25 @@
     {
       "id": "low",
       "title": {
-        "en": "Low",
-        "cs": "Nízký"
+        "en": "Low"
       }
     },
     {
       "id": "medium",
       "title": {
-        "en": "Medium",
-        "cs": "Střední"
+        "en": "Medium"
       }
     },
     {
       "id": "high",
       "title": {
-        "en": "High",
-        "cs": "Vysoký"
+        "en": "High"
       }
     },
     {
       "id": "unknown",
       "title": {
-        "en": "Unknown",
-        "cs": "Neznámý"
+        "en": "Unknown"
       }
     }
   ]

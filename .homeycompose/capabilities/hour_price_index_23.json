@@ -1,36 +1,31 @@
 {
     "type": "enum",
     "title": {
-      "en": "Hour 23 Price Index",
-      "cs": "Index ceny od 23 hodin"
+      "en": "Hour 23 Price Index"
     },
     "values": [
       {
         "id": "low",
         "title": {
-          "en": "Low",
-          "cs": "Nízký"
+          "en": "Low"
         }
       },
       {
         "id": "medium",
         "title": {
-          "en": "Medium",
-          "cs": "Střední"
+          "en": "Medium"
         }
       },
       {
         "id": "high",
         "title": {
-          "en": "High",
-          "cs": "Vysoký"
+          "en": "High"
         }
       },
       {
         "id": "unknown",
         "title": {
-          "en": "Unknown",
-          "cs": "Neznámý"
+          "en": "Unknown"
         }
       }
     ],

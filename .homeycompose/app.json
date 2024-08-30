@@ -7,12 +7,10 @@
     "local"
   ],
   "name": {
-    "en": "CZ spot prices",
-    "cs": "CZ spotové ceny"
+    "en": "CZ spot prices"
   },
   "description": {
-    "en": "Get your CZ spot prices with distribution fees",
-    "cs": "Získejte své spotové ceny s distribučními poplatky"
+    "en": "Get your CZ spot prices with distribution fees"
   },
   "category": [
     "energy"
@@ -44,8 +42,7 @@
     {
       "id": "cz-spot-prices",
       "name": {
-        "en": "CZ spot prices",
-        "cs": "CZ spotové ceny"
+        "en": "CZ spot prices"
       },
       "class": "sensor",
       "connectivity": [

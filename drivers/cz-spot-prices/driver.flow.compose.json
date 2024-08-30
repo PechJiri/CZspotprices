@@ -3,94 +3,81 @@
     {
       "id": "current-price-lower-than-trigger",
       "title": {
-        "en": "Current price is lower than",
-        "cs": "Aktuální cena je nižší než"
+        "en": "Current price is lower than"
       },
       "args": [
         {
           "name": "price",
           "type": "number",
           "title": {
-            "en": "Price",
-            "cs": "Cena"
+            "en": "Price"
           }
         }
       ],
       "titleFormatted": {
-        "en": "Current price is lower than [[price]] CZK",
-        "cs": "Aktuální cena je nižší než [[price]] CZK"
+        "en": "Current price is lower than [[price]] CZK"
       }
     },
     {
       "id": "current-price-higher-than-trigger",
       "title": {
-        "en": "Current price is higher than",
-        "cs": "Aktuální cena je vyšší než"
+        "en": "Current price is higher than"
       },
       "args": [
         {
           "name": "price",
           "type": "number",
           "title": {
-            "en": "Price",
-            "cs": "Cena"
+            "en": "Price"
           }
         }
       ],
       "titleFormatted": {
-        "en": "Current price is higher than [[price]] CZK",
-        "cs": "Aktuální cena je vyšší než [[price]] CZK"
+        "en": "Current price is higher than [[price]] CZK"
       }
     },
     {
       "id": "current-price-index-trigger",
       "title": {
-        "en": "Current price index is",
-        "cs": "Aktuální cenový index je"
+        "en": "Current price index is"
       },
       "args": [
         {
           "name": "index",
           "type": "dropdown",
           "title": {
-            "en": "Price Index",
-            "cs": "Cenový index"
+            "en": "Price Index"
           },
           "values": [
             {
               "id": "low",
               "title": {
-                "en": "Low",
-                "cs": "Nízký"
+                "en": "Low"
               }
             },
             {
               "id": "medium",
               "title": {
-                "en": "Medium",
-                "cs": "Střední"
+                "en": "Medium"
               }
             },
             {
               "id": "high",
               "title": {
-                "en": "High",
-                "cs": "Vysoký"
+                "en": "High"
               }
             },
             {
               "id": "unknown",
               "title": {
-                "en": "Unknown",
-                "cs": "Neznámý"
+                "en": "Unknown"
               }
             }
           ]
         }
       ],
       "titleFormatted": {
-        "en": "Current price index is [[index]]",
-        "cs": "Aktuální cenový index je [[index]]"
+        "en": "Current price index is [[index]]"
       }
     }
   ],
@@ -98,94 +85,81 @@
     {
       "id": "price-lower-than-condition",
       "title": {
-        "en": "Price is lower than",
-        "cs": "Cena je nižší než"
+        "en": "Price is lower than"
       },
       "args": [
         {
           "name": "price",
           "type": "number",
           "title": {
-            "en": "Price",
-            "cs": "Cena"
+            "en": "Price"
           }
         }
       ],
       "titleFormatted": {
-        "en": "Price is lower than [[price]] CZK",
-        "cs": "Cena je nižší než [[price]] CZK"
+        "en": "Price is lower than [[price]] CZK"
       }
     },
     {
       "id": "price-higher-than-condition",
       "title": {
-        "en": "Price is higher than",
-        "cs": "Cena je vyšší než"
+        "en": "Price is higher than"
       },
       "args": [
         {
           "name": "price",
           "type": "number",
           "title": {
-            "en": "Price",
-            "cs": "Cena"
+            "en": "Price"
           }
         }
       ],
       "titleFormatted": {
-        "en": "Price is higher than [[price]] CZK",
-        "cs": "Cena je vyšší než [[price]] CZK"
+        "en": "Price is higher than [[price]] CZK"
       }
     },
     {
       "id": "price-index-is-condition",
       "title": {
-        "en": "Price index is",
-        "cs": "Cenový index je"
+        "en": "Price index is"
       },
       "args": [
         {
           "name": "index",
           "type": "dropdown",
           "title": {
-            "en": "Price Index",
-            "cs": "Cenový index"
+            "en": "Price Index"
           },
           "values": [
             {
               "id": "low",
               "title": {
-                "en": "Low",
-                "cs": "Nízký"
+                "en": "Low"
               }
             },
             {
               "id": "medium",
               "title": {
-                "en": "Medium",
-                "cs": "Střední"
+                "en": "Medium"
               }
             },
             {
               "id": "high",
               "title": {
-                "en": "High",
-                "cs": "Vysoký"
+                "en": "High"
               }
             },
             {
               "id": "unknown",
               "title": {
-                "en": "Unknown",
-                "cs": "Neznámý"
+                "en": "Unknown"
               }
             }
           ]
         }
       ],
       "titleFormatted": {
-        "en": "Price index is [[index]]",
-        "cs": "Cenový index je [[index]]"
+        "en": "Price index is [[index]]"
       }
     }
   ],
@@ -193,13 +167,11 @@
     {
       "id": "update_data_via_api",
       "title": {
-        "en": "Update data via API",
-        "cs": "Aktualizovat data přes API"
+        "en": "Update current and hourly data via API"
       },
       "args": [],
       "titleFormatted": {
-        "en": "Update data via API",
-        "cs": "Aktualizovat data přes API"
+        "en": "Update current and hourly data via API"
       }
     }
   ]

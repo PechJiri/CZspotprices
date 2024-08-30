@@ -1,8 +1,7 @@
 {
   "type": "number",
   "title": {
-    "en": "Current Spot Price (CZK)",
-    "cs": "Aktuální spotová cena (CZK)"
+    "en": "Current Spot Price (CZK)"
   },
   "units": "CZK",
   "decimals": 0,
