@@ -266,6 +266,7 @@
       "connectivity": [
         "cloud"
       ],
+      "icon": "/drivers/assets/icon.svg",
       "capabilities": [
         "measure_current_spot_price_CZK",
         "measure_current_spot_index",

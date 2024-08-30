@@ -94,7 +94,7 @@ class CZSpotPricesDevice extends Homey.Device {
     try {
       this.log('Fetching and updating spot prices...');
       const currentPrice = await this.spotPriceApi.getCurrentPriceCZK(this);
-      const currentIndex = await this.spotPriceApi.getCurrentPriceIndex();
+      const currentIndex = await this.spotPriceApi.getCurrentPriceIndex(this);
       const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
 
       await this.setCapabilityValue('measure_current_spot_price_CZK', currentPrice);

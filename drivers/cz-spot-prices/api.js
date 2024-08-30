@@ -83,6 +83,30 @@ class SpotPriceAPI {
     }
   }
 
+  // Funkce pro získání aktuálního cenového indexu pro danou hodinu
+  async getCurrentPriceIndex(device) {
+    try {
+      // Získání aktuální hodiny
+      const currentHour = new Date().getHours();
+
+      // Získání cen a indexů pro celý den
+      const hoursToday = await this.getDailyPrices(device);
+
+      // Najít index pro aktuální hodinu
+      const currentHourData = hoursToday.find(hourData => hourData.hour === currentHour);
+
+      if (currentHourData) {
+        return currentHourData.level;
+      } else {
+        this.homey.log(`No data found for current hour (${currentHour})`);
+        return 'unknown'; // Pokud není nalezena aktuální hodina, vrátíme 'unknown'
+      }
+    } catch (error) {
+      this.homey.error('Error fetching current price index:', error);
+      throw error;
+    }
+  }
+
   // Funkce pro aktualizaci capability s připočítáním distribuce
   async updateCapabilities(device) {
     try {
@@ -118,7 +142,7 @@ class SpotPriceAPI {
   async updateCurrentValues(device) {
     try {
       const currentPriceCZK = await this.getCurrentPriceCZK(device);
-      const currentPriceIndex = await this.getCurrentPriceIndex();
+      const currentPriceIndex = await this.getCurrentPriceIndex(device);
 
       this.setCapability(device, 'measure_current_spot_price_CZK', currentPriceCZK);
       this.setCapability(device, 'measure_current_spot_index', currentPriceIndex);
