@@ -37,7 +37,7 @@
   "source": "https://github.com/PechJiri/CZspotprices",
   "homepage": "https://spotovaelektrina.cz/",
   "support": "mailto:jiri.pech@centrum.cz",
-  "homeyCommunityTopicId": 0,
+  "homeyCommunityTopicId": 116949,
   "drivers": [
     {
       "id": "cz-spot-prices",
