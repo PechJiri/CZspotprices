@@ -79,6 +79,46 @@
       "titleFormatted": {
         "en": "Current price index is [[index]]"
       }
+    },
+    {
+      "id": "average-price-trigger",
+      "title": {
+        "en": "Average price for next X hours is [lowest/highest] within this day"
+      },
+      "args": [
+        {
+          "name": "hours",
+          "type": "number",
+          "title": {
+            "en": "Number of hours"
+          },
+          "value": 1
+        },
+        {
+          "name": "condition",
+          "type": "dropdown",
+          "title": {
+            "en": "lowest/highest"
+          },
+          "values": [
+            {
+              "id": "lowest",
+              "title": {
+                "en": "Lowest"
+              }
+            },
+            {
+              "id": "highest",
+              "title": {
+                "en": "Highest"
+              }
+            }
+          ]
+        }
+      ],
+      "titleFormatted": {
+        "en": "Average price for next [[hours]] hours is [[condition]] within this day"
+      }
     }
   ],
   "conditions": [
@@ -160,6 +200,46 @@
       ],
       "titleFormatted": {
         "en": "Price index is [[index]]"
+      }
+    },
+    {
+      "id": "average-price-condition",
+      "title": {
+        "en": "Average price for next X hours is [lowest/highest] within this day"
+      },
+      "args": [
+        {
+          "name": "hours",
+          "type": "number",
+          "title": {
+            "en": "Number of hours"
+          },
+          "value": 1
+        },
+        {
+          "name": "condition",
+          "type": "dropdown",
+          "title": {
+            "en": "lowest/highest"
+          },
+          "values": [
+            {
+              "id": "lowest",
+              "title": {
+                "en": "Lowest"
+              }
+            },
+            {
+              "id": "highest",
+              "title": {
+                "en": "Highest"
+              }
+            }
+          ]
+        }
+      ],
+      "titleFormatted": {
+        "en": "Average price for next [[hours]] hours is [[condition]] within this day"
       }
     }
   ],

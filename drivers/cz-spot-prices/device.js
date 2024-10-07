@@ -38,7 +38,8 @@ class CZSpotPricesDevice extends Homey.Device {
     // Definice schopností (capabilities)
     const capabilities = [
       'measure_current_spot_price_CZK',
-      'measure_current_spot_index'
+      'measure_current_spot_index',
+      'daily_average_price'
     ];
 
     for (let i = 0; i < 24; i++) {
@@ -105,6 +106,9 @@ class CZSpotPricesDevice extends Homey.Device {
         await this.setCapabilityValue(`hour_price_index_${hour}`, priceData.level);
       });
 
+      // Aktualizace průměrné denní ceny
+      await this.spotPriceApi.updateDailyAverageCapability(this);
+
       this.log('Spot prices updated successfully.');
     } catch (error) {
       this.error(`Error fetching spot prices: ${error}`);
@@ -137,6 +141,34 @@ class CZSpotPricesDevice extends Homey.Device {
         .registerRunListener(async (args, state) => {
           const currentIndex = await this.getCapabilityValue('measure_current_spot_index');
           return currentIndex === args.index;
+        });
+
+      this.homey.flow.getDeviceConditionCard('average-price-condition')
+        .registerRunListener(async (args, state) => {
+          const { hours, condition } = args;
+          const allCombinations = [];
+
+          // Calculate average prices for each possible time period
+          for (let startHour = 0; startHour <= 24 - hours; startHour++) {
+            let total = 0;
+            for (let i = startHour; i < startHour + hours; i++) {
+              const price = await this.getCapabilityValue(`hour_price_CZK_${i}`);
+              if (price === null || price === undefined) {
+                throw new Error(`Missing price data for hour ${i}`);
+              }
+              total += price;
+            }
+            const avg = total / hours;
+            allCombinations.push({ startHour, avg });
+          }
+
+          // Determine highest or lowest average based on the user's condition
+          const sortedCombinations = allCombinations.sort((a, b) => a.avg - b.avg);
+          const targetCombination = condition === 'lowest' ? sortedCombinations[0] : sortedCombinations[sortedCombinations.length - 1];
+
+          // Check if current hour is within the best combination
+          const currentHour = new Date().getHours();
+          return currentHour >= targetCombination.startHour && currentHour < (targetCombination.startHour + hours);
         });
     } else {
       this.log('getDeviceConditionCard is not available');

@@ -1,6 +1,6 @@
 {
   "id": "com.spotprice.cz",
-  "version": "1.1.1",
+  "version": "1.0.4",
   "compatibility": ">=12.0.0",
   "sdk": 3,
   "platforms": [
@@ -52,6 +52,7 @@
       "capabilities": [
         "measure_current_spot_price_CZK",
         "measure_current_spot_index",
+        "daily_average_price",
         "hour_price_CZK_0",
         "hour_price_index_0",
         "hour_price_CZK_1",

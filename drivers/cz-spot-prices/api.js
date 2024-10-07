@@ -1,3 +1,5 @@
+const Homey = require('homey');
+
 class SpotPriceAPI {
   constructor(homey) {
     this.homey = homey;
@@ -117,8 +119,37 @@ class SpotPriceAPI {
         this.setCapability(device, `hour_price_CZK_${hourData.hour}`, hourData.priceCZK);
         this.setCapability(device, `hour_price_index_${hourData.hour}`, hourData.level);
       });
+
+      // Aktualizace průměrné denní ceny
+      await this.updateDailyAverageCapability(device);
     } catch (error) {
       this.homey.error('Error updating capabilities:', error);
+    }
+  }
+
+  // Funkce pro výpočet a aktualizaci průměrné denní ceny
+  async updateDailyAverageCapability(device) {
+    try {
+      let totalPrice = 0;
+      let count = 0;
+
+      for (let i = 0; i < 24; i++) {
+        const price = await device.getCapabilityValue(`hour_price_CZK_${i}`);
+        if (price !== null && price !== undefined) {
+          totalPrice += price;
+          count++;
+        }
+      }
+
+      if (count === 0) {
+        throw new Error('No valid hourly prices available to calculate the average.');
+      }
+
+      const averagePrice = totalPrice / count;
+      this.homey.log('Average daily price calculated:', averagePrice);
+      await device.setCapabilityValue('daily_average_price', averagePrice);
+    } catch (error) {
+      this.homey.error('Error updating daily average price capability:', error);
     }
   }
 
