@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.spotprice.cz",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "compatibility": ">=12.0.0",
   "sdk": 3,
   "platforms": [
@@ -277,6 +277,51 @@
         "titleFormatted": {
           "en": "Price index is [[index]]"
         }
+      },
+      {
+        "id": "average-price-condition",
+        "title": {
+          "en": "Average price for next X hours is [lowest/highest] within this day"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          },
+          {
+            "name": "hours",
+            "type": "number",
+            "title": {
+              "en": "Number of hours"
+            },
+            "value": 1
+          },
+          {
+            "name": "condition",
+            "type": "dropdown",
+            "title": {
+              "en": "lowest/highest"
+            },
+            "values": [
+              {
+                "id": "lowest",
+                "title": {
+                  "en": "Lowest"
+                }
+              },
+              {
+                "id": "highest",
+                "title": {
+                  "en": "Highest"
+                }
+              }
+            ]
+          }
+        ],
+        "titleFormatted": {
+          "en": "Average price for next [[hours]] hours is [[condition]] within this day"
+        }
       }
     ],
     "actions": [
@@ -364,131 +409,6 @@
         "hour_price_CZK_23",
         "hour_price_index_23"
       ],
-      "capabilitiesOptions": {
-        "measure_current_spot_price_CZK": {
-          "title": {
-            "en": "Current Spot Price (CZK)"
-          },
-          "units": {
-            "en": "CZK"
-          },
-          "decimals": 2,
-          "icon": "/assets/images/price_icon.svg"
-        },
-        "measure_current_spot_index": {
-          "title": {
-            "en": "Current Spot Price Index"
-          },
-          "values": [
-            {
-              "id": "low",
-              "title": {
-                "en": "Low"
-              }
-            },
-            {
-              "id": "medium",
-              "title": {
-                "en": "Medium"
-              }
-            },
-            {
-              "id": "high",
-              "title": {
-                "en": "High"
-              }
-            },
-            {
-              "id": "unknown",
-              "title": {
-                "en": "Unknown"
-              }
-            }
-          ]
-        },
-        "hour_price_CZK_0": {
-          "title": {
-            "en": "Price at 00:00 (CZK)"
-          },
-          "units": {
-            "en": "CZK"
-          },
-          "decimals": 2,
-          "icon": "/assets/images/price_icon.svg"
-        },
-        "hour_price_index_0": {
-          "title": {
-            "en": "Price Index at 00:00"
-          },
-          "values": [
-            {
-              "id": "low",
-              "title": {
-                "en": "Low"
-              }
-            },
-            {
-              "id": "medium",
-              "title": {
-                "en": "Medium"
-              }
-            },
-            {
-              "id": "high",
-              "title": {
-                "en": "High"
-              }
-            },
-            {
-              "id": "unknown",
-              "title": {
-                "en": "Unknown"
-              }
-            }
-          ]
-        },
-        "hour_price_CZK_23": {
-          "title": {
-            "en": "Price at 23:00 (CZK)"
-          },
-          "units": {
-            "en": "CZK"
-          },
-          "decimals": 2,
-          "icon": "/assets/images/price_icon.svg"
-        },
-        "hour_price_index_23": {
-          "title": {
-            "en": "Price Index at 23:00"
-          },
-          "values": [
-            {
-              "id": "low",
-              "title": {
-                "en": "Low"
-              }
-            },
-            {
-              "id": "medium",
-              "title": {
-                "en": "Medium"
-              }
-            },
-            {
-              "id": "high",
-              "title": {
-                "en": "High"
-              }
-            },
-            {
-              "id": "unknown",
-              "title": {
-                "en": "Unknown"
-              }
-            }
-          ]
-        }
-      },
       "images": {
         "small": "/drivers/cz-spot-prices/assets/images/device_small.png",
         "large": "/drivers/cz-spot-prices/assets/images/device_large.png",
@@ -560,181 +480,6 @@
               "hour_price_index_22",
               "hour_price_index_23"
             ]
-          }
-        ]
-      },
-      "flow": {
-        "triggers": [
-          {
-            "id": "current-price-lower-than-trigger",
-            "title": {
-              "en": "Current price is lower than"
-            },
-            "args": [
-              {
-                "name": "price",
-                "type": "number",
-                "title": {
-                  "en": "Price"
-                }
-              }
-            ],
-            "titleFormatted": {
-              "en": "Current price is lower than [[price]] CZK"
-            }
-          },
-          {
-            "id": "current-price-higher-than-trigger",
-            "title": {
-              "en": "Current price is higher than"
-            },
-            "args": [
-              {
-                "name": "price",
-                "type": "number",
-                "title": {
-                  "en": "Price"
-                }
-              }
-            ],
-            "titleFormatted": {
-              "en": "Current price is higher than [[price]] CZK"
-            }
-          },
-          {
-            "id": "current-price-index-trigger",
-            "title": {
-              "en": "Current price index is"
-            },
-            "args": [
-              {
-                "name": "index",
-                "type": "enum",
-                "title": {
-                  "en": "Price Index"
-                },
-                "values": [
-                  {
-                    "id": "low",
-                    "title": {
-                      "en": "Low"
-                    }
-                  },
-                  {
-                    "id": "medium",
-                    "title": {
-                      "en": "Medium"
-                    }
-                  },
-                  {
-                    "id": "high",
-                    "title": {
-                      "en": "High"
-                    }
-                  },
-                  {
-                    "id": "unknown",
-                    "title": {
-                      "en": "Unknown"
-                    }
-                  }
-                ]
-              }
-            ],
-            "titleFormatted": {
-              "en": "Current price index is [[index]]"
-            }
-          }
-        ],
-        "conditions": [
-          {
-            "id": "price-lower-than-condition",
-            "title": {
-              "en": "Price is lower than"
-            },
-            "args": [
-              {
-                "name": "price",
-                "type": "number",
-                "title": {
-                  "en": "Price"
-                }
-              }
-            ],
-            "titleFormatted": {
-              "en": "Price is lower than [[price]] CZK"
-            }
-          },
-          {
-            "id": "price-higher-than-condition",
-            "title": {
-              "en": "Price is higher than"
-            },
-            "args": [
-              {
-                "name": "price",
-                "type": "number",
-                "title": {
-                  "en": "Price"
-                }
-              }
-            ],
-            "titleFormatted": {
-              "en": "Price is higher than [[price]] CZK"
-            }
-          },
-          {
-            "id": "price-index-is-condition",
-            "title": {
-              "en": "Price index is"
-            },
-            "args": [
-              {
-                "name": "index",
-                "type": "enum",
-                "title": {
-                  "en": "Price Index"
-                },
-                "values": [
-                  {
-                    "id": "low",
-                    "title": {
-                      "en": "Low"
-                    }
-                  },
-                  {
-                    "id": "medium",
-                    "title": {
-                      "en": "Medium"
-                    }
-                  },
-                  {
-                    "id": "high",
-                    "title": {
-                      "en": "High"
-                    }
-                  },
-                  {
-                    "id": "unknown",
-                    "title": {
-                      "en": "Unknown"
-                    }
-                  }
-                ]
-              }
-            ],
-            "titleFormatted": {
-              "en": "Price index is [[index]]"
-            }
-          }
-        ],
-        "actions": [
-          {
-            "id": "update_data_via_api",
-            "title": {
-              "en": "Update current and hourly data via API"
-            },
-            "args": []
           }
         ]
       },

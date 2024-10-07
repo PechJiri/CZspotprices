@@ -16,5 +16,8 @@
   },
   "1.1.0": {
     "en": "New capability - daily average price, new trigger - price for x hours is highest/lowest for the day"
+  },
+  "1.1.1": {
+    "en": "AND card, text corrections"
   }
 }
