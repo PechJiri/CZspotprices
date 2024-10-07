@@ -13,5 +13,8 @@
   },
   "1.0.4": {
     "en": "Added community topic in forum"
+  },
+  "1.1.0": {
+    "en": "New capability - daily average price, new trigger - price for x hours is highest/lowest for the day"
   }
 }

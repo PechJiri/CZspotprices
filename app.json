@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.spotprice.cz",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "compatibility": ">=12.0.0",
   "sdk": 3,
   "platforms": [
@@ -134,6 +134,51 @@
         ],
         "titleFormatted": {
           "en": "Current price index is [[index]]"
+        }
+      },
+      {
+        "id": "average-price-trigger",
+        "title": {
+          "en": "Average price for next X hours is [lowest/highest] within this day"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          },
+          {
+            "name": "hours",
+            "type": "number",
+            "title": {
+              "en": "Number of hours"
+            },
+            "value": 1
+          },
+          {
+            "name": "condition",
+            "type": "dropdown",
+            "title": {
+              "en": "lowest/highest"
+            },
+            "values": [
+              {
+                "id": "lowest",
+                "title": {
+                  "en": "Lowest"
+                }
+              },
+              {
+                "id": "highest",
+                "title": {
+                  "en": "Highest"
+                }
+              }
+            ]
+          }
+        ],
+        "titleFormatted": {
+          "en": "Average price for next [[hours]] hours is [[condition]] within this day"
         }
       }
     ],
@@ -948,6 +993,19 @@
     }
   ],
   "capabilities": {
+    "daily_average_price": {
+      "type": "number",
+      "title": {
+        "en": "Daily average price (CZK)"
+      },
+      "units": "CZK",
+      "decimals": 0,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Price_icon.svg"
+    },
     "hour_price_CZK_0": {
       "type": "number",
       "title": {
