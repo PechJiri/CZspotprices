@@ -19,5 +19,8 @@
   },
   "1.1.1": {
     "en": "AND card, text corrections"
+  },
+  "1.0.5": {
+    "en": "new trigger - when api fails, widgets for testing"
   }
 }
