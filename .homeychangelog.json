@@ -22,5 +22,8 @@
   },
   "1.0.5": {
     "en": "new trigger - when api fails, widgets for testing"
+  },
+  "1.0.6": {
+    "en": "Fixed api fail trigger"
   }
 }
