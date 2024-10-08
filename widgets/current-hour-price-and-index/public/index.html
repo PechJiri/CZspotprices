@@ -1,0 +1,77 @@
+<html>
+<head>
+  <style>
+    .price-widget {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+    }
+    .price {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .index {
+      display: flex;
+      align-items: center;
+    }
+    .circle {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .low {
+      background-color: green;
+    }
+    .medium {
+      background-color: orange;
+    }
+    .high {
+      background-color: red;
+    }
+    .unknown {
+      background-color: white;
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <div id="price-widget" class="price-widget">
+    <div class="price" id="price"></div>
+    <div class="index" id="index">
+      <div class="circle" id="index-circle"></div>
+      <span id="index-text"></span>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    function onHomeyReady(Homey) {
+      Homey.ready({ height: 100 });
+
+      Homey.api('GET', '/spot-price', {})
+        .then(({ price, index }) => {
+          document.getElementById('price').innerText = `${price} CZK`;
+
+          const indexText = document.getElementById('index-text');
+          const indexCircle = document.getElementById('index-circle');
+
+          indexText.innerText = index;
+
+          // Nastavení barvy kolečka podle indexu
+          if (index === 'low') {
+            indexCircle.className = 'circle low';
+          } else if (index === 'medium') {
+            indexCircle.className = 'circle medium';
+          } else if (index === 'high') {
+            indexCircle.className = 'circle high';
+          } else {
+            indexCircle.className = 'circle unknown';
+          }
+        })
+        .catch(console.error);
+    }
+  </script>
+</body>
+</html>

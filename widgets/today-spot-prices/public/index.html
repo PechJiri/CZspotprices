@@ -1,0 +1,70 @@
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .chart-container {
+      position: relative;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+</head>
+<body class="homey-widget">
+
+  <div class="chart-container">
+    <canvas id="hourlyPricesChart"></canvas>
+  </div>
+
+  <script type="text/javascript">
+    function onHomeyReady(Homey) {
+      Homey.ready({ height: 300 });
+
+      Homey.api('GET', '/hourly-prices', {})
+        .then((prices) => {
+          // Získání maximální ceny +20 %
+          const maxPrice = Math.max(...prices) * 1.2;
+
+          // Vytvoření grafu
+          const ctx = document.getElementById('hourlyPricesChart').getContext('2d');
+          const hourlyPricesChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: Array.from({ length: 24 }, (_, i) => `${i}:00`), // Popisky pro jednotlivé hodiny
+              datasets: [{
+                label: 'Price (CZK)',
+                data: prices,
+                backgroundColor: 'blue'
+              }]
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: maxPrice,
+                  ticks: {
+                    color: 'lightgray' // Popisky os
+                  }
+                },
+                x: {
+                  ticks: {
+                    color: 'lightgray' // Popisky os
+                  }
+                }
+              },
+              plugins: {
+                legend: {
+                  display: false
+                }
+              }
+            }
+          });
+
+          // Detekce light/dark módu pro nastavení pozadí
+          const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.body.style.backgroundColor = isDarkMode ? 'black' : 'white';
+        })
+        .catch(console.error);
+    }
+  </script>
+</body>
+</html>

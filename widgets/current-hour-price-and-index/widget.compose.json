@@ -1,0 +1,13 @@
+{
+  "name": {
+    "en": "Electricity Price Widget"
+  },
+  "settings": [],
+  "height": 100,
+  "api": {
+    "getSpotPrice": {
+      "method": "GET",
+      "path": "/spot-price"
+    }
+  }
+}

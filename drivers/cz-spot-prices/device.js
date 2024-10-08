@@ -113,6 +113,10 @@ class CZSpotPricesDevice extends Homey.Device {
     } catch (error) {
       this.error(`Error fetching spot prices: ${error}`);
       this.setUnavailable(`Error fetching data (${error})`);
+
+      // Trigger the WHEN card when API call fails
+      this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger')
+        .trigger(this, { error_message: error.message });
     }
   }
 
@@ -190,6 +194,12 @@ class CZSpotPricesDevice extends Homey.Device {
       .registerRunListener(async (args, state) => {
         const currentIndex = await this.getCapabilityValue('measure_current_spot_index');
         return currentIndex === args.index;
+      });
+
+    this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger')
+      .registerRunListener(async (args, state) => {
+        // Triggered when an API call fails
+        return true;
       });
   }
 

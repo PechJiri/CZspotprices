@@ -119,6 +119,24 @@
       "titleFormatted": {
         "en": "Average price for next [[hours]] hours is [[condition]] within this day"
       }
+    },
+    {
+      "id": "when-api-call-fails-trigger",
+      "title": {
+        "en": "When API call fails"
+      },
+      "tokens": [
+        {
+          "name": "error_message",
+          "type": "string",
+          "title": {
+            "en": "Error Message"
+          }
+        }
+      ],
+      "titleFormatted": {
+        "en": "API call failed"
+      }
     }
   ],
   "conditions": [

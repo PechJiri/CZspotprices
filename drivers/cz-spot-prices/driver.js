@@ -52,6 +52,8 @@ class CZSpotPricesDriver extends Homey.Driver {
         // Check if current hour is within the best combination
         return currentHour >= targetCombination.startHour && currentHour < (targetCombination.startHour + hours);
       });
+
+      this.homey.flow.getTriggerCard('when-api-call-fails-trigger');
       this.log('Trigger Flow cards registered successfully.');
     } catch (error) {
       this.error('Error registering trigger Flow cards:', error);
@@ -136,6 +138,8 @@ class CZSpotPricesDriver extends Homey.Driver {
               await device.fetchAndUpdateSpotPrices();
             } catch (error) {
               this.error(`Error updating spot prices for device ${device.getName()}:`, error);
+              // Trigger the WHEN card when API call fails
+              this.homey.flow.getTriggerCard('when-api-call-fails-trigger').trigger(device, { error_message: error.message });
             }
           });
           await Promise.all(promises);

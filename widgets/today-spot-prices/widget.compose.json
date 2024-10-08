@@ -1,0 +1,13 @@
+{
+  "name": {
+    "en": "Todaz Spot Price Graph"
+  },
+  "settings": [],
+  "height": 300,
+  "api": {
+    "getHourlyPrices": {
+      "method": "GET",
+      "path": "/hourly-prices"
+    }
+  }
+}
