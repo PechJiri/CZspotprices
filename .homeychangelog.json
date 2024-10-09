@@ -25,5 +25,8 @@
   },
   "1.0.6": {
     "en": "Fixed api fail trigger"
+  },
+  "1.0.7": {
+    "en": "fixed device values when api fails, fixed error trigger"
   }
 }
