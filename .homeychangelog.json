@@ -28,5 +28,8 @@
   },
   "1.0.7": {
     "en": "fixed device values when api fails, fixed error trigger"
+  },
+  "1.0.8": {
+    "en": "minor fix"
   }
 }
