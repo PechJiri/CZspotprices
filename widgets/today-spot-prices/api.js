@@ -2,11 +2,25 @@
 
 module.exports = {
   async getHourlyPrices({ homey }) {
-    const prices = [];
-    for (let i = 0; i < 24; i++) {
-      const price = await homey.devices.getCapabilityValue(`hour_price_CZK_${i}`);
-      prices.push(price);
+    try {
+      const device = await homey.drivers.getDriver('cz-spot-prices').getDevice();
+      const hourlyPrices = [];
+      
+      for (let i = 0; i < 24; i++) {
+        const price = await device.getCapabilityValue(`hour_price_CZK_${i}`);
+        const isHighTariff = !(await device.getSetting(`hour_${i}`));
+        hourlyPrices.push({ hour: i, price, isHighTariff });
+      }
+
+      const averagePrice = await device.getCapabilityValue('daily_average_price');
+
+      return {
+        hourlyPrices,
+        averagePrice
+      };
+    } catch (error) {
+      console.error('Error fetching hourly prices:', error);
+      throw error;
     }
-    return prices;
   }
 };

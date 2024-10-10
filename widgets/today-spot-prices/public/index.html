@@ -1,70 +1,111 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    .chart-container {
-      position: relative;
-      height: 100%;
-      width: 100%;
-    }
-  </style>
+    <meta charset="utf-8">
+    <title>Today Spot Prices Graph</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.1.9/Recharts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
 </head>
-<body class="homey-widget">
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } = Recharts;
 
-  <div class="chart-container">
-    <canvas id="hourlyPricesChart"></canvas>
-  </div>
+        const TodaySpotPricesGraph = () => {
+          const [data, setData] = useState([]);
+          const [averagePrice, setAveragePrice] = useState(0);
 
-  <script type="text/javascript">
-    function onHomeyReady(Homey) {
-      Homey.ready({ height: 300 });
-
-      Homey.api('GET', '/hourly-prices', {})
-        .then((prices) => {
-          // Získání maximální ceny +20 %
-          const maxPrice = Math.max(...prices) * 1.2;
-
-          // Vytvoření grafu
-          const ctx = document.getElementById('hourlyPricesChart').getContext('2d');
-          const hourlyPricesChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-              labels: Array.from({ length: 24 }, (_, i) => `${i}:00`), // Popisky pro jednotlivé hodiny
-              datasets: [{
-                label: 'Price (CZK)',
-                data: prices,
-                backgroundColor: 'blue'
-              }]
-            },
-            options: {
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  max: maxPrice,
-                  ticks: {
-                    color: 'lightgray' // Popisky os
-                  }
-                },
-                x: {
-                  ticks: {
-                    color: 'lightgray' // Popisky os
-                  }
-                }
-              },
-              plugins: {
-                legend: {
-                  display: false
-                }
+          useEffect(() => {
+            const fetchData = async () => {
+              try {
+                const result = await Homey.api('GET', '/hourly-prices');
+                setData(result.hourlyPrices);
+                setAveragePrice(result.averagePrice);
+              } catch (error) {
+                console.error('Error fetching hourly prices:', error);
               }
-            }
-          });
+            };
 
-          // Detekce light/dark módu pro nastavení pozadí
-          const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          document.body.style.backgroundColor = isDarkMode ? 'black' : 'white';
-        })
-        .catch(console.error);
-    }
-  </script>
+            fetchData();
+            const midnight = new Date();
+            midnight.setHours(24, 0, 0, 0);
+            const msUntilMidnight = midnight.getTime() - new Date().getTime();
+
+            const timeoutId = setTimeout(() => {
+              fetchData();
+              setInterval(fetchData, 24 * 60 * 60 * 1000); // Refresh every 24 hours
+            }, msUntilMidnight);
+
+            return () => {
+              clearTimeout(timeoutId);
+            };
+          }, []);
+
+          const getBarColor = (price, index) => {
+            const sortedPrices = [...data].sort((a, b) => b.price - a.price);
+            const isHighTariff = data[index].isHighTariff;
+            
+            if (sortedPrices.indexOf(data[index]) < 3) {
+              return isHighTariff ? '#ef4444' : '#f87171'; // Red shades
+            } else if (sortedPrices.indexOf(data[index]) >= data.length - 3) {
+              return isHighTariff ? '#22c55e' : '#4ade80'; // Green shades
+            } else {
+              return isHighTariff ? '#6b7280' : '#9ca3af'; // Gray shades
+            }
+          };
+
+          const CustomBar = (props) => {
+            const { x, y, width, height, index } = props;
+            const fill = getBarColor(props.value, index);
+            return <rect x={x} y={y} width={width} height={height} fill={fill} />;
+          };
+
+          const CustomLabel = (props) => {
+            const { x, y, value, index } = props;
+            const sortedPrices = [...data].sort((a, b) => b.price - a.price);
+            if (sortedPrices.indexOf(data[index]) < 3 || sortedPrices.indexOf(data[index]) >= data.length - 3) {
+              return (
+                <text x={x + 14} y={y - 5} fill="#333" textAnchor="middle" fontSize={8}>
+                  {value.toFixed(2)}
+                </text>
+              );
+            }
+            return null;
+          };
+
+          Homey.ready();
+
+          return (
+            <div className="flex flex-col h-full p-4 bg-white dark:bg-gray-800">
+              <h2 className="text-xl font-bold mb-1 text-center text-gray-800 dark:text-white">Today Spot Prices</h2>
+              <p className="text-[0.6rem] mb-6 text-center text-gray-600 dark:text-gray-300">
+                Today average price - {averagePrice.toFixed(2)} CZK
+              </p>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="hour" 
+                    interval={0}
+                    tick={{ fontSize: 8 }}
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 8 }}
+                    domain={[0, 'dataMax + 500']}
+                    tickFormatter={(value) => `${value.toFixed(0)}`}
+                  />
+                  <Bar dataKey="price" shape={<CustomBar />} label={<CustomLabel />} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          );
+        };
+
+        ReactDOM.render(<TodaySpotPricesGraph />, document.getElementById('root'));
+    </script>
 </body>
 </html>

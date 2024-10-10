@@ -2,9 +2,18 @@
 
 module.exports = {
   async getSpotPrice({ homey }) {
-    const price = await homey.devices.getCapabilityValue('measure_current_spot_price_CZK');
-    const index = await homey.devices.getCapabilityValue('measure_current_spot_price_index');
+    try {
+      const device = await homey.drivers.getDriver('cz-spot-prices').getDevice();
+      const currentSpotPrice = await device.getCapabilityValue('measure_current_spot_price_CZK');
+      const currentSpotIndex = await device.getCapabilityValue('measure_current_spot_index');
 
-    return { price, index };
+      return {
+        currentSpotPrice,
+        currentSpotIndex
+      };
+    } catch (error) {
+      console.error('Error fetching spot price data:', error);
+      throw error;
+    }
   }
 };

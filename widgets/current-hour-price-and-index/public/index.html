@@ -1,77 +1,68 @@
+<!DOCTYPE html>
 <html>
 <head>
-  <style>
-    .price-widget {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      font-family: Arial, sans-serif;
-      font-size: 16px;
-    }
-    .price {
-      font-size: 20px;
-      font-weight: bold;
-    }
-    .index {
-      display: flex;
-      align-items: center;
-    }
-    .circle {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-right: 8px;
-    }
-    .low {
-      background-color: green;
-    }
-    .medium {
-      background-color: orange;
-    }
-    .high {
-      background-color: red;
-    }
-    .unknown {
-      background-color: white;
-      border: 1px solid black;
-    }
-  </style>
+    <meta charset="utf-8">
+    <title>Electricity Price Widget</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
 </head>
 <body>
-  <div id="price-widget" class="price-widget">
-    <div class="price" id="price"></div>
-    <div class="index" id="index">
-      <div class="circle" id="index-circle"></div>
-      <span id="index-text"></span>
+    <div id="root"></div>
+    <script type="text/babel">
+import React, { useState, useEffect } from 'react';
+import { CircleIcon } from 'lucide-react';
+
+const priceIndexColors = {
+  low: 'text-green-500',
+  medium: 'text-gray-500',
+  high: 'text-red-500',
+  unknown: 'text-yellow-500'
+};
+
+const CurrentHourPriceAndIndex = () => {
+  const [spotPrice, setSpotPrice] = useState(null);
+  const [priceIndex, setPriceIndex] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const result = await Homey.api('GET', '/spot-price');
+        setSpotPrice(result.currentSpotPrice);
+        setPriceIndex(result.currentSpotIndex);
+      } catch (error) {
+        console.error('Error fetching spot price data:', error);
+      }
+    };
+
+    fetchData();
+    const intervalId = setInterval(fetchData, 3600000); // Update every hour
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  Homey.ready();
+
+  return (
+    <div className="flex flex-col items-center justify-center h-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+      <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">Actual Spot Price</h2>
+      <p className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">
+        {spotPrice !== null ? `${spotPrice.toFixed(2)} CZK` : 'Loading...'}
+      </p>
+      <div className="flex items-center">
+        <CircleIcon className={`w-4 h-4 mr-2 ${priceIndexColors[priceIndex] || 'text-yellow-500'}`} />
+        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          {priceIndex || 'Unknown'}
+        </span>
+      </div>
     </div>
-  </div>
+  );
+};
 
-  <script type="text/javascript">
-    function onHomeyReady(Homey) {
-      Homey.ready({ height: 100 });
+export default CurrentHourPriceAndIndex;
 
-      Homey.api('GET', '/spot-price', {})
-        .then(({ price, index }) => {
-          document.getElementById('price').innerText = `${price} CZK`;
-
-          const indexText = document.getElementById('index-text');
-          const indexCircle = document.getElementById('index-circle');
-
-          indexText.innerText = index;
-
-          // Nastavení barvy kolečka podle indexu
-          if (index === 'low') {
-            indexCircle.className = 'circle low';
-          } else if (index === 'medium') {
-            indexCircle.className = 'circle medium';
-          } else if (index === 'high') {
-            indexCircle.className = 'circle high';
-          } else {
-            indexCircle.className = 'circle unknown';
-          }
-        })
-        .catch(console.error);
-    }
-  </script>
+        ReactDOM.render(<CurrentHourPriceAndIndex />, document.getElementById('root'));
+    </script>
 </body>
 </html>
