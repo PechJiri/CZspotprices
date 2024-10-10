@@ -31,5 +31,8 @@
   },
   "1.0.8": {
     "en": "minor fix"
+  },
+  "1.2.0": {
+    "en": "Fixed new WHEN and AND cards, removed extra development log"
   }
 }
