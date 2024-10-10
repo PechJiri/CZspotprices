@@ -34,5 +34,8 @@
   },
   "1.2.0": {
     "en": "Fixed new WHEN and AND cards, removed extra development log"
+  },
+  "1.2.1": {
+    "en": "Added widgets"
   }
 }
