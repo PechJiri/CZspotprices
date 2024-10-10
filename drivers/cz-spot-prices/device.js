@@ -172,39 +172,57 @@ class CZSpotPricesDevice extends Homey.Device {
 
   registerAveragePriceCondition() {
     this.homey.flow.getConditionCard('average-price-condition')
-      .registerRunListener(async (args, state) => {
-        const { hours, condition } = args;
-        this.log(`Average price condition run with hours: ${hours} and condition: ${condition}`);
-        const allCombinations = await this.calculateAveragePrices(hours);
-        const targetCombination = this.findTargetCombination(allCombinations, condition);
-        const currentHour = new Date().getHours();
-        const result = currentHour >= targetCombination.startHour && currentHour < (targetCombination.startHour + hours);
-        this.log(`Average price condition result: ${result}`);
-        return result;
-      });
-  }
+        .registerRunListener(async (args, state) => {
+            const { hours, condition } = args;
+            this.log(`Average price condition run with hours: ${hours} and condition: ${condition}`);
+            
+            // Získání všech kombinací
+            const allCombinations = await this.calculateAveragePrices(hours);
+            this.log(`Všechny kombinace průměrných cen: ${allCombinations.map(c => `Start: ${c.startHour}, Průměr: ${c.avg} CZK`).join('; ')}`);
+            
+            // Vyhledání cílové kombinace
+            const targetCombination = this.findTargetCombination(allCombinations, condition);
+            const currentHour = new Date().getHours();
+            
+            // Porovnání výsledku
+            const result = currentHour >= targetCombination.startHour && currentHour < (targetCombination.startHour + hours);
+            this.log(`Výsledek podmínky: ${result ? 'true' : 'false'}, Aktuální hodina: ${currentHour}, Vybraný interval: ${targetCombination.startHour}-${targetCombination.startHour + hours}, Průměrná cena: ${targetCombination.avg} CZK`);
+            
+            return result;
+        });
+}
 
   async calculateAveragePrices(hours) {
     const allCombinations = [];
     for (let startHour = 0; startHour <= 24 - hours; startHour++) {
-      let total = 0;
-      for (let i = startHour; i < startHour + hours; i++) {
-        const price = await this.getCapabilityValue(`hour_price_CZK_${i}`);
-        if (price === null || price === undefined) {
-          throw new Error(`Missing price data for hour ${i}`);
+        let total = 0;
+        for (let i = startHour; i < startHour + hours; i++) {
+            const price = await this.getCapabilityValue(`hour_price_CZK_${i}`);
+            if (price === null || price === undefined) {
+                this.log(`Chybí data pro hodinu ${i}`);
+                throw new Error(`Chybí cenová data pro hodinu ${i}`);
+            }
+            this.log(`Hodina ${i}: cena ${price} CZK`);
+            total += price;
         }
-        total += price;
-      }
-      const avg = total / hours;
-      allCombinations.push({ startHour, avg });
+        const avg = total / hours;
+        this.log(`Interval ${startHour}-${startHour + hours}: průměrná cena ${avg} CZK`);
+        allCombinations.push({ startHour, avg });
     }
     return allCombinations;
-  }
+}
 
-  findTargetCombination(combinations, condition) {
-    const sortedCombinations = combinations.sort((a, b) => a.avg - b.avg);
-    return condition === 'lowest' ? sortedCombinations[0] : sortedCombinations[sortedCombinations.length - 1];
-  }
+
+findTargetCombination(combinations, condition) {
+  const sortedCombinations = combinations.sort((a, b) => a.avg - b.avg);
+  const target = condition === 'lowest' ? sortedCombinations[0] : sortedCombinations[sortedCombinations.length - 1];
+  
+  // Přidáme logování, abychom viděli vybraný interval a jeho průměr
+  this.log(`Vybraná kombinace pro '${condition}': Interval ${target.startHour}-${target.startHour + combinations.length}, Průměr: ${target.avg} CZK`);
+  
+  return target;
+}
+
 
   registerUpdateDataViaApiFlowAction() {
     this.homey.flow.getActionCard('update_data_via_api')

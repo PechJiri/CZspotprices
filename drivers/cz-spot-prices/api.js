@@ -3,7 +3,7 @@ const Homey = require('homey');
 class SpotPriceAPI {
   constructor(homey) {
     this.homey = homey;
-    this.baseUrl = 'https://spotovalektrina.cz/api/v1/price';
+    this.baseUrl = 'https://spotovaelektrina.cz/api/v1/price';
     this.apiCallFailTrigger = this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger');
   }
 
