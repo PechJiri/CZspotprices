@@ -46,5 +46,8 @@
   },
   "1.2.5": {
     "en": "Updated widget"
+  },
+  "1.2.6": {
+    "en": "Fixed WHEN price changed card"
   }
 }
