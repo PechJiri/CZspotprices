@@ -50,6 +50,7 @@ class CZSpotPricesDevice extends Homey.Device {
   }
 
   async onCurrentPriceChanged(value, opts) {
+    this.log('Current price changed:', value);
     // Spustíme trigger when-current-price-changes
     await this.driver.triggerCurrentPriceChangedFlow(this, { price: value });
   }

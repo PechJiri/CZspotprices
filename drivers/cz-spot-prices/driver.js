@@ -20,17 +20,18 @@ class CZSpotPricesDriver extends Homey.Driver {
   _registerTriggerFlowCards() {
     try {
       ['current-price-lower-than-trigger', 'current-price-higher-than-trigger', 'current-price-index-trigger'].forEach(cardId => {
-        this.homey.flow.getTriggerCard(cardId);
+        this.homey.flow.getDeviceTriggerCard(cardId);
       });
 
-      this.homey.flow.getTriggerCard('average-price-trigger')
+      this.homey.flow.getDeviceTriggerCard('average-price-trigger')
         .registerRunListener(this._handleAveragePriceTrigger.bind(this));
 
-      this.homey.flow.getTriggerCard('when-api-call-fails-trigger');
+      this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger');
 
       // Nový trigger pro změnu aktuální ceny
-      this.homey.flow.getTriggerCard('when-current-price-changes')
+      this.homey.flow.getDeviceTriggerCard('when-current-price-changes')
         .registerRunListener(async (args, state) => {
+          this.log('When current price changes trigger executed');
           return true; // Tento trigger se vždy spustí, když je zavolán
         });
 
@@ -63,7 +64,7 @@ class CZSpotPricesDriver extends Homey.Driver {
 
   _registerConditionCard(cardId, capability, operator) {
     this.homey.flow.getConditionCard(cardId).registerRunListener(async (args, state) => {
-      const device = state.device;
+      const device = args.device;
       const currentValue = await device.getCapabilityValue(capability);
       if (currentValue === null || currentValue === undefined) {
         throw new Error(`Capability value for ${capability} is not available`);
@@ -82,7 +83,7 @@ class CZSpotPricesDriver extends Homey.Driver {
     this.homey.flow.getConditionCard('average-price-condition')
       .registerRunListener(async (args, state) => {
         const { hours, condition } = args;
-        const device = state.device;
+        const device = args.device;
         const currentHour = new Date().getHours();
     
         try {
@@ -162,7 +163,7 @@ class CZSpotPricesDriver extends Homey.Driver {
         const targetCombination = this._findTargetCombination(allCombinations, condition);
         
         if (targetCombination.startHour === currentHour) {
-          const triggerCard = this.homey.flow.getTriggerCard('average-price-trigger');
+          const triggerCard = this.homey.flow.getDeviceTriggerCard('average-price-trigger');
           try {
             await triggerCard.trigger(device, { hours: hours, condition: condition });
           } catch (err) {
@@ -207,8 +208,15 @@ class CZSpotPricesDriver extends Homey.Driver {
 
   // Nová metoda pro spuštění triggeru při změně aktuální ceny
   async triggerCurrentPriceChangedFlow(device, tokens) {
-    const trigger = this.homey.flow.getTriggerCard('when-current-price-changes');
-    await trigger.trigger(device, tokens);
+    this.log('Triggering current price changed flow:', tokens);
+    const trigger = this.homey.flow.getDeviceTriggerCard('when-current-price-changes');
+    await trigger.trigger(device, tokens).catch(this.error);
+  }
+
+  getErrorMessage(error) {
+    if (typeof error === 'string') return error;
+    if (error instanceof Error) return error.message;
+    return JSON.stringify(error);
   }
 }
 

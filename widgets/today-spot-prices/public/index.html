@@ -110,15 +110,15 @@
                             min: suggestedMin,
                             max: suggestedMax,
                             title: {
-                                display: false // Removed y-axis title
+                                display: false
                             },
                             ticks: {
                                 maxTicksLimit: 4,
                                 callback: function(value) {
-                                    return value.toFixed(0);
+                                    return value >= 1000 ? (value / 1000) + 'k' : value;
                                 },
                                 font: {
-                                    size: 7
+                                    size: 13
                                 },
                                 padding: 0
                             },
@@ -129,14 +129,14 @@
                         },
                         x: {
                             title: {
-                                display: false // Removed x-axis title
+                                display: false
                             },
                             ticks: {
                                 maxRotation: 0,
                                 autoSkip: true,
                                 maxTicksLimit: 12,
                                 font: {
-                                    size: 7
+                                    size: 10
                                 },
                                 padding: 0
                             },
