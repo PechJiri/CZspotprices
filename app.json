@@ -784,7 +784,7 @@
         "en": "Electricity Price Widget"
       },
       "settings": [],
-      "height": 100,
+      "height": 90,
       "api": {
         "getSpotPrice": {
           "method": "GET",
@@ -798,7 +798,7 @@
         "en": "Today Spot Price Graph"
       },
       "settings": [],
-      "height": 350,
+      "height": 250,
       "api": {
         "getHourlyPrices": {
           "method": "GET",

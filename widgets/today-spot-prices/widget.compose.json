@@ -3,7 +3,7 @@
     "en": "Today Spot Price Graph"
   },
   "settings": [],
-  "height": 350,
+  "height": 250,
   "api": {
     "getHourlyPrices": {
       "method": "GET",

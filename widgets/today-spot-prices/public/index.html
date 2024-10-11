@@ -8,7 +8,7 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: var(--homey-su-4);
+            padding: var(--homey-su-2);
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -21,18 +21,18 @@
             flex-direction: column;
             background-color: var(--homey-background-color);
             border-radius: var(--homey-border-radius-default);
-            max-height: 400px;
+            max-height: 250px;
         }
         #averagePrice {
             text-align: center;
             font-size: var(--homey-font-size-small);
-            margin-bottom: var(--homey-su-2);
+            margin-bottom: var(--homey-su-1);
             color: var(--homey-text-color-light);
         }
         #chart {
             flex-grow: 1;
-            min-height: 300px;
-            max-height: 300px;
+            min-height: 210px;
+            max-height: 210px;
         }
     </style>
 </head>
@@ -71,9 +71,10 @@
             const ctx = document.getElementById('chart').getContext('2d');
             const prices = data.map(item => item.price);
             const maxPrice = Math.max(...prices);
+            const minPrice = Math.min(...prices);
             
-            // Calculate max for Y axis with 5% added to max
-            const suggestedMax = maxPrice * 1.05;
+            const suggestedMax = Math.ceil((maxPrice * 1.05) / 1000) * 1000;
+            const suggestedMin = Math.max(0, Math.floor((minPrice * 0.8) / 1000) * 1000);
 
             chart = new Chart(ctx, {
                 type: 'bar',
@@ -83,9 +84,9 @@
                         data: prices,
                         backgroundColor: prices.map((price, index) => getBarColor(price, index, data)),
                         barThickness: 'flex',
-                        maxBarThickness: 25,
-                        categoryPercentage: 0.9,
-                        barPercentage: 0.9
+                        maxBarThickness: 20,
+                        categoryPercentage: 0.85,
+                        barPercentage: 0.95
                     }]
                 },
                 options: {
@@ -106,23 +107,51 @@
                     scales: {
                         y: {
                             beginAtZero: true,
+                            min: suggestedMin,
                             max: suggestedMax,
                             title: {
-                                display: true,
-                                text: 'Price (CZK)'
+                                display: false // Removed y-axis title
                             },
                             ticks: {
-                                maxTicksLimit: 6,
+                                maxTicksLimit: 4,
                                 callback: function(value) {
                                     return value.toFixed(0);
-                                }
+                                },
+                                font: {
+                                    size: 7
+                                },
+                                padding: 0
+                            },
+                            grid: {
+                                drawBorder: false,
+                                display: false
                             }
                         },
                         x: {
                             title: {
-                                display: true,
-                                text: 'Hour'
+                                display: false // Removed x-axis title
+                            },
+                            ticks: {
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 12,
+                                font: {
+                                    size: 7
+                                },
+                                padding: 0
+                            },
+                            grid: {
+                                drawBorder: false,
+                                display: false
                             }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 5,
+                            right: 5,
+                            bottom: 5,
+                            left: 5
                         }
                     }
                 }
