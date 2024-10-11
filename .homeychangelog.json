@@ -40,5 +40,8 @@
   },
   "1.2.2": {
     "en": "Added WHEN current price changes"
+  },
+  "1.2.4": {
+    "en": "fixed widgets"
   }
 }
