@@ -8,142 +8,109 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 10px;
+            padding: 0;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             height: 100vh;
-            background-color: #1f2937;
-            color: #ffffff;
+            background-color: var(--homey-background-color);
+            color: var(--homey-text-color);
         }
         #container {
-            text-align: center;
-            background-color: #ffffff;
-            color: #333333;
-            padding: 20px;
-            border-radius: 10px;
-            width: 80%;
-            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--homey-background-color);
+            color: var(--homey-text-color);
+            padding: var(--homey-su-4);
+            border-radius: var(--homey-border-radius-default);
+            width: 300px;
+            height: 100px;
         }
         h2 {
-            margin-bottom: 10px;
+            margin: 0 0 var(--homey-su-2) 0;
+            font-size: var(--homey-font-size-default);
+            font-weight: var(--homey-font-weight-medium);
         }
-        #status {
-            font-size: 0.8rem;
-            margin-bottom: 10px;
-            color: #666666;
+        #content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-grow: 1;
         }
         #price {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
+            font-size: var(--homey-font-size-xlarge);
+            font-weight: var(--homey-font-weight-bold);
         }
         #index {
             display: flex;
             align-items: center;
-            justify-content: center;
         }
         #indexDot {
-            width: 12px;
-            height: 12px;
+            width: var(--homey-su-3);
+            height: var(--homey-su-3);
             border-radius: 50%;
-            margin-right: 5px;
+            margin-right: var(--homey-su-2);
         }
-        #error {
-            color: red;
-            margin-top: 10px;
+        #indexText {
+            font-size: var(--homey-font-size-default);
         }
     </style>
 </head>
-<body>
+<body class="homey-widget">
     <div id="container">
         <h2>Actual Spot Price</h2>
-        <div id="status">Initializing...</div>
-        <div id="price">Loading...</div>
-        <div id="index">
-            <div id="indexDot"></div>
-            <span id="indexText">Loading...</span>
+        <div id="content">
+            <div id="price">Loading...</div>
+            <div id="index">
+                <div id="indexDot"></div>
+                <span id="indexText">Loading...</span>
+            </div>
         </div>
-        <div id="error"></div>
     </div>
     <script>
-        console.log('Script execution started');
-
-        function updateUI(message, error = false) {
-            console.log(error ? 'Error:' : 'Status update:', message);
-            document.getElementById('status').textContent = message;
-            if (error) {
-                document.getElementById('error').textContent = message;
-            }
-        }
-
-        function updateData() {
-            console.log('updateData function called');
-            updateUI('Updating data...');
-            
-            if (typeof Homey === 'undefined') {
-                console.error('Homey object is not available in updateData');
-                updateUI('Error: Homey not available', true);
-                return;
-            }
-
-            console.log('Calling Homey.api for spot price');
-            Homey.api('GET', '/spot-price', (err, result) => {
-                console.log('Homey.api callback received');
-                if (err) {
-                    console.error('Error fetching spot price:', err);
-                    updateUI('Error fetching spot price: ' + JSON.stringify(err), true);
-                    return;
-                }
-                console.log('Received data from API:', result);
-                if (result && result.currentSpotPrice !== undefined && result.currentSpotIndex !== undefined) {
-                    console.log('Updating UI with new data');
-                    document.getElementById('price').textContent = `${result.currentSpotPrice.toFixed(2)} CZK`;
-                    document.getElementById('indexText').textContent = result.currentSpotIndex;
-
-                    const indexColors = {
-                        low: '#22c55e',
-                        medium: '#9ca3af',
-                        high: '#ef4444',
-                        unknown: '#fbbf24'
-                    };
-                    const dotColor = indexColors[result.currentSpotIndex] || indexColors.unknown;
-                    console.log('Setting index dot color to:', dotColor);
-                    document.getElementById('indexDot').style.backgroundColor = dotColor;
-                    updateUI('Data updated successfully');
-                } else {
-                    console.error('Unexpected data format received');
-                    updateUI('Received invalid data format: ' + JSON.stringify(result), true);
-                }
-            });
-        }
-
         function onHomeyReady(Homey) {
-            console.log('onHomeyReady function called');
-            updateUI('Homey is ready, initializing widget');
+            console.log('Homey is ready');
             
-            console.log('Homey object properties:');
-            for (let prop in Homey) {
-                console.log(`- ${prop}: ${typeof Homey[prop]}`);
-            }
+            setTimeout(() => {
+                init(Homey);
+            }, 100);
+        }
 
-            updateData();
-            console.log('Setting interval for updateData');
-            setInterval(updateData, 60 * 60 * 1000); // Update every hour
-            
-            console.log('Calling Homey.ready()');
+        function updateUI(price, index) {
+            document.getElementById('price').textContent = `${price.toFixed(2)} CZK`;
+            document.getElementById('indexText').textContent = index;
+
+            const indexColors = {
+                low: 'var(--homey-color-success)',
+                medium: 'var(--homey-color-warning)',
+                high: 'var(--homey-color-danger)',
+                unknown: 'var(--homey-color-highlight)'
+            };
+            document.getElementById('indexDot').style.backgroundColor = indexColors[index] || indexColors.unknown;
+        }
+
+        function updateData(Homey) {
+            Homey.api('GET', '/spot-price')
+                .then(result => {
+                    console.log('Received data from API:', result);
+                    if (result && result.currentSpotPrice !== undefined && result.currentSpotIndex !== undefined) {
+                        updateUI(result.currentSpotPrice, result.currentSpotIndex);
+                    } else {
+                        throw new Error('Unexpected data format received');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching spot price:', error);
+                    document.getElementById('price').textContent = 'Error';
+                    document.getElementById('indexText').textContent = 'N/A';
+                });
+        }
+
+        function init(Homey) {
+            updateData(Homey);
+            setInterval(() => updateData(Homey), 60 * 60 * 1000); // Update every hour
             Homey.ready();
         }
-
-        // This function will be called by Homey when it's ready
-        window.onHomeyReady = onHomeyReady;
-
-        // Attempt to fetch data immediately
-        console.log('Attempting immediate data fetch');
-        setTimeout(updateData, 1000); // Delay by 1 second to ensure Homey is available
-
-        console.log('Script execution completed');
     </script>
 </body>
 </html>

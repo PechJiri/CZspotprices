@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <title>Today Spot Price Graph</title>
@@ -8,65 +8,72 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 10px;
+            padding: var(--homey-su-4);
             display: flex;
             flex-direction: column;
             height: 100vh;
-            background-color: #1f2937;
-            color: #ffffff;
+            background-color: var(--homey-background-color);
+            color: var(--homey-text-color);
         }
         #container {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            background-color: #ffffff;
-            border-radius: 10px;
-            padding: 20px;
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 5px;
-            color: #333333;
+            background-color: var(--homey-background-color);
+            border-radius: var(--homey-border-radius-default);
+            max-height: 400px;
         }
         #averagePrice {
             text-align: center;
-            font-size: 0.6rem;
-            margin-bottom: 20px;
-            color: #666666;
+            font-size: var(--homey-font-size-small);
+            margin-bottom: var(--homey-su-2);
+            color: var(--homey-text-color-light);
         }
         #chart {
             flex-grow: 1;
+            min-height: 300px;
+            max-height: 300px;
         }
     </style>
 </head>
-<body>
+<body class="homey-widget">
     <div id="container">
-        <h2>Today Spot Prices</h2>
         <div id="averagePrice">Loading...</div>
         <canvas id="chart"></canvas>
     </div>
     <script>
-        console.log('Script started');
-
         let chart;
+
+        function onHomeyReady(Homey) {
+            setTimeout(() => {
+                init(Homey);
+            }, 100);
+        }
 
         function getBarColor(price, index, data) {
             const sortedPrices = [...data].sort((a, b) => b.price - a.price);
             const isHighTariff = data[index].isHighTariff;
+            const position = sortedPrices.indexOf(data[index]);
             
-            if (sortedPrices.indexOf(data[index]) < 3) {
-                return isHighTariff ? '#ef4444' : '#f87171'; // Red shades
-            } else if (sortedPrices.indexOf(data[index]) >= data.length - 3) {
-                return isHighTariff ? '#22c55e' : '#4ade80'; // Green shades
+            let baseColor;
+            if (position < 3) {
+                baseColor = isHighTariff ? 'rgb(220,53,69)' : 'rgb(248,108,107)'; // Red shades
+            } else if (position >= data.length - 3) {
+                baseColor = isHighTariff ? 'rgb(25,135,84)' : 'rgb(74,222,128)'; // Green shades
             } else {
-                return isHighTariff ? '#6b7280' : '#9ca3af'; // Gray shades
+                baseColor = isHighTariff ? 'rgb(108,117,125)' : 'rgb(173,181,189)'; // Gray shades
             }
+            
+            return baseColor;
         }
 
         function createChart(data) {
-            console.log('Creating chart with data:', data);
             const ctx = document.getElementById('chart').getContext('2d');
             const prices = data.map(item => item.price);
+            const maxPrice = Math.max(...prices);
+            
+            // Calculate max for Y axis with 5% added to max
+            const suggestedMax = maxPrice * 1.05;
 
             chart = new Chart(ctx, {
                 type: 'bar',
@@ -74,7 +81,11 @@
                     labels: data.map(item => item.hour),
                     datasets: [{
                         data: prices,
-                        backgroundColor: prices.map((price, index) => getBarColor(price, index, data))
+                        backgroundColor: prices.map((price, index) => getBarColor(price, index, data)),
+                        barThickness: 'flex',
+                        maxBarThickness: 25,
+                        categoryPercentage: 0.9,
+                        barPercentage: 0.9
                     }]
                 },
                 options: {
@@ -95,11 +106,13 @@
                     scales: {
                         y: {
                             beginAtZero: true,
+                            max: suggestedMax,
                             title: {
                                 display: true,
                                 text: 'Price (CZK)'
                             },
                             ticks: {
+                                maxTicksLimit: 6,
                                 callback: function(value) {
                                     return value.toFixed(0);
                                 }
@@ -116,73 +129,33 @@
             });
         }
 
-        function updateChart() {
-            console.log('Updating chart...');
-            if (typeof Homey === 'undefined') {
-                console.error('Homey object is undefined');
-                document.getElementById('averagePrice').textContent = 'Error: Homey not available';
-                return;
-            }
-            console.log('Calling Homey.api...');
-            Homey.api('GET', '/hourly-prices', (err, result) => {
-                console.log('Homey.api callback received');
-                if (err) {
-                    console.error('Error fetching hourly prices:', err);
-                    document.getElementById('averagePrice').textContent = 'Error loading data';
-                    return;
-                }
-                console.log('Received data:', result);
-                if (result && result.hourlyPrices && result.averagePrice !== undefined) {
-                    console.log('Data is valid, updating chart');
-                    const data = result.hourlyPrices;
-                    const averagePrice = result.averagePrice;
+        function updateChart(Homey) {
+            Homey.api('GET', '/hourly-prices')
+                .then(result => {
+                    if (result && result.hourlyPrices && result.averagePrice !== undefined) {
+                        const data = result.hourlyPrices;
+                        const averagePrice = result.averagePrice;
 
-                    document.getElementById('averagePrice').textContent = `Today average price - ${averagePrice.toFixed(2)} CZK`;
+                        document.getElementById('averagePrice').textContent = `Today average price - ${averagePrice.toFixed(2)} CZK`;
 
-                    if (chart) {
-                        console.log('Updating existing chart');
-                        chart.data.labels = data.map(item => item.hour);
-                        chart.data.datasets[0].data = data.map(item => item.price);
-                        chart.data.datasets[0].backgroundColor = data.map((item, index) => getBarColor(item.price, index, data));
-                        chart.update();
-                    } else {
-                        console.log('Creating new chart');
+                        if (chart) {
+                            chart.destroy();
+                        }
                         createChart(data);
+                    } else {
+                        throw new Error('Unexpected data format');
                     }
-                    console.log('Chart update complete');
-                } else {
-                    console.error('Unexpected data format:', result);
-                    document.getElementById('averagePrice').textContent = 'Invalid data';
-                }
-            });
+                })
+                .catch(error => {
+                    document.getElementById('averagePrice').textContent = 'Error loading data';
+                });
         }
 
-        function initializeWidget() {
-            console.log('Initializing widget');
-            if (typeof Homey !== 'undefined') {
-                console.log('Homey is available, updating chart');
-                updateChart();
-                setInterval(updateChart, 24 * 60 * 60 * 1000); // Update every 24 hours
-                if (typeof Homey.ready === 'function') {
-                    console.log('Calling Homey.ready()');
-                    Homey.ready();
-                } else {
-                    console.warn('Homey.ready is not a function');
-                }
-            } else {
-                console.error('Homey is not available');
-                document.getElementById('averagePrice').textContent = 'Error: Homey not available';
-            }
+        function init(Homey) {
+            updateChart(Homey);
+            setInterval(() => updateChart(Homey), 60 * 60 * 1000);
+            Homey.ready();
         }
-
-        // Try to initialize immediately
-        initializeWidget();
-
-        // Also listen for the 'homey.ready' event
-        document.addEventListener('homey.ready', function() {
-            console.log('Homey ready event received');
-            initializeWidget();
-        });
     </script>
 </body>
 </html>
