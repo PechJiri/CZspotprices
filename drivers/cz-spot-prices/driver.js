@@ -27,6 +27,13 @@ class CZSpotPricesDriver extends Homey.Driver {
         .registerRunListener(this._handleAveragePriceTrigger.bind(this));
 
       this.homey.flow.getTriggerCard('when-api-call-fails-trigger');
+
+      // Nový trigger pro změnu aktuální ceny
+      this.homey.flow.getTriggerCard('when-current-price-changes')
+        .registerRunListener(async (args, state) => {
+          return true; // Tento trigger se vždy spustí, když je zavolán
+        });
+
     } catch (error) {
       this.error('Error registering trigger Flow cards:', error);
     }
@@ -196,6 +203,12 @@ class CZSpotPricesDriver extends Homey.Driver {
       this.homey.settings.set(`hour_${i}`, data[`hour_${i}`]);
     }
     this.tariffIntervals = data.tariff_intervals || [];
+  }
+
+  // Nová metoda pro spuštění triggeru při změně aktuální ceny
+  async triggerCurrentPriceChangedFlow(device, tokens) {
+    const trigger = this.homey.flow.getTriggerCard('when-current-price-changes');
+    await trigger.trigger(device, tokens);
   }
 }
 

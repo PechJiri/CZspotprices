@@ -137,6 +137,15 @@
       "titleFormatted": {
         "en": "API call failed"
       }
+    },
+    {
+      "id": "when-current-price-changes",
+      "title": {
+        "en": "Current price changes"
+      },
+      "titleFormatted": {
+        "en": "Current price changes"
+      }
     }
   ],
   "conditions": [

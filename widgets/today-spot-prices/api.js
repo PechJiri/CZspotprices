@@ -2,8 +2,19 @@
 
 module.exports = {
   async getHourlyPrices({ homey }) {
+    console.log('API: Received request for hourly prices');
     try {
-      const device = await homey.drivers.getDriver('cz-spot-prices').getDevice();
+      const driver = homey.drivers.getDriver('cz-spot-prices');
+      const devices = await driver.getDevices();
+      console.log('API: Retrieved devices:', devices.length);
+
+      if (devices.length === 0) {
+        throw new Error('No devices found');
+      }
+
+      const device = devices[0];  // Use the first device
+      console.log('API: Using device:', device.getName());
+
       const hourlyPrices = [];
       
       for (let i = 0; i < 24; i++) {
@@ -12,14 +23,20 @@ module.exports = {
         hourlyPrices.push({ hour: i, price, isHighTariff });
       }
 
-      const averagePrice = await device.getCapabilityValue('daily_average_price');
+      console.log('API: Retrieved hourly prices:', hourlyPrices);
 
-      return {
+      const averagePrice = await device.getCapabilityValue('daily_average_price');
+      console.log('API: Retrieved average price:', averagePrice);
+
+      const response = {
         hourlyPrices,
         averagePrice
       };
+
+      console.log('API: Sending response:', response);
+      return response;
     } catch (error) {
-      console.error('Error fetching hourly prices:', error);
+      console.error('API Error in getHourlyPrices:', error);
       throw error;
     }
   }

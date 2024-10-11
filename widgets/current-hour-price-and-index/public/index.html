@@ -1,68 +1,149 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Electricity Price Widget</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #1f2937;
+            color: #ffffff;
+        }
+        #container {
+            text-align: center;
+            background-color: #ffffff;
+            color: #333333;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 300px;
+        }
+        h2 {
+            margin-bottom: 10px;
+        }
+        #status {
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            color: #666666;
+        }
+        #price {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        #index {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #indexDot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        #error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="text/babel">
-import React, { useState, useEffect } from 'react';
-import { CircleIcon } from 'lucide-react';
-
-const priceIndexColors = {
-  low: 'text-green-500',
-  medium: 'text-gray-500',
-  high: 'text-red-500',
-  unknown: 'text-yellow-500'
-};
-
-const CurrentHourPriceAndIndex = () => {
-  const [spotPrice, setSpotPrice] = useState(null);
-  const [priceIndex, setPriceIndex] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const result = await Homey.api('GET', '/spot-price');
-        setSpotPrice(result.currentSpotPrice);
-        setPriceIndex(result.currentSpotIndex);
-      } catch (error) {
-        console.error('Error fetching spot price data:', error);
-      }
-    };
-
-    fetchData();
-    const intervalId = setInterval(fetchData, 3600000); // Update every hour
-
-    return () => clearInterval(intervalId);
-  }, []);
-
-  Homey.ready();
-
-  return (
-    <div className="flex flex-col items-center justify-center h-full p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
-      <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-white">Actual Spot Price</h2>
-      <p className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">
-        {spotPrice !== null ? `${spotPrice.toFixed(2)} CZK` : 'Loading...'}
-      </p>
-      <div className="flex items-center">
-        <CircleIcon className={`w-4 h-4 mr-2 ${priceIndexColors[priceIndex] || 'text-yellow-500'}`} />
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {priceIndex || 'Unknown'}
-        </span>
-      </div>
+    <div id="container">
+        <h2>Actual Spot Price</h2>
+        <div id="status">Initializing...</div>
+        <div id="price">Loading...</div>
+        <div id="index">
+            <div id="indexDot"></div>
+            <span id="indexText">Loading...</span>
+        </div>
+        <div id="error"></div>
     </div>
-  );
-};
+    <script>
+        console.log('Script execution started');
 
-export default CurrentHourPriceAndIndex;
+        function updateUI(message, error = false) {
+            console.log(error ? 'Error:' : 'Status update:', message);
+            document.getElementById('status').textContent = message;
+            if (error) {
+                document.getElementById('error').textContent = message;
+            }
+        }
 
-        ReactDOM.render(<CurrentHourPriceAndIndex />, document.getElementById('root'));
+        function updateData() {
+            console.log('updateData function called');
+            updateUI('Updating data...');
+            
+            if (typeof Homey === 'undefined') {
+                console.error('Homey object is not available in updateData');
+                updateUI('Error: Homey not available', true);
+                return;
+            }
+
+            console.log('Calling Homey.api for spot price');
+            Homey.api('GET', '/spot-price', (err, result) => {
+                console.log('Homey.api callback received');
+                if (err) {
+                    console.error('Error fetching spot price:', err);
+                    updateUI('Error fetching spot price: ' + JSON.stringify(err), true);
+                    return;
+                }
+                console.log('Received data from API:', result);
+                if (result && result.currentSpotPrice !== undefined && result.currentSpotIndex !== undefined) {
+                    console.log('Updating UI with new data');
+                    document.getElementById('price').textContent = `${result.currentSpotPrice.toFixed(2)} CZK`;
+                    document.getElementById('indexText').textContent = result.currentSpotIndex;
+
+                    const indexColors = {
+                        low: '#22c55e',
+                        medium: '#9ca3af',
+                        high: '#ef4444',
+                        unknown: '#fbbf24'
+                    };
+                    const dotColor = indexColors[result.currentSpotIndex] || indexColors.unknown;
+                    console.log('Setting index dot color to:', dotColor);
+                    document.getElementById('indexDot').style.backgroundColor = dotColor;
+                    updateUI('Data updated successfully');
+                } else {
+                    console.error('Unexpected data format received');
+                    updateUI('Received invalid data format: ' + JSON.stringify(result), true);
+                }
+            });
+        }
+
+        function onHomeyReady(Homey) {
+            console.log('onHomeyReady function called');
+            updateUI('Homey is ready, initializing widget');
+            
+            console.log('Homey object properties:');
+            for (let prop in Homey) {
+                console.log(`- ${prop}: ${typeof Homey[prop]}`);
+            }
+
+            updateData();
+            console.log('Setting interval for updateData');
+            setInterval(updateData, 60 * 60 * 1000); // Update every hour
+            
+            console.log('Calling Homey.ready()');
+            Homey.ready();
+        }
+
+        // This function will be called by Homey when it's ready
+        window.onHomeyReady = onHomeyReady;
+
+        // Attempt to fetch data immediately
+        console.log('Attempting immediate data fetch');
+        setTimeout(updateData, 1000); // Delay by 1 second to ensure Homey is available
+
+        console.log('Script execution completed');
     </script>
 </body>
 </html>

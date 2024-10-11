@@ -37,6 +37,9 @@ class CZSpotPricesDevice extends Homey.Device {
     this.registerUpdateDataViaApiFlowAction();
     this.startDataFetchInterval(updateInterval);
 
+    // Přidáme listener pro změnu capability measure_current_spot_price_CZK
+    this.registerCapabilityListener('measure_current_spot_price_CZK', this.onCurrentPriceChanged.bind(this));
+
     try {
       await this.fetchAndUpdateSpotPrices();
       this.setAvailable();
@@ -44,6 +47,11 @@ class CZSpotPricesDevice extends Homey.Device {
       this.error('Failed to fetch initial spot prices:', error);
       this.setUnavailable('Failed to fetch initial data');
     }
+  }
+
+  async onCurrentPriceChanged(value, opts) {
+    // Spustíme trigger when-current-price-changes
+    await this.driver.triggerCurrentPriceChangedFlow(this, { price: value });
   }
 
   async onSettings({ oldSettings, newSettings, changedKeys }) {
@@ -112,6 +120,10 @@ class CZSpotPricesDevice extends Homey.Device {
 
     const apiCallFailTrigger = this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger');
     apiCallFailTrigger.registerRunListener(async () => true);
+
+    // Registrace nového triggeru
+    const whenCurrentPriceChangesTrigger = this.homey.flow.getDeviceTriggerCard('when-current-price-changes');
+    whenCurrentPriceChangesTrigger.registerRunListener(async (args, state) => true);
   }
 
   registerConditionCard(cardId, capability, comparison) {

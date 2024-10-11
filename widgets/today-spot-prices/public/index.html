@@ -2,110 +2,187 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Today Spot Prices Graph</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.1.9/Recharts.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <title>Today Spot Price Graph</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #1f2937;
+            color: #ffffff;
+        }
+        #container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 5px;
+            color: #333333;
+        }
+        #averagePrice {
+            text-align: center;
+            font-size: 0.6rem;
+            margin-bottom: 20px;
+            color: #666666;
+        }
+        #chart {
+            flex-grow: 1;
+        }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } = Recharts;
+    <div id="container">
+        <h2>Today Spot Prices</h2>
+        <div id="averagePrice">Loading...</div>
+        <canvas id="chart"></canvas>
+    </div>
+    <script>
+        console.log('Script started');
 
-        const TodaySpotPricesGraph = () => {
-          const [data, setData] = useState([]);
-          const [averagePrice, setAveragePrice] = useState(0);
+        let chart;
 
-          useEffect(() => {
-            const fetchData = async () => {
-              try {
-                const result = await Homey.api('GET', '/hourly-prices');
-                setData(result.hourlyPrices);
-                setAveragePrice(result.averagePrice);
-              } catch (error) {
-                console.error('Error fetching hourly prices:', error);
-              }
-            };
-
-            fetchData();
-            const midnight = new Date();
-            midnight.setHours(24, 0, 0, 0);
-            const msUntilMidnight = midnight.getTime() - new Date().getTime();
-
-            const timeoutId = setTimeout(() => {
-              fetchData();
-              setInterval(fetchData, 24 * 60 * 60 * 1000); // Refresh every 24 hours
-            }, msUntilMidnight);
-
-            return () => {
-              clearTimeout(timeoutId);
-            };
-          }, []);
-
-          const getBarColor = (price, index) => {
+        function getBarColor(price, index, data) {
             const sortedPrices = [...data].sort((a, b) => b.price - a.price);
             const isHighTariff = data[index].isHighTariff;
             
             if (sortedPrices.indexOf(data[index]) < 3) {
-              return isHighTariff ? '#ef4444' : '#f87171'; // Red shades
+                return isHighTariff ? '#ef4444' : '#f87171'; // Red shades
             } else if (sortedPrices.indexOf(data[index]) >= data.length - 3) {
-              return isHighTariff ? '#22c55e' : '#4ade80'; // Green shades
+                return isHighTariff ? '#22c55e' : '#4ade80'; // Green shades
             } else {
-              return isHighTariff ? '#6b7280' : '#9ca3af'; // Gray shades
+                return isHighTariff ? '#6b7280' : '#9ca3af'; // Gray shades
             }
-          };
+        }
 
-          const CustomBar = (props) => {
-            const { x, y, width, height, index } = props;
-            const fill = getBarColor(props.value, index);
-            return <rect x={x} y={y} width={width} height={height} fill={fill} />;
-          };
+        function createChart(data) {
+            console.log('Creating chart with data:', data);
+            const ctx = document.getElementById('chart').getContext('2d');
+            const prices = data.map(item => item.price);
 
-          const CustomLabel = (props) => {
-            const { x, y, value, index } = props;
-            const sortedPrices = [...data].sort((a, b) => b.price - a.price);
-            if (sortedPrices.indexOf(data[index]) < 3 || sortedPrices.indexOf(data[index]) >= data.length - 3) {
-              return (
-                <text x={x + 14} y={y - 5} fill="#333" textAnchor="middle" fontSize={8}>
-                  {value.toFixed(2)}
-                </text>
-              );
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(item => item.hour),
+                    datasets: [{
+                        data: prices,
+                        backgroundColor: prices.map((price, index) => getBarColor(price, index, data))
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y.toFixed(2)} CZK`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Price (CZK)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toFixed(0);
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Hour'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart() {
+            console.log('Updating chart...');
+            if (typeof Homey === 'undefined') {
+                console.error('Homey object is undefined');
+                document.getElementById('averagePrice').textContent = 'Error: Homey not available';
+                return;
             }
-            return null;
-          };
+            console.log('Calling Homey.api...');
+            Homey.api('GET', '/hourly-prices', (err, result) => {
+                console.log('Homey.api callback received');
+                if (err) {
+                    console.error('Error fetching hourly prices:', err);
+                    document.getElementById('averagePrice').textContent = 'Error loading data';
+                    return;
+                }
+                console.log('Received data:', result);
+                if (result && result.hourlyPrices && result.averagePrice !== undefined) {
+                    console.log('Data is valid, updating chart');
+                    const data = result.hourlyPrices;
+                    const averagePrice = result.averagePrice;
 
-          Homey.ready();
+                    document.getElementById('averagePrice').textContent = `Today average price - ${averagePrice.toFixed(2)} CZK`;
 
-          return (
-            <div className="flex flex-col h-full p-4 bg-white dark:bg-gray-800">
-              <h2 className="text-xl font-bold mb-1 text-center text-gray-800 dark:text-white">Today Spot Prices</h2>
-              <p className="text-[0.6rem] mb-6 text-center text-gray-600 dark:text-gray-300">
-                Today average price - {averagePrice.toFixed(2)} CZK
-              </p>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="hour" 
-                    interval={0}
-                    tick={{ fontSize: 8 }}
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 8 }}
-                    domain={[0, 'dataMax + 500']}
-                    tickFormatter={(value) => `${value.toFixed(0)}`}
-                  />
-                  <Bar dataKey="price" shape={<CustomBar />} label={<CustomLabel />} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          );
-        };
+                    if (chart) {
+                        console.log('Updating existing chart');
+                        chart.data.labels = data.map(item => item.hour);
+                        chart.data.datasets[0].data = data.map(item => item.price);
+                        chart.data.datasets[0].backgroundColor = data.map((item, index) => getBarColor(item.price, index, data));
+                        chart.update();
+                    } else {
+                        console.log('Creating new chart');
+                        createChart(data);
+                    }
+                    console.log('Chart update complete');
+                } else {
+                    console.error('Unexpected data format:', result);
+                    document.getElementById('averagePrice').textContent = 'Invalid data';
+                }
+            });
+        }
 
-        ReactDOM.render(<TodaySpotPricesGraph />, document.getElementById('root'));
+        function initializeWidget() {
+            console.log('Initializing widget');
+            if (typeof Homey !== 'undefined') {
+                console.log('Homey is available, updating chart');
+                updateChart();
+                setInterval(updateChart, 24 * 60 * 60 * 1000); // Update every 24 hours
+                if (typeof Homey.ready === 'function') {
+                    console.log('Calling Homey.ready()');
+                    Homey.ready();
+                } else {
+                    console.warn('Homey.ready is not a function');
+                }
+            } else {
+                console.error('Homey is not available');
+                document.getElementById('averagePrice').textContent = 'Error: Homey not available';
+            }
+        }
+
+        // Try to initialize immediately
+        initializeWidget();
+
+        // Also listen for the 'homey.ready' event
+        document.addEventListener('homey.ready', function() {
+            console.log('Homey ready event received');
+            initializeWidget();
+        });
     </script>
 </body>
 </html>
