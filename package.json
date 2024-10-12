@@ -7,7 +7,10 @@
     "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.7"
   },
   "dependencies": {
-    "homey": "^3.7.7",
-    "node-fetch": "^3.3.2"
+    "got": "^14.4.3",
+    "homey": "^2.0.6",
+    "node-fetch": "^3.3.2",
+    "package-json": "^10.0.1",
+    "update-notifier": "^7.3.1"
   }
 }
