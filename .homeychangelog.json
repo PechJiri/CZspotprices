@@ -49,5 +49,8 @@
   },
   "1.2.6": {
     "en": "Fixed WHEN price changed card"
+  },
+  "1.2.7": {
+    "en": "Minor fixes thx to Michal Stranik"
   }
 }
