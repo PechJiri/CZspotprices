@@ -109,12 +109,12 @@ class CZSpotPricesDriver extends Homey.Driver {
           }
           try {
             await device.fetchAndUpdateSpotPrices();
-            device.setAvailable();
+            await device.setAvailable();
             return true;
           } catch (error) {
             const errorMessage = this.getErrorMessage(error);
             this.error(`Error updating spot prices for device ${device.getName()}:`, errorMessage);
-            device.setAvailable();
+            await device.setAvailable();
             device.spotPriceApi.triggerApiCallFail(errorMessage, device);
             return false;
           }

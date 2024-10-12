@@ -24,9 +24,7 @@ class SpotPriceAPI {
       const highTariffPrice = device.getSetting('high_tariff_price') || 0;
       const currentHour = new Date().getHours();
       const isLowTariff = this.isLowTariff(currentHour, this.getTariffHours(device));
-      const finalPrice = basePrice + (isLowTariff ? lowTariffPrice : highTariffPrice);
-
-      return finalPrice;
+      return basePrice + (isLowTariff ? lowTariffPrice : highTariffPrice);
     } catch (error) {
       this.handleApiError('Error fetching current spot price in CZK', error, device);
       throw error;

@@ -42,10 +42,10 @@ class CZSpotPricesDevice extends Homey.Device {
 
     try {
       await this.fetchAndUpdateSpotPrices();
-      this.setAvailable();
+      await this.setAvailable();
     } catch (error) {
       this.error('Failed to fetch initial spot prices:', error);
-      this.setUnavailable('Failed to fetch initial data');
+      await this.setUnavailable('Failed to fetch initial data');
     }
   }
 
@@ -66,10 +66,10 @@ class CZSpotPricesDevice extends Homey.Device {
   
     try {
       await this.fetchAndUpdateSpotPrices();
-      this.setAvailable();
+      await this.setAvailable();
     } catch (error) {
       this.error('Failed to update spot prices after settings change:', error);
-      this.setAvailable();
+      await this.setAvailable();
     }
   }
 
@@ -89,12 +89,12 @@ class CZSpotPricesDevice extends Homey.Device {
   
       await this.spotPriceApi.updateDailyAverageCapability(this);
   
-      this.setAvailable();
+      await this.setAvailable();
     } catch (error) {
       const errorMessage = this.spotPriceApi.getErrorMessage(error);
       this.error(`Error fetching spot prices: ${errorMessage}`);
   
-      this.homey.notifications.createNotification({
+      await this.homey.notifications.createNotification({
         excerpt: `Error fetching spot prices: ${errorMessage}`,
       });
   
