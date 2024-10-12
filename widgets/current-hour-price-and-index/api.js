@@ -5,7 +5,7 @@ module.exports = {
     console.log('API: Received request for spot price');
     try {
       const driver = homey.drivers.getDriver('cz-spot-prices');
-      const devices = await driver.getDevices();
+      const devices = driver.getDevices();
       console.log('API: Retrieved devices:', devices.length);
 
       if (devices.length === 0) {
