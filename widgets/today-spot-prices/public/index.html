@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Today Spot Price Graph</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
     <style>
@@ -23,7 +24,7 @@
             border-radius: var(--homey-border-radius-default);
             max-height: 250px;
         }
-        #averagePrice {
+        #averagePrice, #currentPrice {
             text-align: center;
             font-size: var(--homey-font-size-small);
             margin-bottom: var(--homey-su-1);
@@ -38,15 +39,18 @@
 </head>
 <body class="homey-widget">
     <div id="container">
+        <div id="currentPrice">Loading...</div>
         <div id="averagePrice">Loading...</div>
         <canvas id="chart"></canvas>
     </div>
     <script>
         let chart;
+        let Homey;
 
-        function onHomeyReady(Homey) {
+        function onHomeyReady(_Homey) {
+            Homey = _Homey;
             setTimeout(() => {
-                init(Homey);
+                init();
             }, 100);
         }
 
@@ -56,12 +60,14 @@
             const position = sortedPrices.indexOf(data[index]);
             
             let baseColor;
-            if (position < 3) {
-                baseColor = isHighTariff ? 'rgb(220,53,69)' : 'rgb(248,108,107)'; // Red shades
+            if (price < 0) {
+                baseColor = isHighTariff ? 'rgb(0,123,255)' : 'rgb(108,195,213)'; // Modré odstíny pro záporné ceny
+            } else if (position < 3) {
+                baseColor = isHighTariff ? 'rgb(220,53,69)' : 'rgb(248,108,107)'; // Červené odstíny
             } else if (position >= data.length - 3) {
-                baseColor = isHighTariff ? 'rgb(25,135,84)' : 'rgb(74,222,128)'; // Green shades
+                baseColor = isHighTariff ? 'rgb(25,135,84)' : 'rgb(74,222,128)'; // Zelené odstíny
             } else {
-                baseColor = isHighTariff ? 'rgb(108,117,125)' : 'rgb(173,181,189)'; // Gray shades
+                baseColor = isHighTariff ? 'rgb(108,117,125)' : 'rgb(173,181,189)'; // Šedé odstíny
             }
             
             return baseColor;
@@ -74,7 +80,7 @@
             const minPrice = Math.min(...prices);
             
             const suggestedMax = Math.ceil((maxPrice * 1.05) / 1000) * 1000;
-            const suggestedMin = Math.max(0, Math.floor((minPrice * 0.8) / 1000) * 1000);
+            const suggestedMin = Math.floor((minPrice * 1.05) / 1000) * 1000;
 
             chart = new Chart(ctx, {
                 type: 'bar',
@@ -99,16 +105,17 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return `${context.parsed.y.toFixed(2)} CZK`;
+                                    const dataPoint = data[context.dataIndex];
+                                    return `${context.parsed.y.toFixed(2)} CZK (${dataPoint.index})`;
                                 }
                             }
                         }
                     },
                     scales: {
                         y: {
-                            beginAtZero: true,
-                            min: suggestedMin,
-                            max: suggestedMax,
+                            beginAtZero: false,
+                            suggestedMin: suggestedMin,
+                            suggestedMax: suggestedMax,
                             title: {
                                 display: false
                             },
@@ -158,32 +165,53 @@
             });
         }
 
-        function updateChart(Homey) {
+        function updateChart() {
+            console.log('Updating chart...');
             Homey.api('GET', '/hourly-prices')
                 .then(result => {
+                    console.log('Received data:', result);
                     if (result && result.hourlyPrices && result.averagePrice !== undefined) {
                         const data = result.hourlyPrices;
                         const averagePrice = result.averagePrice;
+                        const currentPrice = result.currentPrice;
+                        const currentIndex = result.currentIndex;
+                        const currentHour = new Date().getHours();
 
-                        document.getElementById('averagePrice').textContent = `Today average price - ${averagePrice.toFixed(2)} CZK`;
+                        document.getElementById('currentPrice').textContent = `Current price for hour ${currentHour}: ${currentPrice.toFixed(2)} CZK (${currentIndex})`;
+                        document.getElementById('averagePrice').textContent = `Today average price: ${averagePrice.toFixed(2)} CZK`;
 
                         if (chart) {
                             chart.destroy();
                         }
                         createChart(data);
+                        console.log('Chart updated successfully');
                     } else {
                         throw new Error('Unexpected data format');
                     }
                 })
                 .catch(error => {
+                    console.error('Error updating chart:', error);
+                    document.getElementById('currentPrice').textContent = 'Error loading data';
                     document.getElementById('averagePrice').textContent = 'Error loading data';
                 });
         }
 
-        function init(Homey) {
-            updateChart(Homey);
-            setInterval(() => updateChart(Homey), 60 * 60 * 1000);
+        function init() {
+            console.log('Initializing widget...');
+            updateChart();
+            setInterval(updateChart, 60 * 60 * 1000); // Update every hour
+            
+            // Register the update callback
+            Homey.api('POST', '/registerUpdateCallback', {}, (err, result) => {
+                if (err) {
+                    console.error('Failed to register update callback:', err);
+                } else {
+                    console.log('Update callback registered successfully');
+                }
+            });
+
             Homey.ready();
+            console.log('Widget initialized');
         }
     </script>
 </body>

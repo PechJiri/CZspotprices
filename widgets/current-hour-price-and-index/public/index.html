@@ -68,11 +68,13 @@
         </div>
     </div>
     <script>
-        function onHomeyReady(Homey) {
+        let Homey;
+
+        function onHomeyReady(_Homey) {
             console.log('Homey is ready');
-            
+            Homey = _Homey;
             setTimeout(() => {
-                init(Homey);
+                init();
             }, 100);
         }
 
@@ -89,7 +91,8 @@
             document.getElementById('indexDot').style.backgroundColor = indexColors[index] || indexColors.unknown;
         }
 
-        function updateData(Homey) {
+        function updateData() {
+            console.log('Updating data...');
             Homey.api('GET', '/spot-price')
                 .then(result => {
                     console.log('Received data from API:', result);
@@ -106,10 +109,22 @@
                 });
         }
 
-        function init(Homey) {
-            updateData(Homey);
-            setInterval(() => updateData(Homey), 60 * 60 * 1000); // Update every hour
+        function init() {
+            console.log('Initializing widget...');
+            updateData();
+            setInterval(updateData, 60 * 60 * 1000); // Update every hour
+            
+            // Register the update callback
+            Homey.api('POST', '/registerUpdateCallback', {}, (err, result) => {
+                if (err) {
+                    console.error('Failed to register update callback:', err);
+                } else {
+                    console.log('Update callback registered successfully');
+                }
+            });
+
             Homey.ready();
+            console.log('Widget initialized');
         }
     </script>
 </body>

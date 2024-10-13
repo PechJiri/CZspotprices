@@ -1,5 +1,7 @@
 'use strict';
 
+let updateCallback = null;
+
 module.exports = {
   async getSpotPrice({ homey }) {
     console.log('API: Received request for spot price');
@@ -31,5 +33,20 @@ module.exports = {
       console.error('API Error in getSpotPrice:', error);
       throw error;
     }
+  },
+
+  // Nová metoda pro registraci callback funkce
+  registerUpdateCallback({ homey }, callback) {
+    console.log('API: Registering update callback');
+    updateCallback = callback;
+    
+    // Registrujeme posluchač události
+    homey.on('spot_prices_updated', () => {
+      console.log('API: Received spot_prices_updated event');
+      if (updateCallback) {
+        console.log('API: Calling update callback');
+        updateCallback();
+      }
+    });
   }
 };

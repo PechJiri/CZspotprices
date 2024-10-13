@@ -31,7 +31,11 @@ class SpotPriceAPI {
       const tariffHours = this.getTariffHours(device);
       const isLowTariff = this.isLowTariff(currentHour, tariffHours);
       
-      return basePrice + (isLowTariff ? lowTariffPrice : highTariffPrice);
+      const finalPrice = basePrice + (isLowTariff ? lowTariffPrice : highTariffPrice);
+
+      await this.homey.emit('spot_prices_updated');
+
+      return finalPrice;
     } catch (error) {
       this.handleApiError('Error fetching current spot price in CZK', error, device);
       throw error;
@@ -59,6 +63,8 @@ class SpotPriceAPI {
         const tariffPrice = this.isLowTariff(hourData.hour, tariffHours) ? lowTariffPrice : highTariffPrice;
         hourData.priceCZK += tariffPrice;
       });
+
+      await this.homey.emit('spot_prices_updated');
 
       return hoursToday;
     } catch (error) {
@@ -92,6 +98,8 @@ class SpotPriceAPI {
       });
 
       await this.updateDailyAverageCapability(device);
+
+      await this.homey.emit('spot_prices_updated');
     } catch (error) {
       this.handleApiError('Error updating capabilities', error, device);
     }
@@ -136,6 +144,8 @@ class SpotPriceAPI {
 
       this.setCapability(device, 'measure_current_spot_price_CZK', currentPriceCZK);
       this.setCapability(device, 'measure_current_spot_index', currentPriceIndex);
+
+      await this.homey.emit('spot_prices_updated');
     } catch (error) {
       this.handleApiError('Error updating current values', error, device);
     }
@@ -181,10 +191,36 @@ class SpotPriceAPI {
     errorMessage = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
     const tokens = { error_message: errorMessage };
 
-    this.apiCallFailTrigger.trigger(tokens)
+    this.apiCallFailTrigger.trigger(device, tokens)
       .catch(err => {
         this.homey.error('Error triggering API call fail flow:', this.getErrorMessage(err));
       });
+  }
+
+  async fetchAndUpdateSpotPrices(device) {
+    try {
+      const currentPrice = await this.getCurrentPriceCZK(device);
+      const dailyPrices = await this.getDailyPrices(device);
+  
+      await device.setCapabilityValue('measure_current_spot_price_CZK', currentPrice);
+      device.setPriceIndexes(dailyPrices);
+
+      for (const priceData of dailyPrices) {
+        await device.setCapabilityValue(`hour_price_CZK_${priceData.hour}`, priceData.priceCZK);
+        await device.setCapabilityValue(`hour_price_index_${priceData.hour}`, priceData.level);
+      }
+
+      const currentHour = new Date().getHours();
+      const currentHourData = dailyPrices.find(price => price.hour === currentHour);
+      const currentIndex = currentHourData ? currentHourData.level : 'unknown';
+      await device.setCapabilityValue('measure_current_spot_index', currentIndex);
+
+      await this.updateDailyAverageCapability(device);
+
+      this.homey.log('All capabilities updated successfully');
+    } catch (error) {
+      this.handleApiError('Error updating spot prices', error, device);
+    }
   }
 }
 

@@ -201,26 +201,13 @@ class CZSpotPricesDriver extends Homey.Driver {
 
   async settingsChanged(data) {
     try {
-      this._saveSettings(data);
+      const devices = this.getDevices();
+      for (const device of Object.values(devices)) {
+        await device.spotPriceApi.fetchAndUpdateSpotPrices(device);
+      }
     } catch (error) {
-      this.error("Error saving settings:", error);
+      this.error("Error updating prices after settings change:", error);
     }
-  }
-
-  _saveSettings(data) {
-    this.homey.settings.set('low_tariff_price', data.low_tariff_price);
-    this.homey.settings.set('high_tariff_price', data.high_tariff_price);
-    this.homey.settings.set('low_index_hours', data.low_index_hours);
-    this.homey.settings.set('high_index_hours', data.high_index_hours);
-    for (let i = 0; i < 24; i++) {
-      this.homey.settings.set(`hour_${i}`, data[`hour_${i}`]);
-    }
-    this.tariffIntervals = data.tariff_intervals || [];
-  }
-
-  async triggerCurrentPriceChangedFlow(device, tokens) {
-    const trigger = this.homey.flow.getDeviceTriggerCard('when-current-price-changes');
-    await trigger.trigger(device, tokens).catch(this.error);
   }
 
   getErrorMessage(error) {
