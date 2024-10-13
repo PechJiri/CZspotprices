@@ -14,16 +14,23 @@ class SpotPriceAPI {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+  
       const basePrice = parseFloat(await response.text());
       if (isNaN(basePrice)) {
         throw new Error('Invalid price data received from API');
       }
-
+  
       const lowTariffPrice = device.getSetting('low_tariff_price') || 0;
       const highTariffPrice = device.getSetting('high_tariff_price') || 0;
-      const currentHour = new Date().getHours();
-      const isLowTariff = this.isLowTariff(currentHour, this.getTariffHours(device));
+      
+      const homeyTimezone = this.homey.clock.getTimezone();
+      const currentDate = new Date();
+      const options = { timeZone: homeyTimezone };
+      const currentHour = parseInt(currentDate.toLocaleString('en-US', { ...options, hour: 'numeric', hour12: false }));
+      
+      const tariffHours = this.getTariffHours(device);
+      const isLowTariff = this.isLowTariff(currentHour, tariffHours);
+      
       return basePrice + (isLowTariff ? lowTariffPrice : highTariffPrice);
     } catch (error) {
       this.handleApiError('Error fetching current spot price in CZK', error, device);
@@ -53,7 +60,6 @@ class SpotPriceAPI {
         hourData.priceCZK += tariffPrice;
       });
 
-      this.setPriceIndexes(hoursToday);
       return hoursToday;
     } catch (error) {
       this.handleApiError('Error fetching daily prices', error, device);
@@ -61,19 +67,11 @@ class SpotPriceAPI {
     }
   }
 
-  setPriceIndexes(hoursToday) {
-    const sortedPrices = [...hoursToday].sort((a, b) => a.priceCZK - b.priceCZK);
-    sortedPrices.forEach((hourData, index) => {
-      if (index < 8) hourData.level = 'low';
-      else if (index < 16) hourData.level = 'medium';
-      else hourData.level = 'high';
-    });
-  }
-
   async getCurrentPriceIndex(device) {
     try {
       const currentHour = new Date().getHours();
       const hoursToday = await this.getDailyPrices(device);
+      device.setPriceIndexes(hoursToday);
       const currentHourData = hoursToday.find(hourData => hourData.hour === currentHour);
 
       return currentHourData ? currentHourData.level : 'unknown';
@@ -86,6 +84,7 @@ class SpotPriceAPI {
   async updateCapabilities(device) {
     try {
       const hoursToday = await this.getDailyPrices(device);
+      device.setPriceIndexes(hoursToday);
       
       hoursToday.forEach(hourData => {
         this.setCapability(device, `hour_price_CZK_${hourData.hour}`, hourData.priceCZK);

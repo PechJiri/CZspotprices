@@ -12,6 +12,26 @@
     "min": 1
   },
   {
+    "id": "low_index_hours",
+    "type": "number",
+    "label": {
+      "en": "Number of hours for Low index"
+    },
+    "value": 8,
+    "min": 0,
+    "max": 24
+  },
+  {
+    "id": "high_index_hours",
+    "type": "number",
+    "label": {
+      "en": "Number of hours for High index"
+    },
+    "value": 8,
+    "min": 0,
+    "max": 24
+  },
+  {
     "id": "high_tariff_price",
     "type": "number",
     "label": {

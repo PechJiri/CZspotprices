@@ -15,6 +15,8 @@ class CZSpotPricesDevice extends Homey.Device {
     this.spotPriceApi = new SpotPriceAPI(this.homey);
 
     const updateInterval = this.getSetting('update_interval') || 1;
+    this.lowIndexHours = this.getSetting('low_index_hours') || 8;
+    this.highIndexHours = this.getSetting('high_index_hours') || 8;
 
     const capabilities = [
       'measure_current_spot_price_CZK',
@@ -37,8 +39,11 @@ class CZSpotPricesDevice extends Homey.Device {
     this.registerUpdateDataViaApiFlowAction();
     this.startDataFetchInterval(updateInterval);
 
-    // Přidáme listener pro změnu capability measure_current_spot_price_CZK
     this.registerCapabilityListener('measure_current_spot_price_CZK', this.onCurrentPriceChanged.bind(this));
+
+    const currentHour = new Date().getHours();
+    const initialTariff = this.driver.isLowTariff(currentHour, this) ? 'low' : 'high';
+    await this.setStoreValue('previousTariff', initialTariff);
 
     try {
       await this.fetchAndUpdateSpotPrices();
@@ -50,46 +55,78 @@ class CZSpotPricesDevice extends Homey.Device {
   }
 
   async onCurrentPriceChanged(value, opts) {
-    this.log('Current price changed:', value);
-    // Spustíme trigger when-current-price-changes
     await this.driver.triggerCurrentPriceChangedFlow(this, { price: value });
   }
 
   async onSettings({ oldSettings, newSettings, changedKeys }) {
-    changedKeys.forEach((key) => {
-      this.setSetting(key, newSettings[key]);
-    });
-  
-    if (changedKeys.includes('update_interval')) {
-      this.startDataFetchInterval(newSettings.update_interval);
+    this.log('Settings were changed');
+
+    // Zpracování změněných nastavení
+    for (const key of changedKeys) {
+      switch (key) {
+        case 'update_interval':
+          this.startDataFetchInterval(newSettings.update_interval);
+          break;
+        case 'low_index_hours':
+          this.lowIndexHours = newSettings.low_index_hours;
+          break;
+        case 'high_index_hours':
+          this.highIndexHours = newSettings.high_index_hours;
+          break;
+        // Přidejte další případy pro jiná nastavení, pokud je to potřeba
+      }
     }
-  
+
+    // Pokud se změnily hodnoty indexů, přepočítáme je
+    if (changedKeys.includes('low_index_hours') || changedKeys.includes('high_index_hours')) {
+      try {
+        await this.recalculateAndUpdatePriceIndexes();
+      } catch (error) {
+        this.error('Failed to recalculate price indexes:', error);
+        throw new Error('Failed to update price indexes. Please try again.');
+      }
+    }
+
+    // Aktualizace spotových cen
     try {
       await this.fetchAndUpdateSpotPrices();
       await this.setAvailable();
     } catch (error) {
       this.error('Failed to update spot prices after settings change:', error);
-      await this.setAvailable();
+      throw new Error('Failed to update spot prices. Please check your connection and try again.');
     }
+
+    // Pokud vše proběhlo v pořádku, nová nastavení se automaticky uloží
   }
 
   async fetchAndUpdateSpotPrices() {
     try {
+      const homeyTimezone = this.homey.clock.getTimezone();
+      const currentDate = new Date();
+      const options = { timeZone: homeyTimezone };
+      const currentHour = parseInt(currentDate.toLocaleString('en-US', { ...options, hour: 'numeric', hour12: false }));
+      
       const currentPrice = await this.spotPriceApi.getCurrentPriceCZK(this);
-      const currentIndex = await this.spotPriceApi.getCurrentPriceIndex(this);
       const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
   
       await this.setCapabilityValue('measure_current_spot_price_CZK', currentPrice);
-      await this.setCapabilityValue('measure_current_spot_index', currentIndex);
   
+      this.setPriceIndexes(dailyPrices);
+      
       for (const priceData of dailyPrices) {
         await this.setCapabilityValue(`hour_price_CZK_${priceData.hour}`, priceData.priceCZK);
         await this.setCapabilityValue(`hour_price_index_${priceData.hour}`, priceData.level);
       }
   
+      const currentHourData = dailyPrices.find(price => price.hour === currentHour);
+      const currentIndex = currentHourData ? currentHourData.level : 'unknown';
+      await this.setCapabilityValue('measure_current_spot_index', currentIndex);
+  
       await this.spotPriceApi.updateDailyAverageCapability(this);
   
       await this.setAvailable();
+  
+      return true;
     } catch (error) {
       const errorMessage = this.spotPriceApi.getErrorMessage(error);
       this.error(`Error fetching spot prices: ${errorMessage}`);
@@ -101,6 +138,32 @@ class CZSpotPricesDevice extends Homey.Device {
       this.spotPriceApi.triggerApiCallFail(errorMessage, this);
       return false;
     }
+  }
+
+  async recalculateAndUpdatePriceIndexes() {
+    try {
+      const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
+      this.setPriceIndexes(dailyPrices);
+      
+      for (const priceData of dailyPrices) {
+        await this.setCapabilityValue(`hour_price_index_${priceData.hour}`, priceData.level);
+      }
+  
+      const currentHour = new Date().getHours();
+      const currentIndex = dailyPrices.find(price => price.hour === currentHour)?.level || 'unknown';
+      await this.setCapabilityValue('measure_current_spot_index', currentIndex);
+    } catch (error) {
+      this.error('Failed to recalculate and update price indexes:', error);
+    }
+  }
+
+  setPriceIndexes(hoursToday) {
+    const sortedPrices = [...hoursToday].sort((a, b) => a.priceCZK - b.priceCZK);
+    sortedPrices.forEach((hourData, index) => {
+      if (index < this.lowIndexHours) hourData.level = 'low';
+      else if (index >= sortedPrices.length - this.highIndexHours) hourData.level = 'high';
+      else hourData.level = 'medium';
+    });
   }
 
   async onDeleted() {
@@ -122,7 +185,6 @@ class CZSpotPricesDevice extends Homey.Device {
     const apiCallFailTrigger = this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger');
     apiCallFailTrigger.registerRunListener(async () => true);
 
-    // Registrace nového triggeru
     const whenCurrentPriceChangesTrigger = this.homey.flow.getDeviceTriggerCard('when-current-price-changes');
     whenCurrentPriceChangesTrigger.registerRunListener(async (args, state) => true);
   }

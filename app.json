@@ -221,6 +221,22 @@
             "filter": "driver_id=cz-spot-prices"
           }
         ]
+      },
+      {
+        "id": "when-distribution-tariff-changes",
+        "title": {
+          "en": "Distribution tariff changes"
+        },
+        "titleFormatted": {
+          "en": "Distribution tariff changes"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          }
+        ]
       }
     ],
     "conditions": [
@@ -362,6 +378,40 @@
         ],
         "titleFormatted": {
           "en": "Average price for next [[hours]] hours is [[condition]] within this day"
+        }
+      },
+      {
+        "id": "distribution-tariff-is",
+        "title": {
+          "en": "Distribution tariff is"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          },
+          {
+            "name": "tariff",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "high",
+                "title": {
+                  "en": "High"
+                }
+              },
+              {
+                "id": "low",
+                "title": {
+                  "en": "Low"
+                }
+              }
+            ]
+          }
+        ],
+        "titleFormatted": {
+          "en": "Distribution tariff is [[tariff]]"
         }
       }
     ],
@@ -549,6 +599,26 @@
           },
           "value": 1,
           "min": 1
+        },
+        {
+          "id": "low_index_hours",
+          "type": "number",
+          "label": {
+            "en": "Number of hours for Low index"
+          },
+          "value": 8,
+          "min": 0,
+          "max": 24
+        },
+        {
+          "id": "high_index_hours",
+          "type": "number",
+          "label": {
+            "en": "Number of hours for High index"
+          },
+          "value": 8,
+          "min": 0,
+          "max": 24
         },
         {
           "id": "high_tariff_price",

@@ -146,6 +146,15 @@
       "titleFormatted": {
         "en": "Current price changes"
       }
+    },
+    {
+      "id": "when-distribution-tariff-changes",
+      "title": {
+        "en": "Distribution tariff changes"
+      },
+      "titleFormatted": {
+        "en": "Distribution tariff changes"
+      }
     }
   ],
   "conditions": [
@@ -268,7 +277,37 @@
       "titleFormatted": {
         "en": "Average price for next [[hours]] hours is [[condition]] within this day"
       }
+    },
+    {
+      "id": "distribution-tariff-is",
+      "title": {
+        "en": "Distribution tariff is"
+      },
+      "args": [
+        {
+          "name": "tariff",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "high",
+              "title": {
+                "en": "High"
+              }
+            },
+            {
+              "id": "low",
+              "title": {
+                "en": "Low"
+              }
+            }
+          ]
+        }
+      ],
+      "titleFormatted": {
+        "en": "Distribution tariff is [[tariff]]"
+      }
     }
+    
   ],
   "actions": [
     {

@@ -9,6 +9,10 @@ class CZSpotPricesDriver extends Homey.Driver {
     this.tariffIntervals = this.homey.settings.get('tariff_intervals') || [];
     this.registerFlowCards();
     this.startPeriodicCheck();
+
+    this.tariffCheckInterval = this.homey.setInterval(() => {
+      this.checkTariffChange();
+    }, 60000);
   }
 
   registerFlowCards() {
@@ -28,12 +32,10 @@ class CZSpotPricesDriver extends Homey.Driver {
 
       this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger');
 
-      // Nový trigger pro změnu aktuální ceny
       this.homey.flow.getDeviceTriggerCard('when-current-price-changes')
-        .registerRunListener(async (args, state) => {
-          this.log('When current price changes trigger executed');
-          return true; // Tento trigger se vždy spustí, když je zavolán
-        });
+        .registerRunListener(async (args, state) => true);
+
+      this.tariffChangeTrigger = this.homey.flow.getDeviceTriggerCard('when-distribution-tariff-changes');
 
     } catch (error) {
       this.error('Error registering trigger Flow cards:', error);
@@ -57,6 +59,14 @@ class CZSpotPricesDriver extends Homey.Driver {
       this._registerConditionCard('price-higher-than-condition', 'measure_current_spot_price_CZK', '>');
       this._registerConditionCard('price-index-is-condition', 'measure_current_spot_index', '=');
       this._registerAveragePriceConditionCard();
+
+      this.homey.flow.getConditionCard('distribution-tariff-is')
+        .registerRunListener(async (args, state) => {
+          const currentHour = new Date().getHours();
+          const device = args.device;
+          const isLowTariff = this.isLowTariff(currentHour, device);
+          return args.tariff === (isLowTariff ? 'low' : 'high');
+        });
     } catch (error) {
       this.error('Error registering condition Flow cards:', error);
     }
@@ -154,7 +164,7 @@ class CZSpotPricesDriver extends Homey.Driver {
   async _checkAndTriggerAveragePrice() {
     const devices = this.getDevices();
     for (const device of Object.values(devices)) {
-      const hours = 1; // Výchozí hodnota, můžete ji upravit podle potřeby
+      const hours = 1;
       const conditions = ['lowest', 'highest'];
       
       for (const condition of conditions) {
@@ -175,7 +185,7 @@ class CZSpotPricesDriver extends Homey.Driver {
   }
 
   startPeriodicCheck() {
-    this.homey.setInterval(this._checkAndTriggerAveragePrice.bind(this), 60 * 60 * 1000); // každou hodinu
+    this.homey.setInterval(this._checkAndTriggerAveragePrice.bind(this), 60 * 60 * 1000);
   }
 
   async onPairListDevices() {
@@ -200,15 +210,15 @@ class CZSpotPricesDriver extends Homey.Driver {
   _saveSettings(data) {
     this.homey.settings.set('low_tariff_price', data.low_tariff_price);
     this.homey.settings.set('high_tariff_price', data.high_tariff_price);
+    this.homey.settings.set('low_index_hours', data.low_index_hours);
+    this.homey.settings.set('high_index_hours', data.high_index_hours);
     for (let i = 0; i < 24; i++) {
       this.homey.settings.set(`hour_${i}`, data[`hour_${i}`]);
     }
     this.tariffIntervals = data.tariff_intervals || [];
   }
 
-  // Nová metoda pro spuštění triggeru při změně aktuální ceny
   async triggerCurrentPriceChangedFlow(device, tokens) {
-    this.log('Triggering current price changed flow:', tokens);
     const trigger = this.homey.flow.getDeviceTriggerCard('when-current-price-changes');
     await trigger.trigger(device, tokens).catch(this.error);
   }
@@ -217,6 +227,32 @@ class CZSpotPricesDriver extends Homey.Driver {
     if (typeof error === 'string') return error;
     if (error instanceof Error) return error.message;
     return JSON.stringify(error);
+  }
+
+  isLowTariff(hour, device) {
+    const tariffHours = Array.from({ length: 24 }, (_, i) => i)
+      .filter(i => device.getSetting(`hour_${i}`));
+    const currentDate = new Date();
+    const homeyTimezone = this.homey.clock.getTimezone();
+    const options = { timeZone: homeyTimezone };
+    const currentHour = parseInt(currentDate.toLocaleString('en-US', { ...options, hour: 'numeric', hour12: false }));
+    return tariffHours.includes(currentHour);
+  }
+
+  checkTariffChange() {
+    const devices = this.getDevices();
+    const currentHour = new Date().getHours();
+
+    for (const device of Object.values(devices)) {
+      const previousTariff = device.getStoreValue('previousTariff');
+      const currentTariff = this.isLowTariff(currentHour, device) ? 'low' : 'high';
+
+      if (previousTariff !== currentTariff) {
+        device.setStoreValue('previousTariff', currentTariff);
+        this.tariffChangeTrigger.trigger(device, { tariff: currentTariff })
+          .catch(this.error);
+      }
+    }
   }
 }
 
