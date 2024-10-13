@@ -58,5 +58,8 @@
   },
   "1.2.9": {
     "en": "fixed today price widget with negative prices"
+  },
+  "1.2.11": {
+    "en": "Users now can set how many hour are in high/low price index."
   }
 }
