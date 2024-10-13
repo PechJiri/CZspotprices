@@ -52,5 +52,8 @@
   },
   "1.2.7": {
     "en": "Minor fixes thx to Michal Stranik"
+  },
+  "1.2.8": {
+    "en": "Fixed timezone issue on current price, added new flow cards"
   }
 }
