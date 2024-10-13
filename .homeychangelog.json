@@ -55,5 +55,8 @@
   },
   "1.2.8": {
     "en": "Fixed timezone issue on current price, added new flow cards"
+  },
+  "1.2.9": {
+    "en": "fixed today price widget with negative prices"
   }
 }
