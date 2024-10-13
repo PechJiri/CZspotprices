@@ -14,12 +14,12 @@ class SpotPriceAPI {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-  
+
       const basePrice = parseFloat(await response.text());
       if (isNaN(basePrice)) {
         throw new Error('Invalid price data received from API');
       }
-  
+
       const lowTariffPrice = device.getSetting('low_tariff_price') || 0;
       const highTariffPrice = device.getSetting('high_tariff_price') || 0;
       
@@ -91,7 +91,7 @@ class SpotPriceAPI {
     try {
       const hoursToday = await this.getDailyPrices(device);
       device.setPriceIndexes(hoursToday);
-      
+
       hoursToday.forEach(hourData => {
         this.setCapability(device, `hour_price_CZK_${hourData.hour}`, hourData.priceCZK);
         this.setCapability(device, `hour_price_index_${hourData.hour}`, hourData.level);
@@ -160,7 +160,7 @@ class SpotPriceAPI {
   }
 
   async fetchUrl(url) {
-    const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+    const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
     return fetch(url);
   }
 
@@ -201,7 +201,7 @@ class SpotPriceAPI {
     try {
       const currentPrice = await this.getCurrentPriceCZK(device);
       const dailyPrices = await this.getDailyPrices(device);
-  
+
       await device.setCapabilityValue('measure_current_spot_price_CZK', currentPrice);
       device.setPriceIndexes(dailyPrices);
 
