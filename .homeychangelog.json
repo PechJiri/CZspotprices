@@ -61,5 +61,8 @@
   },
   "1.2.11": {
     "en": "Users now can set how many hour are in high/low price index."
+  },
+  "1.2.12": {
+    "en": "Changes in today spot price widget"
   }
 }
