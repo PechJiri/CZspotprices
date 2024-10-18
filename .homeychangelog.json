@@ -64,5 +64,8 @@
   },
   "1.2.12": {
     "en": "Changes in today spot price widget"
+  },
+  "1.2.13": {
+    "en": "Updated today price widget - more compact, highlighted current hour bar, color scheme is now based on high/low price index settings in device settings"
   }
 }
