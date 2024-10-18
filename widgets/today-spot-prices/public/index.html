@@ -24,7 +24,7 @@
             border-radius: var(--homey-border-radius-default);
             max-height: 250px;
         }
-        #averagePrice, #currentPrice {
+        #priceInfo {
             text-align: center;
             font-size: var(--homey-font-size-small);
             margin-bottom: var(--homey-su-1);
@@ -39,8 +39,7 @@
 </head>
 <body class="homey-widget">
     <div id="container">
-        <div id="currentPrice">Loading...</div>
-        <div id="averagePrice">Loading...</div>
+        <div id="priceInfo">Loading...</div>
         <canvas id="chart"></canvas>
     </div>
     <script>
@@ -54,17 +53,14 @@
             }, 100);
         }
 
-        function getBarColor(price, index, data) {
-            const sortedPrices = [...data].sort((a, b) => b.price - a.price);
+        function getBarColor(index, data) {
             const isHighTariff = data[index].isHighTariff;
-            const position = sortedPrices.indexOf(data[index]);
+            const priceIndex = data[index].index;
             
             let baseColor;
-            if (price < 0) {
-                baseColor = isHighTariff ? 'rgb(0,123,255)' : 'rgb(108,195,213)'; // Modré odstíny pro záporné ceny
-            } else if (position < 3) {
+            if (priceIndex === 'high') {
                 baseColor = isHighTariff ? 'rgb(220,53,69)' : 'rgb(248,108,107)'; // Červené odstíny
-            } else if (position >= data.length - 3) {
+            } else if (priceIndex === 'low') {
                 baseColor = isHighTariff ? 'rgb(25,135,84)' : 'rgb(74,222,128)'; // Zelené odstíny
             } else {
                 baseColor = isHighTariff ? 'rgb(108,117,125)' : 'rgb(173,181,189)'; // Šedé odstíny
@@ -82,13 +78,19 @@
             const suggestedMax = Math.ceil((maxPrice * 1.05) / 1000) * 1000;
             const suggestedMin = Math.floor((minPrice * 1.05) / 1000) * 1000;
 
+            const currentHour = new Date().getHours();
+
+            const borderColor = getComputedStyle(document.body).getPropertyValue('--homey-text-color').trim();
+
             chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: data.map(item => item.hour),
                     datasets: [{
                         data: prices,
-                        backgroundColor: prices.map((price, index) => getBarColor(price, index, data)),
+                        backgroundColor: data.map((_, index) => getBarColor(index, data)),
+                        borderColor: data.map((_, index) => index === currentHour ? borderColor : 'transparent'),
+                        borderWidth: data.map((_, index) => index === currentHour ? 2 : 0),
                         barThickness: 'flex',
                         maxBarThickness: 20,
                         categoryPercentage: 0.85,
@@ -127,7 +129,8 @@
                                 font: {
                                     size: 13
                                 },
-                                padding: 0
+                                padding: 0,
+                                color: borderColor
                             },
                             grid: {
                                 drawBorder: false,
@@ -145,7 +148,8 @@
                                 font: {
                                     size: 10
                                 },
-                                padding: 0
+                                padding: 0,
+                                color: borderColor
                             },
                             grid: {
                                 drawBorder: false,
@@ -159,6 +163,14 @@
                             right: 5,
                             bottom: 5,
                             left: 5
+                        }
+                    },
+                    elements: {
+                        bar: {
+                            borderRadius: {
+                                topLeft: 5,
+                                topRight: 5
+                            }
                         }
                     }
                 }
@@ -174,11 +186,8 @@
                         const data = result.hourlyPrices;
                         const averagePrice = result.averagePrice;
                         const currentPrice = result.currentPrice;
-                        const currentIndex = result.currentIndex;
-                        const currentHour = new Date().getHours();
 
-                        document.getElementById('currentPrice').textContent = `Current price for hour ${currentHour}: ${currentPrice.toFixed(2)} CZK (${currentIndex})`;
-                        document.getElementById('averagePrice').textContent = `Today average price: ${averagePrice.toFixed(2)} CZK`;
+                        document.getElementById('priceInfo').textContent = `Current ${currentPrice.toFixed(2)} CZK | ${averagePrice.toFixed(2)} CZK Average`;
 
                         if (chart) {
                             chart.destroy();
@@ -191,8 +200,7 @@
                 })
                 .catch(error => {
                     console.error('Error updating chart:', error);
-                    document.getElementById('currentPrice').textContent = 'Error loading data';
-                    document.getElementById('averagePrice').textContent = 'Error loading data';
+                    document.getElementById('priceInfo').textContent = 'Error loading data';
                 });
         }
 
