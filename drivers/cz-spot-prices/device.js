@@ -46,9 +46,7 @@ class CZSpotPricesDevice extends Homey.Device {
     await this.setStoreValue('previousTariff', initialTariff);
   
     try {
-      this.log('Fetching initial spot prices...');
       await this.fetchAndUpdateSpotPrices();
-      this.log('Initial spot prices fetched successfully');
       await this.setAvailable();
     } catch (error) {
       this.error('Failed to fetch initial spot prices:', error);
@@ -61,10 +59,6 @@ class CZSpotPricesDevice extends Homey.Device {
   }
 
   async onSettings({ oldSettings, newSettings, changedKeys }) {
-    this.log('Nastavení byla změněna');
-    this.log('Změněné klíče:', changedKeys);
-  
-    // Aktualizace interních proměnných
     if (changedKeys.includes('low_index_hours')) {
       this.lowIndexHours = newSettings.low_index_hours;
     }
@@ -75,17 +69,14 @@ class CZSpotPricesDevice extends Homey.Device {
       this.startDataFetchInterval(newSettings.update_interval);
     }
   
-    // Odložení aktualizace dat o 100ms
     this.homey.setTimeout(async () => {
       try {
-        this.log('Načítám a aktualizuji spotové ceny po změně nastavení...');
         if (changedKeys.includes('low_index_hours') || changedKeys.includes('high_index_hours')) {
           await this.recalculateAndUpdatePriceIndexes();
         }
         await this.fetchAndUpdateSpotPrices();
-        this.log('Spotové ceny byly úspěšně aktualizovány po změně nastavení');
       } catch (error) {
-        this.error('Nepodařilo se načíst a aktualizovat spotové ceny po změně nastavení:', error);
+        this.error('Failed to update spot prices after settings change:', error);
       }
     }, 100);
   }
@@ -104,27 +95,18 @@ class CZSpotPricesDevice extends Homey.Device {
         throw new Error('Invalid daily prices data received from API');
       }
   
-      await this.setCapabilityValue('measure_current_spot_price_CZK', currentPrice)
-        .then(() => this.log(`Updated measure_current_spot_price_CZK: ${currentPrice}`))
-        .catch(err => this.error(`Failed to update measure_current_spot_price_CZK: ${err}`));
+      await this.setCapabilityValue('measure_current_spot_price_CZK', currentPrice);
   
       this.setPriceIndexes(dailyPrices);
   
       for (const priceData of dailyPrices) {
-        await this.setCapabilityValue(`hour_price_CZK_${priceData.hour}`, priceData.priceCZK)
-          .then(() => this.log(`Updated hour_price_CZK_${priceData.hour}: ${priceData.priceCZK}`))
-          .catch(err => this.error(`Failed to update hour_price_CZK_${priceData.hour}: ${err}`));
-  
-        await this.setCapabilityValue(`hour_price_index_${priceData.hour}`, priceData.level)
-          .then(() => this.log(`Updated hour_price_index_${priceData.hour}: ${priceData.level}`))
-          .catch(err => this.error(`Failed to update hour_price_index_${priceData.hour}: ${err}`));
+        await this.setCapabilityValue(`hour_price_CZK_${priceData.hour}`, priceData.priceCZK);
+        await this.setCapabilityValue(`hour_price_index_${priceData.hour}`, priceData.level);
       }
   
       const currentHourData = dailyPrices.find(price => price.hour === currentHour);
       const currentIndex = currentHourData ? currentHourData.level : 'unknown';
-      await this.setCapabilityValue('measure_current_spot_index', currentIndex)
-        .then(() => this.log(`Updated measure_current_spot_index: ${currentIndex}`))
-        .catch(err => this.error(`Failed to update measure_current_spot_index: ${err}`));
+      await this.setCapabilityValue('measure_current_spot_index', currentIndex);
   
       await this.spotPriceApi.updateDailyAverageCapability(this);
   
@@ -158,16 +140,12 @@ class CZSpotPricesDevice extends Homey.Device {
       this.setPriceIndexes(dailyPrices);
       
       for (const priceData of dailyPrices) {
-        await this.setCapabilityValue(`hour_price_index_${priceData.hour}`, priceData.level)
-          .then(() => this.log(`Updated hour_price_index_${priceData.hour}: ${priceData.level}`))
-          .catch(err => this.error(`Failed to update hour_price_index_${priceData.hour}: ${err}`));
+        await this.setCapabilityValue(`hour_price_index_${priceData.hour}`, priceData.level);
       }
   
       const currentHour = new Date().getHours();
       const currentIndex = dailyPrices.find(price => price.hour === currentHour)?.level || 'unknown';
-      await this.setCapabilityValue('measure_current_spot_index', currentIndex)
-        .then(() => this.log(`Updated measure_current_spot_index: ${currentIndex}`))
-        .catch(err => this.error(`Failed to update measure_current_spot_index: ${err}`));
+      await this.setCapabilityValue('measure_current_spot_index', currentIndex);
     } catch (error) {
       this.error('Failed to recalculate and update price indexes:', error);
     }
@@ -239,7 +217,7 @@ class CZSpotPricesDevice extends Homey.Device {
         for (let i = startHour; i < startHour + hours; i++) {
             const price = await this.getCapabilityValue(`hour_price_CZK_${i}`);
             if (price === null || price === undefined) {
-                throw new Error(`Chybí cenová data pro hodinu ${i}`);
+                throw new Error(`Missing price data for hour ${i}`);
             }
             total += price;
         }

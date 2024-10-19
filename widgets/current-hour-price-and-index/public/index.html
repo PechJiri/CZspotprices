@@ -18,52 +18,82 @@
         }
         #container {
             display: flex;
-            flex-direction: column;
             background-color: var(--homey-background-color);
             color: var(--homey-text-color);
             padding: var(--homey-su-4);
             border-radius: var(--homey-border-radius-default);
-            width: 300px;
-            height: 100px;
+            width: 600px;
+            height: 200px;
+        }
+        .half {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .half:first-child {
+            border-right: 1px solid transparent;
         }
         h2 {
             margin: 0 0 var(--homey-su-2) 0;
-            font-size: var(--homey-font-size-default);
-            font-weight: var(--homey-font-weight-medium);
+            font-size: var(--homey-font-size-small);
+            font-weight: var(--homey-font-weight-regular);
+            color: var(--homey-text-color-light);
         }
-        #content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-grow: 1;
-        }
-        #price {
+        .price {
             font-size: var(--homey-font-size-xlarge);
             font-weight: var(--homey-font-weight-bold);
+            margin-bottom: var(--homey-su-2);
+            white-space: nowrap;
         }
-        #index {
+        .right .price {
+            font-size: var(--homey-font-size-default);
             display: flex;
             align-items: center;
+            justify-content: center;
+            width: 100%;
         }
-        #indexDot {
+        .index {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .indexDot {
             width: var(--homey-su-3);
             height: var(--homey-su-3);
             border-radius: 50%;
             margin-right: var(--homey-su-2);
         }
-        #indexText {
+        .indexText {
             font-size: var(--homey-font-size-default);
+        }
+        .average {
+            margin-top: calc(var(--homey-su-4) * 0.75);
+            width: 100%;
         }
     </style>
 </head>
 <body class="homey-widget">
     <div id="container">
-        <h2>Actual Spot Price</h2>
-        <div id="content">
-            <div id="price">Loading...</div>
-            <div id="index">
-                <div id="indexDot"></div>
-                <span id="indexText">Loading...</span>
+        <div class="half">
+            <h2>Current Price</h2>
+            <div id="currentPrice" class="price">Loading...</div>
+            <div class="index">
+                <div id="currentIndexDot" class="indexDot"></div>
+                <span id="currentIndexText" class="indexText">Loading...</span>
+            </div>
+        </div>
+        <div class="half right">
+            <h2>Next hour price</h2>
+            <div class="price">
+                <div id="nextHourIndexDot" class="indexDot"></div>
+                <div id="nextHourPrice">Loading...</div>
+            </div>
+            <div class="average">
+                <h2>Daily average price</h2>
+                <div id="averagePrice" class="price">Loading...</div>
             </div>
         </div>
     </div>
@@ -71,60 +101,63 @@
         let Homey;
 
         function onHomeyReady(_Homey) {
-            console.log('Homey is ready');
             Homey = _Homey;
-            setTimeout(() => {
-                init();
-            }, 100);
+            setTimeout(init, 100);
         }
 
-        function updateUI(price, index) {
-            document.getElementById('price').textContent = `${price.toFixed(2)} CZK`;
-            document.getElementById('indexText').textContent = index;
+        function updateUI(data) {
+            document.getElementById('currentPrice').textContent = `${Math.round(data.currentSpotPrice)} CZK`;
+            document.getElementById('currentIndexText').textContent = data.currentSpotIndex;
+            setIndexColor('currentIndexDot', data.currentSpotIndex);
 
+            document.getElementById('nextHourPrice').textContent = `${Math.round(data.nextHourPrice)} CZK`;
+            setIndexColor('nextHourIndexDot', data.nextHourIndex);
+
+            document.getElementById('averagePrice').textContent = `${Math.round(data.averagePrice)} CZK`;
+        }
+
+        function setIndexColor(elementId, index) {
             const indexColors = {
                 low: 'var(--homey-color-success)',
                 medium: 'var(--homey-color-warning)',
                 high: 'var(--homey-color-danger)',
                 unknown: 'var(--homey-color-highlight)'
             };
-            document.getElementById('indexDot').style.backgroundColor = indexColors[index] || indexColors.unknown;
+            document.getElementById(elementId).style.backgroundColor = indexColors[index] || indexColors.unknown;
         }
 
         function updateData() {
-            console.log('Updating data...');
             Homey.api('GET', '/spot-price')
                 .then(result => {
-                    console.log('Received data from API:', result);
-                    if (result && result.currentSpotPrice !== undefined && result.currentSpotIndex !== undefined) {
-                        updateUI(result.currentSpotPrice, result.currentSpotIndex);
+                    if (result && result.currentSpotPrice !== undefined && result.currentSpotIndex !== undefined &&
+                        result.nextHourPrice !== undefined && result.nextHourIndex !== undefined && 
+                        result.averagePrice !== undefined) {
+                        updateUI(result);
                     } else {
-                        throw new Error('Unexpected data format received');
+                        throw new Error('Unexpected data format');
                     }
                 })
                 .catch(error => {
-                    console.error('Error fetching spot price:', error);
-                    document.getElementById('price').textContent = 'Error';
-                    document.getElementById('indexText').textContent = 'N/A';
+                    console.error('Error fetching prices:', error);
+                    document.getElementById('currentPrice').textContent = 'Error';
+                    document.getElementById('currentIndexText').textContent = 'N/A';
+                    document.getElementById('nextHourPrice').textContent = 'Error';
+                    document.getElementById('averagePrice').textContent = 'Error';
                 });
         }
 
         function init() {
-            console.log('Initializing widget...');
             updateData();
             setInterval(updateData, 60 * 60 * 1000); // Update every hour
             
-            // Register the update callback
-            Homey.api('POST', '/registerUpdateCallback', {}, (err, result) => {
+            // Register update callback
+            Homey.api('POST', '/registerUpdateCallback', {}, (err) => {
                 if (err) {
                     console.error('Failed to register update callback:', err);
-                } else {
-                    console.log('Update callback registered successfully');
                 }
             });
 
             Homey.ready();
-            console.log('Widget initialized');
         }
     </script>
 </body>

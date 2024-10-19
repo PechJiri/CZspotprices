@@ -3,7 +3,7 @@
     "en": "Electricity Price Widget"
   },
   "settings": [],
-  "height": 90,
+  "height": 120,
   "api": {
     "getSpotPrice": {
       "method": "GET",

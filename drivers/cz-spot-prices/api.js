@@ -216,8 +216,6 @@ class SpotPriceAPI {
       await device.setCapabilityValue('measure_current_spot_index', currentIndex);
 
       await this.updateDailyAverageCapability(device);
-
-      this.homey.log('All capabilities updated successfully');
     } catch (error) {
       this.handleApiError('Error updating spot prices', error, device);
     }

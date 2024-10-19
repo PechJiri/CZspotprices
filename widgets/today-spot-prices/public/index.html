@@ -48,9 +48,7 @@
 
         function onHomeyReady(_Homey) {
             Homey = _Homey;
-            setTimeout(() => {
-                init();
-            }, 100);
+            setTimeout(init, 100);
         }
 
         function getBarColor(index, data) {
@@ -59,11 +57,11 @@
             
             let baseColor;
             if (priceIndex === 'high') {
-                baseColor = isHighTariff ? 'rgb(220,53,69)' : 'rgb(248,108,107)'; // Červené odstíny
+                baseColor = isHighTariff ? 'rgb(220,53,69)' : 'rgb(248,108,107)';
             } else if (priceIndex === 'low') {
-                baseColor = isHighTariff ? 'rgb(25,135,84)' : 'rgb(74,222,128)'; // Zelené odstíny
+                baseColor = isHighTariff ? 'rgb(25,135,84)' : 'rgb(74,222,128)';
             } else {
-                baseColor = isHighTariff ? 'rgb(108,117,125)' : 'rgb(173,181,189)'; // Šedé odstíny
+                baseColor = isHighTariff ? 'rgb(108,117,125)' : 'rgb(173,181,189)';
             }
             
             return baseColor;
@@ -178,22 +176,19 @@
         }
 
         function updateChart() {
-            console.log('Updating chart...');
             Homey.api('GET', '/hourly-prices')
                 .then(result => {
-                    console.log('Received data:', result);
                     if (result && result.hourlyPrices && result.averagePrice !== undefined) {
                         const data = result.hourlyPrices;
                         const averagePrice = result.averagePrice;
                         const currentPrice = result.currentPrice;
 
-                        document.getElementById('priceInfo').textContent = `Current ${currentPrice.toFixed(2)} CZK | ${averagePrice.toFixed(2)} CZK Average`;
+                        document.getElementById('priceInfo').textContent = `Current ${Math.round(currentPrice)} CZK | ${Math.round(averagePrice)} CZK Average`;
 
                         if (chart) {
                             chart.destroy();
                         }
                         createChart(data);
-                        console.log('Chart updated successfully');
                     } else {
                         throw new Error('Unexpected data format');
                     }
@@ -205,21 +200,17 @@
         }
 
         function init() {
-            console.log('Initializing widget...');
             updateChart();
             setInterval(updateChart, 60 * 60 * 1000); // Update every hour
             
             // Register the update callback
-            Homey.api('POST', '/registerUpdateCallback', {}, (err, result) => {
+            Homey.api('POST', '/registerUpdateCallback', {}, (err) => {
                 if (err) {
                     console.error('Failed to register update callback:', err);
-                } else {
-                    console.log('Update callback registered successfully');
                 }
             });
 
             Homey.ready();
-            console.log('Widget initialized');
         }
     </script>
 </body>
