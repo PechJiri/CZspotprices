@@ -70,5 +70,8 @@
   },
   "1.2.14": {
     "en": "Optimized widgets, removed logs"
+  },
+  "1.2.15": {
+    "en": "fixed current spot price widget"
   }
 }
