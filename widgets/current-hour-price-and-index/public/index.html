@@ -99,6 +99,7 @@
     </div>
     <script>
         let Homey;
+        let priceInKWh = false;
 
         function onHomeyReady(_Homey) {
             Homey = _Homey;
@@ -106,14 +107,17 @@
         }
 
         function updateUI(data) {
-            document.getElementById('currentPrice').textContent = `${Math.round(data.currentSpotPrice)} CZK`;
+            const unit = data.priceInKWh ? 'CZK/kWh' : 'CZK/MWh';
+            const formatPrice = (price) => data.priceInKWh ? price.toFixed(3) : price.toFixed(0);
+
+            document.getElementById('currentPrice').textContent = `${formatPrice(data.currentSpotPrice)} ${unit}`;
             document.getElementById('currentIndexText').textContent = data.currentSpotIndex;
             setIndexColor('currentIndexDot', data.currentSpotIndex);
 
-            document.getElementById('nextHourPrice').textContent = `${Math.round(data.nextHourPrice)} CZK`;
+            document.getElementById('nextHourPrice').textContent = `${formatPrice(data.nextHourPrice)} ${unit}`;
             setIndexColor('nextHourIndexDot', data.nextHourIndex);
 
-            document.getElementById('averagePrice').textContent = `${Math.round(data.averagePrice)} CZK`;
+            document.getElementById('averagePrice').textContent = `${formatPrice(data.averagePrice)} ${unit}`;
         }
 
         function setIndexColor(elementId, index) {
@@ -131,13 +135,15 @@
                 .then(result => {
                     if (result && result.currentSpotPrice !== undefined && result.currentSpotIndex !== undefined &&
                         result.nextHourPrice !== undefined && result.nextHourIndex !== undefined && 
-                        result.averagePrice !== undefined) {
+                        result.averagePrice !== undefined && result.priceInKWh !== undefined) {
+                        priceInKWh = result.priceInKWh;
                         updateUI(result);
                     } else {
                         throw new Error('Unexpected data format');
                     }
                 })
                 .catch(error => {
+                    console.error('Error updating data:', error);
                     document.getElementById('currentPrice').textContent = 'Error';
                     document.getElementById('currentIndexText').textContent = 'N/A';
                     document.getElementById('nextHourPrice').textContent = 'Error';
@@ -147,9 +153,9 @@
 
         function init() {
             updateData();
-            setInterval(updateData, 10 * 60 * 1000); // Aktualizace každých 10 minut
+            setInterval(updateData, 10 * 60 * 1000); // Update every 10 minutes
 
-            // Registrace update callbacku
+            // Register the update callback
             Homey.api('POST', '/registerUpdateCallback', {}, (err) => {
                 if (err) {
                     console.error('Failed to register update callback:', err);

@@ -14,10 +14,11 @@ module.exports = {
 
       const device = devices[0]; 
 
+      const priceInKWh = device.getSetting('price_in_kwh') || false;
+
       const currentSpotPrice = await device.getCapabilityValue('measure_current_spot_price_CZK');
       const currentSpotIndex = await device.getCapabilityValue('measure_current_spot_index');
 
-      // Přidání časové zóny (např. "Europe/Prague")
       const currentHour = new Date().toLocaleString('en-GB', { hour: 'numeric', hour12: false, timeZone: 'Europe/Prague' });
       const nextHour = (parseInt(currentHour, 10) + 1) % 24;
 
@@ -31,7 +32,8 @@ module.exports = {
         currentSpotIndex,
         nextHourPrice,
         nextHourIndex,
-        averagePrice
+        averagePrice,
+        priceInKWh
       };
     } catch (error) {
       console.error('API Chyba v getSpotPrice:', error);

@@ -17,6 +17,7 @@ class CZSpotPricesDevice extends Homey.Device {
     const updateInterval = this.getSetting('update_interval') || 1;
     this.lowIndexHours = this.getSetting('low_index_hours') || 8;
     this.highIndexHours = this.getSetting('high_index_hours') || 8;
+    this.priceInKWh = this.getSetting('price_in_kwh') || false;
   
     const capabilities = [
       'measure_current_spot_price_CZK',
@@ -68,6 +69,10 @@ class CZSpotPricesDevice extends Homey.Device {
     if (changedKeys.includes('update_interval')) {
       this.startDataFetchInterval(newSettings.update_interval);
     }
+    if (changedKeys.includes('price_in_kwh')) {
+      this.priceInKWh = newSettings.price_in_kwh;
+      await this.fetchAndUpdateSpotPrices();
+    }
   
     this.homey.setTimeout(async () => {
       try {
@@ -75,12 +80,19 @@ class CZSpotPricesDevice extends Homey.Device {
           await this.recalculateAndUpdatePriceIndexes();
         }
         await this.fetchAndUpdateSpotPrices();
+        
+        // Emit an event when settings are changed
+        this.homey.emit('settings_changed');
       } catch (error) {
         this.error('Failed to update spot prices after settings change:', error);
       }
     }, 100);
   }
   
+  convertPrice(price) {
+    return this.priceInKWh ? price / 1000 : price;
+  }
+
   async fetchAndUpdateSpotPrices() {
     try {
       const homeyTimezone = this.homey.clock.getTimezone();
@@ -95,12 +107,11 @@ class CZSpotPricesDevice extends Homey.Device {
         throw new Error('Invalid daily prices data received from API');
       }
   
-      await this.setCapabilityValue('measure_current_spot_price_CZK', currentPrice);
-  
+      await this.setCapabilityValue('measure_current_spot_price_CZK', this.convertPrice(currentPrice));
       this.setPriceIndexes(dailyPrices);
   
       for (const priceData of dailyPrices) {
-        await this.setCapabilityValue(`hour_price_CZK_${priceData.hour}`, priceData.priceCZK);
+        await this.setCapabilityValue(`hour_price_CZK_${priceData.hour}`, this.convertPrice(priceData.priceCZK));
         await this.setCapabilityValue(`hour_price_index_${priceData.hour}`, priceData.level);
       }
   
@@ -108,15 +119,15 @@ class CZSpotPricesDevice extends Homey.Device {
       const currentIndex = currentHourData ? currentHourData.level : 'unknown';
       await this.setCapabilityValue('measure_current_spot_index', currentIndex);
   
-      await this.spotPriceApi.updateDailyAverageCapability(this);
+      await this.updateDailyAverageCapability();
   
       await this.setAvailable();
   
       await this.homey.emit('spot_prices_updated', {
         deviceId: this.getData().id,
-        currentPrice,
+        currentPrice: this.convertPrice(currentPrice),
         currentIndex,
-        dailyPrices,
+        dailyPrices: dailyPrices.map(price => ({ ...price, priceCZK: this.convertPrice(price.priceCZK) })),
         averagePrice: await this.getCapabilityValue('daily_average_price')
       });
   
@@ -140,6 +151,7 @@ class CZSpotPricesDevice extends Homey.Device {
       this.setPriceIndexes(dailyPrices);
       
       for (const priceData of dailyPrices) {
+        await this.setCapabilityValue(`hour_price_CZK_${priceData.hour}`, this.convertPrice(priceData.priceCZK));
         await this.setCapabilityValue(`hour_price_index_${priceData.hour}`, priceData.level);
       }
   
@@ -158,6 +170,30 @@ class CZSpotPricesDevice extends Homey.Device {
       else if (index >= sortedPrices.length - this.highIndexHours) hourData.level = 'high';
       else hourData.level = 'medium';
     });
+  }
+
+  async updateDailyAverageCapability() {
+    try {
+      let totalPrice = 0;
+      let count = 0;
+
+      for (let i = 0; i < 24; i++) {
+        const price = await this.getCapabilityValue(`hour_price_CZK_${i}`);
+        if (price !== null && price !== undefined) {
+          totalPrice += price;
+          count++;
+        }
+      }
+
+      if (count === 0) {
+        throw new Error('No valid hourly prices available to calculate the average.');
+      }
+
+      const averagePrice = totalPrice / count;
+      await this.setCapabilityValue('daily_average_price', averagePrice);
+    } catch (error) {
+      this.error('Error updating daily average price capability:', error);
+    }
   }
 
   async onDeleted() {

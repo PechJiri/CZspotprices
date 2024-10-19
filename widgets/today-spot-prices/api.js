@@ -1,6 +1,7 @@
 'use strict';
 
 let updateCallback = null;
+let settingsChangeCallback = null;
 
 module.exports = {
   async getHourlyPrices({ homey }) {
@@ -15,6 +16,7 @@ module.exports = {
       const device = devices[0];  // Use the first device
 
       const hourlyPrices = [];
+      const priceInKWh = device.getSetting('price_in_kwh') || false;
       
       for (let i = 0; i < 24; i++) {
         const price = await device.getCapabilityValue(`hour_price_CZK_${i}`);
@@ -24,7 +26,6 @@ module.exports = {
       }
 
       const averagePrice = await device.getCapabilityValue('daily_average_price');
-
       const currentPrice = await device.getCapabilityValue('measure_current_spot_price_CZK');
       const currentIndex = await device.getCapabilityValue('measure_current_spot_index');
 
@@ -32,7 +33,8 @@ module.exports = {
         hourlyPrices,
         averagePrice,
         currentPrice,
-        currentIndex
+        currentIndex,
+        priceInKWh
       };
     } catch (error) {
       console.error('API Error in getHourlyPrices:', error);
@@ -53,10 +55,12 @@ module.exports = {
 
       const currentPrice = await device.getCapabilityValue('measure_current_spot_price_CZK');
       const currentIndex = await device.getCapabilityValue('measure_current_spot_index');
+      const priceInKWh = device.getSetting('price_in_kwh') || false;
 
       return {
         currentPrice,
-        currentIndex
+        currentIndex,
+        priceInKWh
       };
     } catch (error) {
       console.error('API Error in getSpotPrice:', error);
@@ -70,6 +74,16 @@ module.exports = {
     homey.on('spot_prices_updated', () => {
       if (updateCallback) {
         updateCallback();
+      }
+    });
+  },
+
+  registerSettingsChangeCallback({ homey }, callback) {
+    settingsChangeCallback = callback;
+    
+    homey.on('settings_changed', () => {
+      if (settingsChangeCallback) {
+        settingsChangeCallback();
       }
     });
   }

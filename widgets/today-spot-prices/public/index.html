@@ -45,6 +45,7 @@
     <script>
         let chart;
         let Homey;
+        let priceInKWh = false;
 
         function onHomeyReady(_Homey) {
             Homey = _Homey;
@@ -73,8 +74,8 @@
             const maxPrice = Math.max(...prices);
             const minPrice = Math.min(...prices);
             
-            const suggestedMax = Math.ceil((maxPrice * 1.05) / 1000) * 1000;
-            const suggestedMin = Math.floor((minPrice * 1.05) / 1000) * 1000;
+            const suggestedMax = Math.ceil((maxPrice * 1.05) / (priceInKWh ? 1 : 1000)) * (priceInKWh ? 1 : 1000);
+            const suggestedMin = Math.floor((minPrice * 0.95) / (priceInKWh ? 1 : 1000)) * (priceInKWh ? 1 : 1000);
 
             const currentHour = new Date().getHours();
 
@@ -106,7 +107,7 @@
                             callbacks: {
                                 label: function(context) {
                                     const dataPoint = data[context.dataIndex];
-                                    return `${context.parsed.y.toFixed(2)} CZK (${dataPoint.index})`;
+                                    return `${context.parsed.y.toFixed(priceInKWh ? 2 : 0)} CZK/${priceInKWh ? 'kWh' : 'MWh'} (${dataPoint.index})`;
                                 }
                             }
                         }
@@ -122,7 +123,11 @@
                             ticks: {
                                 maxTicksLimit: 4,
                                 callback: function(value) {
-                                    return value >= 1000 ? (value / 1000) + 'k' : value;
+                                    if (priceInKWh) {
+                                        return value.toFixed(2);
+                                    } else {
+                                        return value >= 1000 ? (value / 1000) + 'k' : value;
+                                    }
                                 },
                                 font: {
                                     size: 13
@@ -182,8 +187,11 @@
                         const data = result.hourlyPrices;
                         const averagePrice = result.averagePrice;
                         const currentPrice = result.currentPrice;
+                        priceInKWh = result.priceInKWh;
 
-                        document.getElementById('priceInfo').textContent = `Current ${Math.round(currentPrice)} CZK | ${Math.round(averagePrice)} CZK Average`;
+                        const unit = priceInKWh ? 'kWh' : 'MWh';
+                        document.getElementById('priceInfo').textContent = 
+                            `Current ${currentPrice.toFixed(priceInKWh ? 2 : 0)} CZK/${unit} | ${averagePrice.toFixed(priceInKWh ? 2 : 0)} CZK/${unit} Average`;
 
                         if (chart) {
                             chart.destroy();
@@ -207,6 +215,15 @@
             Homey.api('POST', '/registerUpdateCallback', {}, (err) => {
                 if (err) {
                     console.error('Failed to register update callback:', err);
+                }
+            });
+
+            // Register the settings change callback
+            Homey.api('POST', '/registerSettingsChangeCallback', {}, (err) => {
+                if (err) {
+                    console.error('Failed to register settings change callback:', err);
+                } else {
+                    Homey.on('settings_changed', updateChart);
                 }
             });
 

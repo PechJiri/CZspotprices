@@ -601,6 +601,17 @@
           "min": 1
         },
         {
+          "id": "price_in_kwh",
+          "type": "checkbox",
+          "label": {
+            "en": "Price in kWh"
+          },
+          "value": false,
+          "hint": {
+            "en": "Convert prices from MWh to kWh"
+          }
+        },
+        {
           "id": "low_index_hours",
           "type": "number",
           "label": {
