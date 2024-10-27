@@ -88,5 +88,8 @@
   },
   "2.0.3": {
     "en": "fixed widgets"
+  },
+  "2.0.4": {
+    "en": "Fixed tarif change trigger"
   }
 }
