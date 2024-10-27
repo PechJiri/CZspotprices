@@ -85,5 +85,8 @@
   },
   "2.0.2": {
     "en": "small fix"
+  },
+  "2.0.3": {
+    "en": "fixed widgets"
   }
 }
