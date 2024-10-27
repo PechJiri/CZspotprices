@@ -6,18 +6,44 @@ const crypto = require('crypto');
 class CZSpotPricesDriver extends Homey.Driver {
 
   async onInit() {
+    this.homey.log('CZSpotPricesDriver initialized');
+    
+    // Inicializace proměnných
     this.tariffIntervals = this.homey.settings.get('tariff_intervals') || [];
     this.homey.log('Driver initialized with tariff intervals:', this.tariffIntervals);
   
+    // Registrace flow karet
     this.registerFlowCards();
-  
-    // Pravidelná kontrola změn tarifu každou hodinu
-    this.tariffCheckInterval = this.homey.setInterval(() => {
-      this.checkTariffChange();
-    }, 60 * 60 * 1000); // Kontrola jednou za hodinu
-    this.homey.log('Tariff change check interval set to 1 hour.');
+    
+    // Nastavení kontroly tarifu
+    this.setupTariffCheck();
   }
-  
+
+  setupTariffCheck() {
+    // Výpočet času do další celé hodiny
+    const now = new Date();
+    const nextHour = new Date(now);
+    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
+    const timeToNextHour = nextHour.getTime() - now.getTime();
+
+    // Spustíme první kontrolu ihned
+    this.checkTariffChange();
+    this.homey.log('Initial tariff check executed');
+
+    // Naplánujeme první kontrolu přesně na začátek příští hodiny
+    this.homey.setTimeout(() => {
+      this.checkTariffChange();
+      
+      // A pak nastavíme pravidelný interval přesně po hodině
+      this.tariffCheckInterval = this.homey.setInterval(() => {
+        this.checkTariffChange();
+      }, 60 * 60 * 1000);
+      
+      this.homey.log('Hourly tariff check interval established');
+    }, timeToNextHour);
+
+    this.homey.log(`Next tariff check scheduled in ${Math.round(timeToNextHour/1000)} seconds`);
+  }
 
   registerFlowCards() {
     this.homey.log('Registering flow cards...');
@@ -39,7 +65,7 @@ class CZSpotPricesDriver extends Homey.Driver {
         .registerRunListener(this._handleAveragePriceTrigger.bind(this));
       this.homey.log('Average price trigger card registered.');
 
-      // Upravený trigger pro API chyby s rozlišením typu
+      // Trigger pro API chyby
       this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger')
         .registerRunListener(async (args, state) => {
           this.homey.log(`API call fail trigger invoked with type: ${args.type}`);
@@ -59,6 +85,34 @@ class CZSpotPricesDriver extends Homey.Driver {
 
     } catch (error) {
       this.error('Error registering trigger Flow cards:', error);
+    }
+  }
+
+  checkTariffChange() {
+    const devices = this.getDevices();
+    const currentHour = new Date(new Date().toLocaleString('en-US', { timeZone: this.homey.clock.getTimezone() })).getHours();
+    
+    this.homey.log('Checking tariff change at exact hour:', currentHour);
+
+    for (const device of Object.values(devices)) {
+      const previousTariff = device.getStoreValue('previousTariff');
+      const currentTariff = this.isLowTariff(currentHour, device) ? 'low' : 'high';
+
+      if (previousTariff !== currentTariff) {
+        this.homey.log(`Tariff changed at hour ${currentHour} for device ${device.getName()} from ${previousTariff} to ${currentTariff}`);
+        device.setStoreValue('previousTariff', currentTariff)
+          .then(() => {
+            return this.tariffChangeTrigger.trigger(device, { tariff: currentTariff });
+          })
+          .then(() => {
+            this.homey.log('Tariff change trigger successfully executed');
+          })
+          .catch(error => {
+            this.error('Error in tariff change process:', error);
+          });
+      } else {
+        this.homey.log(`No tariff change at hour ${currentHour}: stayed at ${currentTariff}`);
+      }
     }
   }
 
@@ -119,28 +173,6 @@ class CZSpotPricesDriver extends Homey.Driver {
       });
   }
 
-  _registerAveragePriceConditionCard() {
-    this.homey.flow.getConditionCard('average-price-condition')
-      .registerRunListener(async (args, state) => {
-        const { hours, condition } = args;
-        const device = args.device;
-        const currentHour = new Date(new Date().toLocaleString('en-US', { timeZone: this.homey.clock.getTimezone() })).getHours();
-
-        this.homey.log(`Average price condition card invoked for ${hours} hours with condition: ${condition}`);
-
-        try {
-          const allCombinations = await this._calculateAveragePrices(device, hours);
-          const targetCombination = this._findTargetCombination(allCombinations, condition);
-          const result = currentHour >= targetCombination.startHour && currentHour < (targetCombination.startHour + hours);
-          this.homey.log(`Average price condition evaluated to ${result}`);
-          return result;
-        } catch (error) {
-          this.error('Error processing average price condition:', error);
-          return false;
-        }
-      });
-  }
-
   _registerActionFlowCards() {
     try {
       this.homey.log('Registering action flow cards...');
@@ -162,14 +194,14 @@ class CZSpotPricesDriver extends Homey.Driver {
             const errorMessage = device.spotPriceApi.getErrorMessage(error);
             this.error(`Error updating daily prices for device ${device.getName()}:`, errorMessage);
             await device.setAvailable();
-            device.spotPriceApi.triggerApiCallFail(errorMessage, device, 'daily');
+            device.spotPriceApi.triggerApiCallFail(errorMessage, device);
             return false;
           }
         });
     } catch (error) {
       this.error('Error registering action Flow cards:', error);
     }
-  }  
+  }
 
   async _calculateAveragePrices(device, hours) {
     const currentHour = new Date(new Date().toLocaleString('en-US', { timeZone: this.homey.clock.getTimezone() })).getHours();
@@ -227,49 +259,24 @@ class CZSpotPricesDriver extends Homey.Driver {
   }
 
   isLowTariff(hour, device) {
-    // Logování vstupu do funkce a přijaté parametry
     this.homey.log('--- Start: Checking Low Tariff Status ---');
-    this.homey.log(`Received hour: ${hour}`);
+    this.homey.log(`Checking tariff for hour: ${hour}`);
   
-    // Logování pro získání nastavení tarifu pro každou hodinu
     const tariffSettings = [];
     for (let i = 0; i < 24; i++) {
       const isLowTariffHour = device.getSetting(`hour_${i}`);
       tariffSettings.push({ hour: i, isLowTariff: isLowTariffHour });
-      this.homey.log(`Hour ${i} - Low tariff setting: ${isLowTariffHour}`);
     }
   
-    // Filtrace hodin s nastaveným low tarifem a výpis výsledku
     const tariffHours = tariffSettings
       .filter(setting => setting.isLowTariff)
       .map(setting => setting.hour);
-    this.homey.log(`Hours with low tariff enabled: ${tariffHours}`);
+    this.homey.log(`Hours with low tariff enabled: ${tariffHours.join(', ')}`);
   
-    // Výsledek kontroly, zda je aktuální hodina mezi low tarifními
     const result = tariffHours.includes(hour);
     this.homey.log(`Is hour ${hour} in low tariff hours? Result: ${result}`);
-  
-    // Logování ukončení funkce a výstupní hodnota
     this.homey.log('--- End: Checking Low Tariff Status ---');
     return result;
-  }  
-
-  checkTariffChange() {
-    const devices = this.getDevices();
-    const currentHour = new Date(new Date().toLocaleString('en-US', { timeZone: this.homey.clock.getTimezone() })).getHours();
-    this.homey.log('Checking tariff change for current hour:', currentHour);
-
-    for (const device of Object.values(devices)) {
-      const previousTariff = device.getStoreValue('previousTariff');
-      const currentTariff = this.isLowTariff(currentHour, device) ? 'low' : 'high';
-
-      if (previousTariff !== currentTariff) {
-        this.homey.log(`Tariff changed for device ${device.getName()} from ${previousTariff} to ${currentTariff}`);
-        device.setStoreValue('previousTariff', currentTariff);
-        this.tariffChangeTrigger.trigger(device, { tariff: currentTariff })
-          .catch(this.error);
-      }
-    }
   }
 
   async triggerCurrentPriceChangedFlow(device, tokens) {
@@ -280,6 +287,14 @@ class CZSpotPricesDriver extends Homey.Driver {
     } catch (error) {
       this.error('Error triggering current price changed flow:', error);
     }
+  }
+
+  // Cleanup při odstranění driveru
+  async onUninit() {
+    if (this.tariffCheckInterval) {
+      this.homey.clearInterval(this.tariffCheckInterval);
+    }
+    this.homey.log('Driver uninitialized, intervals cleared');
   }
 }
 
