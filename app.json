@@ -193,6 +193,34 @@
             "title": {
               "en": "Error Message"
             }
+          },
+          {
+            "name": "will_retry",
+            "type": "boolean",
+            "title": {
+              "en": "Will Retry"
+            }
+          },
+          {
+            "name": "retry_count",
+            "type": "number",
+            "title": {
+              "en": "Retry Attempt"
+            }
+          },
+          {
+            "name": "next_retry",
+            "type": "string",
+            "title": {
+              "en": "Next Retry In"
+            }
+          },
+          {
+            "name": "max_retries_reached",
+            "type": "boolean",
+            "title": {
+              "en": "Max Retries Reached"
+            }
           }
         ],
         "titleFormatted": {
