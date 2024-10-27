@@ -76,5 +76,8 @@
   },
   "1.2.16": {
     "en": "Ability to change price to kWh in device settings"
+  },
+  "2.0.0": {
+    "en": "Major API Refactor - Added backup API (ote-cr) and modified the method for updating capabilities. The app no longer calls the API for the current price; instead, it calculates it based on time and capability. This change removes the need to call the API for current price data. In line with this update, the WHEN API call fails card has also been modified to trigger only if both primary and backup API calls fail. This change significantly improves data stability. However, please note that it may cause breaking changes—check your flows accordingly. Additionally, prices and indices for individual hours have been removed from the UI (they remain available in insights and for use in flows). The UI now only shows the current price, current index, and daily average. You can also use a widget to display a complete daily price chart if desired."
   }
 }
