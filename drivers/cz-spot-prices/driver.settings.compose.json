@@ -1,17 +1,5 @@
 [
   {
-    "id": "update_interval",
-    "type": "number",
-    "label": {
-      "en": "Pooling interval for current price (in hours)"
-    },
-    "hint": {
-      "en": "Set the interval for fetching the current price from the API."
-    },
-    "value": 1,
-    "min": 1
-  },
-  {
     "id": "price_in_kwh",
     "type": "checkbox",
     "label": {
@@ -49,7 +37,7 @@
       "en": "Distribution price for high tariff without VAT (CZK)"
     },
     "hint": {
-      "en": "Enter the distribution price  without VAT during high tariff hours."
+      "en": "Enter the distribution price without VAT during high tariff hours."
     },
     "value": 0,
     "min": 0
@@ -58,7 +46,7 @@
     "id": "low_tariff_price",
     "type": "number",
     "label": {
-      "en": "Distribution price for low tariff without VAT  (CZK)"
+      "en": "Distribution price for low tariff without VAT (CZK)"
     },
     "hint": {
       "en": "Enter the distribution price without VAT during low tariff hours."

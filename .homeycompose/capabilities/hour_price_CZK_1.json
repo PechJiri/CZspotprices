@@ -8,7 +8,7 @@
     "insights": true,
     "getable": true,
     "setable": false,
-    "uiComponent": "sensor",
+    "uiComponent": null,
     "icon": "/assets/images/Price_icon.svg"
   }
   

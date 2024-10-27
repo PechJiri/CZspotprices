@@ -73,6 +73,10 @@
             margin-top: calc(var(--homey-su-4) * 0.75);
             width: 100%;
         }
+        .error-text {
+            color: var(--homey-color-error);
+            font-size: var(--homey-font-size-small);
+        }
     </style>
 </head>
 <body class="homey-widget">
@@ -99,7 +103,6 @@
     </div>
     <script>
         let Homey;
-        let priceInKWh = false;
 
         function onHomeyReady(_Homey) {
             Homey = _Homey;
@@ -108,16 +111,38 @@
 
         function updateUI(data) {
             const unit = data.priceInKWh ? 'CZK/kWh' : 'CZK/MWh';
-            const formatPrice = (price) => data.priceInKWh ? price.toFixed(3) : price.toFixed(0);
+            const formatPrice = (price) => {
+                if (price === null || price === undefined) return 'N/A';
+                return data.priceInKWh ? price.toFixed(3) : price.toFixed(0);
+            };
 
-            document.getElementById('currentPrice').textContent = `${formatPrice(data.currentSpotPrice)} ${unit}`;
-            document.getElementById('currentIndexText').textContent = data.currentSpotIndex;
-            setIndexColor('currentIndexDot', data.currentSpotIndex);
+            try {
+                // Aktuální cena
+                const currentPriceElement = document.getElementById('currentPrice');
+                currentPriceElement.textContent = `${formatPrice(data.currentSpotPrice)} ${unit}`;
+                currentPriceElement.classList.remove('error-text');
 
-            document.getElementById('nextHourPrice').textContent = `${formatPrice(data.nextHourPrice)} ${unit}`;
-            setIndexColor('nextHourIndexDot', data.nextHourIndex);
+                // Aktuální index
+                const currentIndexElement = document.getElementById('currentIndexText');
+                currentIndexElement.textContent = data.currentSpotIndex || 'unknown';
+                currentIndexElement.classList.remove('error-text');
+                setIndexColor('currentIndexDot', data.currentSpotIndex);
 
-            document.getElementById('averagePrice').textContent = `${formatPrice(data.averagePrice)} ${unit}`;
+                // Příští hodina
+                const nextHourElement = document.getElementById('nextHourPrice');
+                nextHourElement.textContent = `${formatPrice(data.nextHourPrice)} ${unit}`;
+                nextHourElement.classList.remove('error-text');
+                setIndexColor('nextHourIndexDot', data.nextHourIndex);
+
+                // Průměrná cena
+                const averagePriceElement = document.getElementById('averagePrice');
+                averagePriceElement.textContent = `${formatPrice(data.averagePrice)} ${unit}`;
+                averagePriceElement.classList.remove('error-text');
+
+            } catch (error) {
+                console.error('Error updating UI:', error);
+                showError('Error updating display');
+            }
         }
 
         function setIndexColor(elementId, index) {
@@ -127,41 +152,64 @@
                 high: 'var(--homey-color-danger)',
                 unknown: 'var(--homey-color-highlight)'
             };
-            document.getElementById(elementId).style.backgroundColor = indexColors[index] || indexColors.unknown;
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.style.backgroundColor = indexColors[index] || indexColors.unknown;
+            }
+        }
+
+        function showError(message) {
+            const elements = ['currentPrice', 'currentIndexText', 'nextHourPrice', 'averagePrice'];
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = message;
+                    element.classList.add('error-text');
+                }
+            });
+
+            // Reset index dots
+            setIndexColor('currentIndexDot', 'unknown');
+            setIndexColor('nextHourIndexDot', 'unknown');
         }
 
         function updateData() {
             Homey.api('GET', '/spot-price')
                 .then(result => {
-                    if (result && result.currentSpotPrice !== undefined && result.currentSpotIndex !== undefined &&
-                        result.nextHourPrice !== undefined && result.nextHourIndex !== undefined && 
-                        result.averagePrice !== undefined && result.priceInKWh !== undefined) {
-                        priceInKWh = result.priceInKWh;
+                    if (result && typeof result === 'object' && 
+                        'currentSpotPrice' in result && 
+                        'currentSpotIndex' in result &&
+                        'nextHourPrice' in result && 
+                        'nextHourIndex' in result && 
+                        'averagePrice' in result && 
+                        'priceInKWh' in result) {
                         updateUI(result);
                     } else {
-                        throw new Error('Unexpected data format');
+                        throw new Error('Invalid data format');
                     }
                 })
                 .catch(error => {
-                    console.error('Error updating data:', error);
-                    document.getElementById('currentPrice').textContent = 'Error';
-                    document.getElementById('currentIndexText').textContent = 'N/A';
-                    document.getElementById('nextHourPrice').textContent = 'Error';
-                    document.getElementById('averagePrice').textContent = 'Error';
+                    console.error('Error fetching data:', error);
+                    showError('Connection error');
                 });
         }
 
         function init() {
+            // Počáteční načtení dat
             updateData();
-            setInterval(updateData, 10 * 60 * 1000); // Update every 10 minutes
-
-            // Register the update callback
+            
+            // Registrace callbacku pro aktualizace
             Homey.api('POST', '/registerUpdateCallback', {}, (err) => {
                 if (err) {
                     console.error('Failed to register update callback:', err);
+                    showError('Callback registration failed');
                 }
             });
 
+            // Záložní aktualizace každých 10 minut
+            setInterval(updateData, 10 * 60 * 1000);
+
+            // Oznámení Homey, že widget je připraven
             Homey.ready();
         }
     </script>

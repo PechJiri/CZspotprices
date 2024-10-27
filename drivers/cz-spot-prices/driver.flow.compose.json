@@ -123,7 +123,7 @@
     {
       "id": "when-api-call-fails-trigger",
       "title": {
-        "en": "When API call fails"
+        "en": "API call fails"
       },
       "tokens": [
         {
@@ -134,8 +134,31 @@
           }
         }
       ],
+      "args": [
+        {
+          "name": "type",
+          "type": "dropdown",
+          "title": {
+            "en": "API Type"
+          },
+          "values": [
+            {
+              "id": "current",
+              "title": {
+                "en": "Current Price"
+              }
+            },
+            {
+              "id": "hourly",
+              "title": {
+                "en": "Hourly Data"
+              }
+            }
+          ]
+        }
+      ],
       "titleFormatted": {
-        "en": "API call failed"
+        "en": "[[type]] API call failed"
       }
     },
     {
@@ -307,17 +330,15 @@
         "en": "Distribution tariff is [[tariff]]"
       }
     }
-    
   ],
   "actions": [
     {
       "id": "update_data_via_api",
       "title": {
-        "en": "Update current and hourly data via API"
+        "en": "Update hourly data via API"
       },
-      "args": [],
       "titleFormatted": {
-        "en": "Update current and hourly data via API"
+        "en": "Update hourly data via API"
       }
     }
   ]

@@ -184,7 +184,7 @@
       {
         "id": "when-api-call-fails-trigger",
         "title": {
-          "en": "When API call fails"
+          "en": "API call fails"
         },
         "tokens": [
           {
@@ -195,16 +195,37 @@
             }
           }
         ],
-        "titleFormatted": {
-          "en": "API call failed"
-        },
         "args": [
           {
             "type": "device",
             "name": "device",
             "filter": "driver_id=cz-spot-prices"
+          },
+          {
+            "name": "type",
+            "type": "dropdown",
+            "title": {
+              "en": "API Type"
+            },
+            "values": [
+              {
+                "id": "current",
+                "title": {
+                  "en": "Current Price"
+                }
+              },
+              {
+                "id": "hourly",
+                "title": {
+                  "en": "Hourly Data"
+                }
+              }
+            ]
           }
-        ]
+        ],
+        "titleFormatted": {
+          "en": "[[type]] API call failed"
+        }
       },
       {
         "id": "when-current-price-changes",
@@ -419,7 +440,10 @@
       {
         "id": "update_data_via_api",
         "title": {
-          "en": "Update current and hourly data via API"
+          "en": "Update hourly data via API"
+        },
+        "titleFormatted": {
+          "en": "Update hourly data via API"
         },
         "args": [
           {
@@ -427,10 +451,7 @@
             "name": "device",
             "filter": "driver_id=cz-spot-prices"
           }
-        ],
-        "titleFormatted": {
-          "en": "Update current and hourly data via API"
-        }
+        ]
       }
     ]
   },
@@ -589,18 +610,6 @@
       ],
       "settings": [
         {
-          "id": "update_interval",
-          "type": "number",
-          "label": {
-            "en": "Pooling interval for current price (in hours)"
-          },
-          "hint": {
-            "en": "Set the interval for fetching the current price from the API."
-          },
-          "value": 1,
-          "min": 1
-        },
-        {
           "id": "price_in_kwh",
           "type": "checkbox",
           "label": {
@@ -638,7 +647,7 @@
             "en": "Distribution price for high tariff without VAT (CZK)"
           },
           "hint": {
-            "en": "Enter the distribution price  without VAT during high tariff hours."
+            "en": "Enter the distribution price without VAT during high tariff hours."
           },
           "value": 0,
           "min": 0
@@ -647,7 +656,7 @@
           "id": "low_tariff_price",
           "type": "number",
           "label": {
-            "en": "Distribution price for low tariff without VAT  (CZK)"
+            "en": "Distribution price for low tariff without VAT (CZK)"
           },
           "hint": {
             "en": "Enter the distribution price without VAT during low tariff hours."
@@ -896,7 +905,7 @@
         "en": "Daily average price (CZK)"
       },
       "units": "CZK",
-      "decimals": 0,
+      "decimals": 2,
       "insights": true,
       "getable": true,
       "setable": false,
@@ -913,7 +922,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_1": {
@@ -926,7 +935,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_10": {
@@ -939,7 +948,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_11": {
@@ -952,7 +961,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_12": {
@@ -965,7 +974,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_13": {
@@ -978,7 +987,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_14": {
@@ -991,7 +1000,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_15": {
@@ -1004,7 +1013,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_16": {
@@ -1017,7 +1026,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_17": {
@@ -1030,7 +1039,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_18": {
@@ -1043,7 +1052,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_19": {
@@ -1056,7 +1065,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_2": {
@@ -1069,7 +1078,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_20": {
@@ -1082,7 +1091,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_21": {
@@ -1095,7 +1104,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_22": {
@@ -1108,7 +1117,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_23": {
@@ -1121,7 +1130,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_3": {
@@ -1134,7 +1143,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_4": {
@@ -1147,7 +1156,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_5": {
@@ -1160,7 +1169,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_6": {
@@ -1173,7 +1182,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_7": {
@@ -1186,7 +1195,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_8": {
@@ -1199,7 +1208,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_CZK_9": {
@@ -1212,7 +1221,7 @@
       "insights": true,
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Price_icon.svg"
     },
     "hour_price_index_0": {
@@ -1248,7 +1257,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_1": {
@@ -1284,7 +1293,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_10": {
@@ -1320,7 +1329,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_11": {
@@ -1356,7 +1365,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_12": {
@@ -1392,7 +1401,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_13": {
@@ -1428,7 +1437,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_14": {
@@ -1464,7 +1473,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_15": {
@@ -1500,7 +1509,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_16": {
@@ -1536,7 +1545,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_17": {
@@ -1572,7 +1581,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_18": {
@@ -1608,7 +1617,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_19": {
@@ -1644,7 +1653,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_2": {
@@ -1680,7 +1689,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_20": {
@@ -1716,7 +1725,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_21": {
@@ -1752,7 +1761,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_22": {
@@ -1788,7 +1797,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_23": {
@@ -1824,7 +1833,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_3": {
@@ -1860,7 +1869,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_4": {
@@ -1896,7 +1905,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_5": {
@@ -1932,7 +1941,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_6": {
@@ -1968,7 +1977,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_7": {
@@ -2004,7 +2013,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_8": {
@@ -2040,7 +2049,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "hour_price_index_9": {
@@ -2076,7 +2085,7 @@
       ],
       "getable": true,
       "setable": false,
-      "uiComponent": "sensor",
+      "uiComponent": null,
       "icon": "/assets/images/Index_icon.svg"
     },
     "measure_current_spot_index": {
@@ -2122,7 +2131,7 @@
         "en": "Current Spot Price (CZK)"
       },
       "units": "CZK",
-      "decimals": 0,
+      "decimals": 2,
       "insights": true,
       "getable": true,
       "setable": false,

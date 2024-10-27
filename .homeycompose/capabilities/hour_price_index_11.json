@@ -31,7 +31,7 @@
     ],
     "getable": true,
     "setable": false,
-    "uiComponent": "sensor",
+    "uiComponent": null,
     "icon": "/assets/images/Index_icon.svg"
   }
   
