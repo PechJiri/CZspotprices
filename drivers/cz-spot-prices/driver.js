@@ -227,12 +227,32 @@ class CZSpotPricesDriver extends Homey.Driver {
   }
 
   isLowTariff(hour, device) {
-    const tariffHours = Array.from({ length: 24 }, (_, i) => i)
-      .filter(i => device.getSetting(`hour_${i}`));
+    // Logování vstupu do funkce a přijaté parametry
+    this.homey.log('--- Start: Checking Low Tariff Status ---');
+    this.homey.log(`Received hour: ${hour}`);
+  
+    // Logování pro získání nastavení tarifu pro každou hodinu
+    const tariffSettings = [];
+    for (let i = 0; i < 24; i++) {
+      const isLowTariffHour = device.getSetting(`hour_${i}`);
+      tariffSettings.push({ hour: i, isLowTariff: isLowTariffHour });
+      this.homey.log(`Hour ${i} - Low tariff setting: ${isLowTariffHour}`);
+    }
+  
+    // Filtrace hodin s nastaveným low tarifem a výpis výsledku
+    const tariffHours = tariffSettings
+      .filter(setting => setting.isLowTariff)
+      .map(setting => setting.hour);
+    this.homey.log(`Hours with low tariff enabled: ${tariffHours}`);
+  
+    // Výsledek kontroly, zda je aktuální hodina mezi low tarifními
     const result = tariffHours.includes(hour);
-    this.homey.log(`Checking if hour ${hour} is low tariff: ${result}`);
+    this.homey.log(`Is hour ${hour} in low tariff hours? Result: ${result}`);
+  
+    // Logování ukončení funkce a výstupní hodnota
+    this.homey.log('--- End: Checking Low Tariff Status ---');
     return result;
-  }
+  }  
 
   checkTariffChange() {
     const devices = this.getDevices();
