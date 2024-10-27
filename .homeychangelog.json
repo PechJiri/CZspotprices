@@ -91,5 +91,8 @@
   },
   "2.0.4": {
     "en": "Fixed tarif change trigger"
+  },
+  "2.0.5": {
+    "en": "The code is now complete and includes all the required features, including: An exponential retry mechanism for updates Price validation (including negative values) An improved API failure trigger with retry information Proper cleanup of timeouts and intervals All necessary flow cards and their handlers"
   }
 }
