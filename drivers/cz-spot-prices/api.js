@@ -160,7 +160,7 @@ class SpotPriceAPI {
     return 'Unknown error';
   }
 
-  handleApiError(context, error, device, type) {
+  handleApiError(context, error, device) {
     let errorMessage = this.getErrorMessage(error);
     if (error.message && error.message.includes('body:')) {
       errorMessage = error.message.split('body:')[1].trim();
@@ -168,17 +168,17 @@ class SpotPriceAPI {
     errorMessage = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
 
     this.homey.error(`${context}:`, errorMessage);
-    this.triggerApiCallFail(errorMessage, device, type);
+    this.triggerApiCallFail(errorMessage, device);  // Zrušen parametr `type`
   }
 
-  triggerApiCallFail(errorMessage, device, type) {
+  triggerApiCallFail(errorMessage, device) {
     if (!device) {
       this.homey.error('Device is undefined in triggerApiCallFail');
       return;
     }
 
     errorMessage = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
-    const tokens = { error_message: errorMessage, type: type };
+    const tokens = { error_message: errorMessage, type: 'hourly' };  // Nastaveno vždy na `hourly`
 
     this.apiCallFailTrigger.trigger(device, tokens)
       .catch(err => {

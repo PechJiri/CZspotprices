@@ -134,31 +134,8 @@
           }
         }
       ],
-      "args": [
-        {
-          "name": "type",
-          "type": "dropdown",
-          "title": {
-            "en": "API Type"
-          },
-          "values": [
-            {
-              "id": "current",
-              "title": {
-                "en": "Current Price"
-              }
-            },
-            {
-              "id": "hourly",
-              "title": {
-                "en": "Hourly Data"
-              }
-            }
-          ]
-        }
-      ],
       "titleFormatted": {
-        "en": "[[type]] API call failed"
+        "en": "API call failed"
       }
     },
     {
