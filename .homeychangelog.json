@@ -94,5 +94,8 @@
   },
   "2.0.5": {
     "en": "The code is now complete and includes all the required features, including: An exponential retry mechanism for updates Price validation (including negative values) An improved API failure trigger with retry information Proper cleanup of timeouts and intervals All necessary flow cards and their handlers"
+  },
+  "2.0.6": {
+    "en": "fixed trigger and condition cards with average for x hours. Added tokens for this trigger card and for api fail trigger."
   }
 }
