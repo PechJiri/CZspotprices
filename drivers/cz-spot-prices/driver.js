@@ -413,37 +413,6 @@ async executeMidnightUpdate(retryCount = 0) {
     }
   }
 
-  async _calculateAveragePrices(device, hours) {
-    const currentHour = new Date(new Date().toLocaleString('en-US', { timeZone: this.homey.clock.getTimezone() })).getHours();
-    const allCombinations = [];
-    this.homey.log(`Calculating average prices for ${hours} hours, starting from current hour: ${currentHour}`);
-  
-    for (let startHour = currentHour; startHour <= 24 - hours; startHour++) {
-      let total = 0;
-  
-      for (let i = startHour; i < startHour + hours; i++) {
-        const price = await device.getCapabilityValue(`hour_price_CZK_${i}`);
-        if (price === null || price === undefined) {
-          throw new Error(`Missing price data for hour ${i}`);
-        }
-        total += price;
-      }
-  
-      const avg = total / hours;
-      allCombinations.push({ startHour, avg });
-      this.homey.log(`Calculated average price from hour ${startHour} to ${startHour + hours - 1}: ${avg}`);
-    }
-  
-    return allCombinations;
-  }
-  
-  _findTargetCombination(combinations, condition) {
-    const sortedCombinations = combinations.sort((a, b) => a.avg - b.avg);
-    const target = condition === 'lowest' ? sortedCombinations[0] : sortedCombinations[sortedCombinations.length - 1];
-    this.homey.log(`Target combination found for condition ${condition}:`, target);
-    return target;
-  }
-
   async onPairListDevices() {
     try {
       const deviceId = crypto.randomUUID();

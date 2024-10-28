@@ -165,20 +165,34 @@ class SpotPriceAPI {
     this.triggerApiCallFail(errorMessage, device);
   }
 
-  triggerApiCallFail(errorMessage, device) {
-    if (!device) {
-      this.homey.error('Device is undefined in triggerApiCallFail');
-      return;
-    }
-
-    errorMessage = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
-    const tokens = { error_message: errorMessage, type: 'hourly' };
-
-    this.apiCallFailTrigger.trigger(device, tokens)
-      .catch(err => {
-        this.homey.error('Error triggering API call fail flow:', this.getErrorMessage(err));
-      });
+ // V api.js - toto je třeba upravit
+triggerApiCallFail(errorMessage, device) {
+  if (!device) {
+    this.homey.error('Device is undefined in triggerApiCallFail');
+    return;
   }
+
+  errorMessage = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
+  
+  // Vytvoření kompletní sady tokenů - toto je nová implementace
+  const tokens = {
+    error_message: errorMessage,
+    will_retry: true,
+    retry_count: 0,
+    next_retry: 'Immediate',
+    max_retries_reached: false
+  };
+
+  this.homey.log('Triggering API call fail with tokens:', tokens);
+
+  this.apiCallFailTrigger.trigger(device, tokens)
+    .then(() => {
+      this.homey.log('API call fail trigger executed successfully with tokens:', tokens);
+    })
+    .catch(err => {
+      this.homey.error('Error triggering API call fail flow:', this.getErrorMessage(err));
+    });
+}
 
   async updateCurrentValues(device) {
     try {

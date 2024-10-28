@@ -141,6 +141,16 @@
         "title": {
           "en": "Average price for next X hours is [lowest/highest] within this day"
         },
+        "tokens": [
+          {
+            "name": "average_price",
+            "type": "number",
+            "title": {
+              "en": "Average Price for defined period in CZK"
+            },
+            "example": 2.5
+          }
+        ],
         "args": [
           {
             "type": "device",
