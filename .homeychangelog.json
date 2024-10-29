@@ -97,5 +97,8 @@
   },
   "2.0.6": {
     "en": "fixed trigger and condition cards with average for x hours. Added tokens for this trigger card and for api fail trigger."
+  },
+  "2.0.7": {
+    "en": "removed logs"
   }
 }
