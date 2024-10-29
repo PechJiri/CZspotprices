@@ -9,20 +9,17 @@ class SpotPriceAPI {
     this.baseUrl = 'https://spotovaelektrina.cz/api/v1/price';
     this.backupUrl = 'https://www.ote-cr.cz/cs/kratkodobe-trhy/elektrina/denni-trh/@@chart-data';
     this.exchangeRateUrl = 'https://data.kurzy.cz/json/meny/b[6].json';
-    this.exchangeRate = 25.25; // Výchozí kurz EUR/CZK, aktualizuje se pouze při volání záložního API
+    this.exchangeRate = 25.25;
     this.homeyTimezone = this.homey.clock.getTimezone();
     this.apiCallFailTrigger = this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger');
   }
 
   async updateExchangeRate() {
     try {
-      this.homey.log('Fetching exchange rate from:', this.exchangeRateUrl);
       const response = await axios.get(this.exchangeRateUrl);
-
       const data = response.data;
       if (data && data.kurzy && data.kurzy.EUR) {
         this.exchangeRate = data.kurzy.EUR.dev_stred;
-        this.homey.log(`Exchange rate updated to: ${this.exchangeRate}`);
       }
     } catch (error) {
       this.homey.error('Failed to update exchange rate:', error);
@@ -40,14 +37,11 @@ class SpotPriceAPI {
 
   async getBackupDailyPrices(device) {
     try {
-      this.homey.log('Fetching backup daily prices from:', this.backupUrl);
       await this.updateExchangeRate();
-
       const timeInfo = this.getCurrentTimeInfo();
       const response = await axios.get(this.backupUrl, {
         params: { report_date: timeInfo.date }
       });
-      this.homey.log('Backup daily prices raw response:', response.data);
 
       const data = response.data;
       const dataLine = data?.data?.dataLine.find(line => line.title === "Cena (EUR/MWh)");
@@ -61,9 +55,7 @@ class SpotPriceAPI {
         return { hour: index, priceCZK: parseFloat(priceCZK.toFixed(2)) };
       });
 
-      this.homey.log('Formatted hourly prices in CZK:', hoursToday);
       return hoursToday;
-
     } catch (error) {
       this.homey.error('Error fetching backup daily prices:', error);
       throw error;
@@ -73,43 +65,35 @@ class SpotPriceAPI {
   async getDailyPrices(device) {
     let spotElektrinaError = null;
     let oteError = null;
-    const timeoutMs = 10000;  // Timeout pro API volání v milisekundách (5 vteřin)
-  
+    const timeoutMs = 10000;
+
     try {
       const url = `${this.baseUrl}/get-prices-json`;
-      this.homey.log('Calling getDailyPrices API with timeout:', url, `Timeout: ${timeoutMs}ms`);
-  
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  
+
       try {
         const response = await fetch(url, { signal: controller.signal });
         clearTimeout(timeout);
-  
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-  
+
         const data = await response.json();
-        this.homey.log('Received daily prices data:', data);
-  
+
         if (!Array.isArray(data.hoursToday) || data.hoursToday.length !== 24) {
           throw new Error('Invalid data structure');
         }
-  
-        this.homey.log('Daily prices:', data.hoursToday);
+
         return data.hoursToday;
-  
+
       } catch (error) {
-        if (error.name === 'AbortError') {
-          this.homey.log(`API call to ${url} timed out after ${timeoutMs}ms`);
-        }
         throw error;
       }
     } catch (error) {
       spotElektrinaError = error;
       try {
-        this.homey.log('Calling backup API due to primary API failure');
         return await this.getBackupDailyPrices(device);
       } catch (backupError) {
         oteError = backupError;
@@ -118,7 +102,7 @@ class SpotPriceAPI {
         throw new Error(combinedError);
       }
     }
-  }  
+  }
 
   addDistributionPrice(device, basePrice) {
     const timeInfo = this.getCurrentTimeInfo();
@@ -126,9 +110,7 @@ class SpotPriceAPI {
     const highTariffPrice = device.getSetting('high_tariff_price') || 0;
     const tariffHours = this.getTariffHours(device);
     const isLowTariff = this.isLowTariff(timeInfo.hour, tariffHours);
-    const price = basePrice + (isLowTariff ? lowTariffPrice : highTariffPrice);
-    this.homey.log(`Calculated distribution price for hour ${timeInfo.hour}:`, price);
-    return price;
+    return basePrice + (isLowTariff ? lowTariffPrice : highTariffPrice);
   }
 
   isLowTariff(hour, tariffHours) {
@@ -140,10 +122,8 @@ class SpotPriceAPI {
   }
 
   async fetchUrl(url) {
-    this.homey.log('Fetching URL:', url);
     const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
     const response = await fetch(url);
-    this.homey.log('Fetched URL response:', response.status);
     return response;
   }
 
@@ -165,42 +145,33 @@ class SpotPriceAPI {
     this.triggerApiCallFail(errorMessage, device);
   }
 
- // V api.js - toto je třeba upravit
-triggerApiCallFail(errorMessage, device) {
-  if (!device) {
-    this.homey.error('Device is undefined in triggerApiCallFail');
-    return;
+  triggerApiCallFail(errorMessage, device) {
+    if (!device) {
+      this.homey.error('Device is undefined in triggerApiCallFail');
+      return;
+    }
+
+    errorMessage = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
+
+    const tokens = {
+      error_message: errorMessage,
+      will_retry: true,
+      retry_count: 0,
+      next_retry: 'Immediate',
+      max_retries_reached: false
+    };
+
+    this.apiCallFailTrigger.trigger(device, tokens)
+      .catch(err => {
+        this.homey.error('Error triggering API call fail flow:', this.getErrorMessage(err));
+      });
   }
-
-  errorMessage = typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage);
-  
-  // Vytvoření kompletní sady tokenů - toto je nová implementace
-  const tokens = {
-    error_message: errorMessage,
-    will_retry: true,
-    retry_count: 0,
-    next_retry: 'Immediate',
-    max_retries_reached: false
-  };
-
-  this.homey.log('Triggering API call fail with tokens:', tokens);
-
-  this.apiCallFailTrigger.trigger(device, tokens)
-    .then(() => {
-      this.homey.log('API call fail trigger executed successfully with tokens:', tokens);
-    })
-    .catch(err => {
-      this.homey.error('Error triggering API call fail flow:', this.getErrorMessage(err));
-    });
-}
 
   async updateCurrentValues(device) {
     try {
       const timeInfo = this.getCurrentTimeInfo();
-      this.homey.log(`updateCurrentValues: Získaná aktuální hodina je ${timeInfo.hour}`);
-      
       let dailyPrices = [];
-  
+
       try {
         const response = await axios.get(`${this.baseUrl}/get-daily-prices`, { timeout: 5000 });
         if (response.data && Array.isArray(response.data.hoursToday)) {
@@ -208,45 +179,39 @@ triggerApiCallFail(errorMessage, device) {
             hour,
             priceCZK: this.addDistributionPrice(device, priceData.price),
           }));
-          this.homey.log(`Primary API daily prices loaded:`, dailyPrices);
         } else {
           throw new Error('Invalid data from primary API');
         }
       } catch (primaryError) {
-        this.homey.log('Primary API call failed, trying backup API:', primaryError.message);
-        
         try {
           const backupPrices = await this.getBackupDailyPrices(device);
           dailyPrices = backupPrices.map(priceData => ({
             hour: priceData.hour,
             priceCZK: this.addDistributionPrice(device, priceData.priceCZK),
           }));
-          this.homey.log(`Backup API daily prices loaded:`, dailyPrices);
         } catch (backupError) {
           throw new Error(`Backup API also failed: ${backupError.message}`);
         }
       }
-  
+
       const pricesWithIndexes = device.setPriceIndexes(dailyPrices);
       for (const { hour, priceCZK, level } of pricesWithIndexes) {
         await device.setCapabilityValue(`hour_price_CZK_${hour}`, priceCZK);
         await device.setCapabilityValue(`hour_price_index_${hour}`, level);
       }
-  
+
       const currentHourData = pricesWithIndexes.find(price => price.hour === timeInfo.hour);
       if (currentHourData) {
         await device.setCapabilityValue('measure_current_spot_price_CZK', currentHourData.priceCZK);
         await device.setCapabilityValue('measure_current_spot_index', currentHourData.level);
       }
-  
+
       await device.updateDailyAverageCapability();
-  
-      this.homey.log(`Updated daily prices and indexes with current price: ${currentHourData.priceCZK} CZK and index: ${currentHourData.level}`);
       await this.homey.emit('spot_prices_updated');
     } catch (error) {
       this.handleApiError('Error updating current values', error, device, 'current');
     }
-  }  
+  }
 }
 
 module.exports = SpotPriceAPI;
