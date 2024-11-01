@@ -100,5 +100,8 @@
   },
   "2.0.7": {
     "en": "removed logs"
+  },
+  "2.0.8": {
+    "en": "Fixed issues with time and update current price capability"
   }
 }
