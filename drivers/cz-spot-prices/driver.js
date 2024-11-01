@@ -12,6 +12,7 @@ class CZSpotPricesDriver extends Homey.Driver {
     // Inicializace SpotPriceAPI instance pro tento driver
     this.spotPriceApi = new SpotPriceAPI(this.homey);
     
+    // Načtení intervalů tarifů
     this.tariffIntervals = this.homey.settings.get('tariff_intervals') || [];
 
     // Registrace flow karet
@@ -20,40 +21,43 @@ class CZSpotPricesDriver extends Homey.Driver {
     // Nastavení kontroly tarifu
     this.setupTariffCheck();
 
-    // Nastavení půlnoční aktualizace pro všechna zařízení
-    this.setupMidnightUpdate();
+    // Společné plánování půlnoční aktualizace pro všechna zařízení
+    this.scheduleMidnightUpdate();
 }
 
-setupMidnightUpdate() {
-  const scheduleNextMidnight = () => {
-      // Získáme aktuální časové informace a nastavíme příští půlnoc
-      const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 5); // 5 sekund po půlnoci
+scheduleMidnightUpdate() {
+    this.homey.log('Scheduling midnight update');
+    
+    const calculateNextMidnight = () => {
+        const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        return tomorrow;
+    };
 
-      // Vypočítáme zpoždění do příští půlnoci
-      const delay = tomorrow.getTime() - Date.now();
+    const scheduleNext = () => {
+        const nextMidnight = calculateNextMidnight();
+        const delay = nextMidnight.getTime() - Date.now();
 
-      // Převod `delay` na hodiny, minuty a sekundy
-      const hours = Math.floor(delay / (1000 * 60 * 60));
-      const minutes = Math.floor((delay % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((delay % (1000 * 60)) / 1000);
+        // Převod `delay` na hodiny, minuty a sekundy
+        const hours = Math.floor(delay / (1000 * 60 * 60));
+        const minutes = Math.floor((delay % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((delay % (1000 * 60)) / 1000);
 
-      this.homey.log(`Příští aktualizace z API naplánována za ${hours} h, ${minutes} m a ${seconds} s (${tomorrow.toISOString()})`);
+        this.homey.log(`Příští aktualizace z API naplánována za ${hours} h, ${minutes} m a ${seconds} s (${nextMidnight.toISOString()})`);
 
-      // Naplánujeme půlnoční aktualizaci
-      this.homey.setTimeout(async () => {
-          try {
-              await this.executeMidnightUpdate();
-          } catch (error) {
-              this.error('Midnight update failed:', error);
-          }
-          scheduleNextMidnight();
-      }, delay);
-  };
+        this.homey.setTimeout(async () => {
+            try {
+                await this.fetchAndUpdateSpotPrices();
+            } catch (error) {
+                this.error('Midnight update failed:', error);
+            }
+            scheduleNext();
+        }, delay);
+    };
 
-  scheduleNextMidnight();
+    scheduleNext();
 }
 
 async executeMidnightUpdate(retryCount = 0) {

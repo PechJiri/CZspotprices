@@ -7,6 +7,7 @@ class CZSpotPricesDevice extends Homey.Device {
 
   async onInit() {
     this.homey.log('Initializing device...');
+    
     const deviceId = this.getData().id || this.getStoreValue('device_id');
     if (!deviceId) {
       const newDeviceId = this.generateDeviceId();
@@ -40,16 +41,18 @@ class CZSpotPricesDevice extends Homey.Device {
         }
       }
     }
-  
+
     // Nastavení Flow karet
     this.setupFlowCards();
     this.registerUpdateDataViaApiFlowAction();
 
-    // Nastavení pravidelných aktualizací
-    this.scheduleMidnightUpdate();
+    // Plánování půlnoční aktualizace přes driver
+    this.driver.scheduleMidnightUpdate();
+
+    // Nastavení hodinové aktualizace
     this.scheduleHourlyUpdate();
     
-    // Nastavení kontroly průměrných cen (okamžitá kontrola + plánování dalších)
+    // Nastavení kontroly průměrných cen
     const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
     const currentHour = timeInfo.hour;
     
@@ -109,43 +112,6 @@ class CZSpotPricesDevice extends Homey.Device {
       }, 60 * 60 * 1000);
     }, delay);
   }
-
-  // Metoda pro naplánování půlnoční aktualizace
-  scheduleMidnightUpdate() {
-    this.homey.log('Scheduling midnight update');
-    
-    const calculateNextMidnight = () => {
-        const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
-        return tomorrow;
-    };
-
-    const scheduleNext = () => {
-        const nextMidnight = calculateNextMidnight();
-        const delay = nextMidnight.getTime() - Date.now();
-
-        // Převod `delay` na hodiny, minuty a sekundy
-        const hours = Math.floor(delay / (1000 * 60 * 60));
-        const minutes = Math.floor((delay % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((delay % (1000 * 60)) / 1000);
-
-        this.homey.log(`Příští aktualizace z API naplánována za ${hours} h, ${minutes} m a ${seconds} s (${nextMidnight.toISOString()})`);
-
-        this.homey.setTimeout(async () => {
-            try {
-                await this.fetchAndUpdateSpotPrices();
-            } catch (error) {
-                this.error('Midnight update failed:', error);
-            }
-            scheduleNext();
-        }, delay);
-    };
-
-    scheduleNext();
-}
-
 
   scheduleHourlyUpdate() {
     
