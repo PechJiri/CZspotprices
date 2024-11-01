@@ -7,109 +7,146 @@ const SpotPriceAPI = require('./api');
 class CZSpotPricesDriver extends Homey.Driver {
 
   async onInit() {
-    this.spotPriceApi = new SpotPriceAPI(this.homey);
-    this.tariffIntervals = this.homey.settings.get('tariff_intervals') || [];
-    this.registerFlowCards();
-    this.setupTariffCheck();
-    this.setupMidnightUpdate();
-  }
-
-  setupMidnightUpdate() {
-    const scheduleNextMidnight = () => {
-      const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 5);
-
-      const delay = tomorrow.getTime() - now.getTime();
-
-      if (this.midnightTimeout) {
-        this.homey.clearTimeout(this.midnightTimeout);
-      }
-
-      this.midnightTimeout = this.homey.setTimeout(() => {
-        this.executeMidnightUpdate();
-        scheduleNextMidnight();
-      }, delay);
-    };
-
-    scheduleNextMidnight();
-  }
-
-  async executeMidnightUpdate(retryCount = 0) {
-    const MAX_RETRIES = 5;
-    const BASE_DELAY = 5 * 60 * 1000;
+    this.homey.log('CZSpotPricesDriver initialized');
     
-    const devices = this.getDevices();
-    let success = true;
+    // Inicializace SpotPriceAPI instance pro tento driver
+    this.spotPriceApi = new SpotPriceAPI(this.homey);
+    
+    this.tariffIntervals = this.homey.settings.get('tariff_intervals') || [];
 
-    for (const device of Object.values(devices)) {
+    // Registrace flow karet
+    this.registerFlowCards();
+
+    // Nastavení kontroly tarifu
+    this.setupTariffCheck();
+
+    // Nastavení půlnoční aktualizace pro všechna zařízení
+    this.setupMidnightUpdate();
+}
+
+setupMidnightUpdate() {
+  const scheduleNextMidnight = () => {
+      // Získáme aktuální časové informace a nastavíme příští půlnoc
+      const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 5); // 5 sekund po půlnoci
+
+      // Vypočítáme zpoždění do příští půlnoci
+      const delay = tomorrow.getTime() - Date.now();
+
+      // Převod `delay` na hodiny, minuty a sekundy
+      const hours = Math.floor(delay / (1000 * 60 * 60));
+      const minutes = Math.floor((delay % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((delay % (1000 * 60)) / 1000);
+
+      this.homey.log(`Příští aktualizace z API naplánována za ${hours} h, ${minutes} m a ${seconds} s (${tomorrow.toISOString()})`);
+
+      // Naplánujeme půlnoční aktualizaci
+      this.homey.setTimeout(async () => {
+          try {
+              await this.executeMidnightUpdate();
+          } catch (error) {
+              this.error('Midnight update failed:', error);
+          }
+          scheduleNextMidnight();
+      }, delay);
+  };
+
+  scheduleNextMidnight();
+}
+
+async executeMidnightUpdate(retryCount = 0) {
+  const MAX_RETRIES = 5;
+  const BASE_DELAY = 5 * 60 * 1000; // 5 minut v milisekundách
+  
+  this.homey.log(`Executing midnight update (retry: ${retryCount} of ${MAX_RETRIES})`);
+  
+  const devices = this.getDevices();
+  let success = true;
+
+  for (const device of Object.values(devices)) {
       try {
-        const updateResult = await this.tryUpdateDevice(device);
-        if (!updateResult) {
-          success = false;
-        }
+          const updateResult = await this.tryUpdateDevice(device);
+          if (!updateResult) {
+              success = false;
+              this.homey.log(`Failed to update device ${device.getName()} using both APIs`);
+          }
       } catch (error) {
-        success = false;
-        this.error(`Error updating device ${device.getName()}:`, error);
+          success = false;
+          this.error(`Error updating device ${device.getName()}:`, error);
       }
-    }
+  }
 
-    if (!success && retryCount < MAX_RETRIES) {
+  if (!success && retryCount < MAX_RETRIES) {
       const delay = BASE_DELAY * Math.pow(2, retryCount);
+      this.homey.log(`Scheduling retry ${retryCount + 1} in ${delay/60000} minutes`);
       
       for (const device of Object.values(devices)) {
-        await this.triggerAPIFailure(device, {
-          primaryAPI: 'Update failed',
-          backupAPI: 'Update failed',
-          willRetry: true,
-          retryCount: retryCount + 1,
-          nextRetryIn: Math.round(delay / 60000)
-        });
+          await this.triggerAPIFailure(device, {
+              primaryAPI: 'Update failed',
+              backupAPI: 'Update failed',
+              willRetry: true,
+              retryCount: retryCount + 1,
+              nextRetryIn: Math.round(delay / 60000)
+          });
       }
 
       this.homey.setTimeout(() => {
-        this.executeMidnightUpdate(retryCount + 1);
+          this.executeMidnightUpdate(retryCount + 1);
       }, delay);
-    } else if (!success) {
+  } else if (!success) {
+      this.error('All retry attempts exhausted. Some devices may not have current data.');
       for (const device of Object.values(devices)) {
-        await this.triggerAPIFailure(device, {
-          primaryAPI: 'Update failed',
-          backupAPI: 'Update failed',
-          willRetry: false,
-          maxRetriesReached: true
-        });
+          await this.triggerAPIFailure(device, {
+              primaryAPI: 'Update failed',
+              backupAPI: 'Update failed',
+              willRetry: false,
+              maxRetriesReached: true
+          });
       }
-    }
   }
+}
 
   async tryUpdateDevice(device) {
     let primaryError;
     try {
+      // Pokus o primární API
       try {
+        this.homey.log(`Attempting primary API update for device ${device.getName()}`);
         await device.spotPriceApi.getDailyPrices(device);
         const valid = await this.validatePriceData(device);
         if (valid) {
+          this.homey.log(`Successfully updated device ${device.getName()} using primary API`);
           return true;
         }
+        this.homey.log('Primary API data validation failed, will try backup API');
         primaryError = new Error('Data validation failed');
       } catch (error) {
         primaryError = error;
+        this.homey.log('Primary API failed, will try backup API:', error.message);
       }
 
+      // Pokus o záložní API
       try {
+        this.homey.log(`Attempting backup API update for device ${device.getName()}`);
         await device.spotPriceApi.getBackupDailyPrices(device);
         const valid = await this.validatePriceData(device);
         if (valid) {
+          this.homey.log(`Successfully updated device ${device.getName()} using backup API`);
           return true;
         }
+        this.homey.log('Backup API data validation failed');
         throw new Error('Backup API data validation failed');
       } catch (backupError) {
+        this.homey.log('Backup API failed:', backupError.message);
+        
         await this.triggerAPIFailure(device, {
           primaryAPI: primaryError?.message || 'Unknown error',
           backupAPI: backupError.message,
           willRetry: true
         });
+        
         return false;
       }
     } catch (error) {
@@ -123,9 +160,11 @@ class CZSpotPricesDriver extends Homey.Driver {
       for (let hour = 0; hour < 24; hour++) {
         const price = await device.getCapabilityValue(`hour_price_CZK_${hour}`);
         if (price === null || price === undefined || typeof price !== 'number' || !isFinite(price)) {
+          this.homey.log(`Missing or invalid price for hour ${hour}: ${price}`);
           return false;
         }
       }
+      
       return true;
     } catch (error) {
       this.error('Error validating price data:', error);
@@ -145,6 +184,9 @@ class CZSpotPricesDriver extends Homey.Driver {
       };
   
       await apiFailTrigger.trigger(device, tokens)
+        .then(() => {
+          this.homey.log('API failure trigger executed with tokens:', tokens);
+        })
         .catch(err => {
           this.error('Error triggering API failure:', err);
         });
@@ -154,22 +196,30 @@ class CZSpotPricesDriver extends Homey.Driver {
   }
 
   setupTariffCheck() {
-    const now = new Date();
-    const nextHour = new Date(now);
-    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
-    const timeToNextHour = nextHour.getTime() - now.getTime();
+    // Přímé volání getCurrentTimeInfo z instance SpotPriceAPI
+    const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+    const currentHour = timeInfo.hour;
+    const nextHour = new Date();
+    nextHour.setHours(currentHour + 1, 0, 0, 0); // Nastavení na příští celou hodinu
+    const timeToNextHour = nextHour.getTime() - Date.now(); // Výpočet zpoždění
 
     this.checkTariffChange();
-
+    // Nastavení hodinového intervalu pro kontrolu tarifu
     this.homey.setTimeout(() => {
       this.checkTariffChange();
+
       this.tariffCheckInterval = this.homey.setInterval(() => {
         this.checkTariffChange();
       }, 60 * 60 * 1000);
+
     }, timeToNextHour);
-  }
+
+    this.homey.log(`Next tariff check scheduled in ${Math.round(timeToNextHour / 1000)} seconds`);
+}
+
 
   registerFlowCards() {
+    this.homey.log('Registering flow cards...');
     this._registerTriggerFlowCards();
     this._registerConditionFlowCards();
     this._registerActionFlowCards();
@@ -180,17 +230,27 @@ class CZSpotPricesDriver extends Homey.Driver {
       ['current-price-lower-than-trigger', 'current-price-higher-than-trigger', 'current-price-index-trigger'].forEach(cardId => {
         this.homey.flow.getDeviceTriggerCard(cardId);
       });
+      this.homey.log('Basic price and index trigger cards registered.');
 
       this.homey.flow.getDeviceTriggerCard('average-price-trigger')
         .registerRunListener(this._handleAveragePriceTrigger.bind(this));
+      this.homey.log('Average price trigger card registered.');
 
       this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger')
-        .registerRunListener(async (args, state) => args.type === state.type);
+        .registerRunListener(async (args, state) => {
+          this.homey.log(`API call fail trigger invoked with type: ${args.type}`);
+          return args.type === state.type;
+        });
 
       this.homey.flow.getDeviceTriggerCard('when-current-price-changes')
-        .registerRunListener(async () => true);
+        .registerRunListener(async (args, state) => {
+          this.homey.log('Current price change trigger invoked.');
+          return true;
+        });
 
       this.tariffChangeTrigger = this.homey.flow.getDeviceTriggerCard('when-distribution-tariff-changes');
+      this.homey.log('Distribution tariff change trigger registered.');
+
     } catch (error) {
       this.error('Error registering trigger Flow cards:', error);
     }
@@ -198,8 +258,12 @@ class CZSpotPricesDriver extends Homey.Driver {
 
   checkTariffChange() {
     const devices = this.getDevices();
+    
+    // Získání aktuální hodiny pomocí SpotPriceAPI
     const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
     const currentHour = timeInfo.hour;
+
+    this.homey.log('Checking tariff change at exact hour:', currentHour);
 
     for (const device of Object.values(devices)) {
       const previousTariff = device.getStoreValue('previousTariff');
@@ -210,24 +274,36 @@ class CZSpotPricesDriver extends Homey.Driver {
           .then(() => {
             return this.tariffChangeTrigger.trigger(device, { tariff: currentTariff });
           })
+          .then(() => {
+            this.homey.log('Tariff change trigger successfully executed');
+          })
           .catch(error => {
             this.error('Error in tariff change process:', error);
           });
+      } else {
+        this.homey.log(`No tariff change at hour ${currentHour}: stayed at ${currentTariff}`);
       }
     }
-  }
+}
+
 
   async _handleAveragePriceTrigger(args, state) {
+    const { hours, condition } = args;
+    const device = state.device;
+    const timeInfo = device.spotPriceApi.getCurrentTimeInfo();
+    const currentHour = timeInfo.hour;
+    
     try {
-      const { hours, condition } = args;
-      const device = state.device;
-      const timeInfo = device.spotPriceApi.getCurrentTimeInfo();
-      const currentHour = timeInfo.hour;
-      
       const allCombinations = await this._calculateAveragePrices(device, hours);
+      
       const targetCombination = this._findTargetCombination(allCombinations, condition);
       
-      return currentHour >= targetCombination.startHour && currentHour < (targetCombination.startHour + hours);
+      const result = currentHour >= targetCombination.startHour && 
+                    currentHour < (targetCombination.startHour + hours);
+      
+      this.homey.log(`Trigger result: ${result} (currentHour ${currentHour} is${result ? '' : ' not'} within window ${targetCombination.startHour}-${targetCombination.startHour + hours})`);
+      
+      return result;
     } catch (error) {
       this.error('Error in average price trigger:', error);
       return false;
@@ -236,6 +312,8 @@ class CZSpotPricesDriver extends Homey.Driver {
 
   _registerConditionFlowCards() {
     try {
+      this.homey.log('Registering condition flow cards...');
+
       this._registerConditionCard('price-lower-than-condition', 'measure_current_spot_price_CZK', '<');
       this._registerConditionCard('price-higher-than-condition', 'measure_current_spot_price_CZK', '>');
       this._registerConditionCard('price-index-is-condition', 'measure_current_spot_index', '=');
@@ -243,10 +321,13 @@ class CZSpotPricesDriver extends Homey.Driver {
 
       this.homey.flow.getConditionCard('distribution-tariff-is')
         .registerRunListener(async (args, state) => {
-          const currentHour = new Date(new Date().toLocaleString('en-US', { timeZone: this.homey.clock.getTimezone() })).getHours();
+          const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+          const currentHour = timeInfo.hour;
           const device = args.device;
           const isLowTariff = this.isLowTariff(currentHour, device);
-          return args.tariff === (isLowTariff ? 'low' : 'high');
+          const result = args.tariff === (isLowTariff ? 'low' : 'high');
+          this.homey.log(`Distribution tariff condition checked: expected ${args.tariff}, actual ${isLowTariff ? 'low' : 'high'}`);
+          return result;
         });
     } catch (error) {
       this.error('Error registering condition Flow cards:', error);
@@ -260,10 +341,13 @@ class CZSpotPricesDriver extends Homey.Driver {
           const { hours, condition } = args;
           const device = args.device;
           const currentHour = new Date(new Date().toLocaleString('en-US', { timeZone: this.homey.clock.getTimezone() })).getHours();
-  
+    
           const allCombinations = await this._calculateAveragePrices(device, hours);
           const targetCombination = this._findTargetCombination(allCombinations, condition);
-          return currentHour >= targetCombination.startHour && currentHour < (targetCombination.startHour + hours);
+          const result = currentHour >= targetCombination.startHour && currentHour < (targetCombination.startHour + hours);
+          
+          this.homey.log(`Average price condition evaluated to ${result}`);
+          return result;
         } catch (error) {
           this.error('Error processing average price condition:', error);
           return false;
@@ -276,6 +360,7 @@ class CZSpotPricesDriver extends Homey.Driver {
       .registerRunListener(async (args, state) => {
         const device = args.device;
         const currentValue = await device.getCapabilityValue(capability);
+        this.homey.log(`Condition card ${cardId} invoked with current value: ${currentValue} and target: ${args.value}`);
 
         if (currentValue === null || currentValue === undefined) {
           throw new Error(`Capability value for ${capability} is not available`);
@@ -289,9 +374,10 @@ class CZSpotPricesDriver extends Homey.Driver {
         }
       });
   }
-
   _registerActionFlowCards() {
     try {
+      this.homey.log('Registering action flow cards...');
+  
       this.homey.flow.getActionCard('update_data_via_api')
         .registerRunListener(async (args) => {
           const device = args.device;
@@ -300,6 +386,7 @@ class CZSpotPricesDriver extends Homey.Driver {
             return false;
           }
   
+          this.homey.log('Update daily prices via API action invoked.');
           try {
             await device.fetchAndUpdateSpotPrices();
             await device.setAvailable();
@@ -320,7 +407,9 @@ class CZSpotPricesDriver extends Homey.Driver {
   async onPairListDevices() {
     try {
       const deviceId = crypto.randomUUID();
-      return [{ name: 'CZ Spot Prices Device', data: { id: deviceId } }];
+      const deviceName = 'CZ Spot Prices Device';
+      this.homey.log('Pairing device with ID:', deviceId);
+      return [{ name: deviceName, data: { id: deviceId } }];
     } catch (error) {
       this.error("Error during pairing:", error);
       throw error;
@@ -348,19 +437,24 @@ class CZSpotPricesDriver extends Homey.Driver {
     const tariffHours = tariffSettings
       .filter(setting => setting.isLowTariff)
       .map(setting => setting.hour);
+    this.homey.log(`Hours with low tariff enabled: ${tariffHours.join(', ')}`);
   
-    return tariffHours.includes(hour);
+    const result = tariffHours.includes(hour);
+    this.homey.log(`Is hour ${hour} in low tariff hours? Result: ${result}`);
+    return result;
   }
 
   async triggerCurrentPriceChangedFlow(device, tokens) {
     const triggerCard = this.homey.flow.getDeviceTriggerCard('when-current-price-changes');
     try {
       await triggerCard.trigger(device, tokens);
+      this.homey.log(`Current price changed trigger executed for device ${device.getName()}.`);
     } catch (error) {
       this.error('Error triggering current price changed flow:', error);
     }
   }
 
+  // Cleanup při odstranění driveru
   async onUninit() {
     if (this.tariffCheckInterval) {
       this.homey.clearInterval(this.tariffCheckInterval);
@@ -368,6 +462,7 @@ class CZSpotPricesDriver extends Homey.Driver {
     if (this.midnightTimeout) {
       this.homey.clearTimeout(this.midnightTimeout);
     }
+    this.homey.log('Driver uninitialized, all intervals and timeouts cleared');
   }
 }
 
