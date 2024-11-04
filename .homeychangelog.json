@@ -103,5 +103,8 @@
   },
   "2.0.8": {
     "en": "Fixed issues with time and update current price capability"
+  },
+  "2.0.9": {
+    "en": "Added device timeline with API information, fixed update data flow card, unhide daily prices in device detail - till widgets go public"
   }
 }
