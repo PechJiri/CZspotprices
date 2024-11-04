@@ -28,6 +28,8 @@ class CZSpotPricesDevice extends Homey.Device {
       'measure_current_spot_price_CZK',
       'measure_current_spot_index',
       'daily_average_price',
+      'primary_api_fail',
+      'spot_price_update_status',
       ...Array.from({ length: 24 }, (_, i) => [`hour_price_CZK_${i}`, `hour_price_index_${i}`]).flat()
     ];
   
@@ -232,6 +234,7 @@ registerTimeoutHandler(timeoutName) {
   }
 
   async fetchAndUpdateSpotPrices() {
+    await this.setCapabilityValue('spot_price_update_status', false);
     this.homey.log('Fetching and updating spot prices');
     try {
       const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
@@ -274,6 +277,8 @@ registerTimeoutHandler(timeoutName) {
         })),
         averagePrice: await this.getCapabilityValue('daily_average_price')
       });
+      
+      await this.setCapabilityValue('spot_price_update_status', true);
   
       return true;
     } catch (error) {

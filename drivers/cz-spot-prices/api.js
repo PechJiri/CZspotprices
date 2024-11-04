@@ -67,6 +67,8 @@ class SpotPriceAPI {
     let oteError = null;
     const timeoutMs = 10000;
 
+    await device.setCapabilityValue('primary_api_fail', true);
+
     try {
       const url = `${this.baseUrl}/get-prices-json`;
       const controller = new AbortController();
@@ -92,6 +94,7 @@ class SpotPriceAPI {
         throw error;
       }
     } catch (error) {
+      await device.setCapabilityValue('primary_api_fail', false);
       spotElektrinaError = error;
       try {
         return await this.getBackupDailyPrices(device);
@@ -169,47 +172,44 @@ class SpotPriceAPI {
 
   async updateCurrentValues(device) {
     try {
-      const timeInfo = this.getCurrentTimeInfo();
+      this.homey.log('=== AKTUALIZACE SOUČASNÝCH HODNOT ===');
       let dailyPrices = [];
-
+  
       try {
-        const response = await axios.get(`${this.baseUrl}/get-daily-prices`, { timeout: 5000 });
-        if (response.data && Array.isArray(response.data.hoursToday)) {
-          dailyPrices = response.data.hoursToday.map((priceData, hour) => ({
-            hour,
-            priceCZK: this.addDistributionPrice(device, priceData.price),
-          }));
-        } else {
-          throw new Error('Invalid data from primary API');
-        }
-      } catch (primaryError) {
-        try {
-          const backupPrices = await this.getBackupDailyPrices(device);
-          dailyPrices = backupPrices.map(priceData => ({
-            hour: priceData.hour,
-            priceCZK: this.addDistributionPrice(device, priceData.priceCZK),
-          }));
-        } catch (backupError) {
-          throw new Error(`Backup API also failed: ${backupError.message}`);
-        }
+        this.homey.log('Pokus o získání dat z primárního API...');
+        dailyPrices = await this.getDailyPrices(device);
+        this.homey.log('Data úspěšně získána z primárního API');
+      } catch (error) {
+        this.homey.error('Chyba při získávání dat:', error);
+        throw error;
       }
-
-      const pricesWithIndexes = device.setPriceIndexes(dailyPrices);
+  
+      this.homey.log('Data pro aktualizaci:', dailyPrices);
+  
+      const pricesWithIndexes = device.setPriceIndexes(dailyPrices.map(priceData => ({
+        hour: priceData.hour,
+        priceCZK: this.addDistributionPrice(device, priceData.priceCZK)
+      })));
+  
+      const timeInfo = this.getCurrentTimeInfo();
+      const currentHour = timeInfo.hour;
+  
       for (const { hour, priceCZK, level } of pricesWithIndexes) {
         await device.setCapabilityValue(`hour_price_CZK_${hour}`, priceCZK);
         await device.setCapabilityValue(`hour_price_index_${hour}`, level);
       }
-
-      const currentHourData = pricesWithIndexes.find(price => price.hour === timeInfo.hour);
+  
+      const currentHourData = pricesWithIndexes.find(price => price.hour === currentHour);
       if (currentHourData) {
         await device.setCapabilityValue('measure_current_spot_price_CZK', currentHourData.priceCZK);
         await device.setCapabilityValue('measure_current_spot_index', currentHourData.level);
       }
-
+  
       await device.updateDailyAverageCapability();
       await this.homey.emit('spot_prices_updated');
+  
     } catch (error) {
-      this.handleApiError('Error updating current values', error, device, 'current');
+      this.handleApiError('Error updating current values', error, device);
     }
   }
 }

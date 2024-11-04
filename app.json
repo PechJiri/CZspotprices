@@ -2153,6 +2153,40 @@
       "getable": true,
       "setable": false,
       "icon": "/assets/images/Actual_icon.svg"
+    },
+    "primary_api_fail": {
+      "id": "primary_api_fail",
+      "type": "boolean",
+      "title": {
+        "en": "Fail of primary api"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Getting prices from primary API"
+      },
+      "insightsTitleFalse": {
+        "en": "Primary API failed, trying backup API"
+      }
+    },
+    "spot_price_update_status": {
+      "id": "spot_price_update_status",
+      "type": "boolean",
+      "title": {
+        "en": "Spot Price Update Status"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Spot prices updated"
+      },
+      "insightsTitleFalse": {
+        "en": "Calling API to update prices"
+      }
     }
   }
 }

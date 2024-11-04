@@ -1,0 +1,17 @@
+{
+    "id": "primary_api_fail",
+    "type": "boolean",
+    "title": {
+      "en": "Fail of primary api"
+    },
+    "getable": true,
+    "setable": false,
+    "uiComponent": null,
+    "insights": true,
+    "insightsTitleTrue": {
+        "en": "Getting prices from primary API"
+      },
+    "insightsTitleFalse": {
+        "en": "Primary API failed, trying backup API"
+      }
+}
