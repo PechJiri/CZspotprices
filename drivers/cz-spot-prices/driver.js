@@ -71,6 +71,8 @@ async executeMidnightUpdate(retryCount = 0) {
 
   for (const device of Object.values(devices)) {
       try {
+          // Nastavení spot_price_update_status na false před aktualizací
+          await device.setCapabilityValue('spot_price_update_status', false);
           const updateResult = await this.tryUpdateDevice(device);
           if (!updateResult) {
               success = false;
@@ -80,6 +82,13 @@ async executeMidnightUpdate(retryCount = 0) {
           success = false;
           this.error(`Error updating device ${device.getName()}:`, error);
       }
+  }
+
+  // Nastavení spot_price_update_status na true po úspěšné aktualizaci
+  if (success) {
+    for (const device of Object.values(devices)) {
+        await device.setCapabilityValue('spot_price_update_status', true);
+    }
   }
 
   if (!success && retryCount < MAX_RETRIES) {
