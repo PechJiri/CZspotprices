@@ -106,5 +106,8 @@
   },
   "2.0.9": {
     "en": "Added device timeline with API information, fixed update data flow card, unhide daily prices in device detail - till widgets go public"
+  },
+  "2.0.10": {
+    "en": "fixed timeline for midninght api call"
   }
 }
