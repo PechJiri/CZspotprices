@@ -109,5 +109,8 @@
   },
   "2.0.10": {
     "en": "fixed timeline for midninght api call"
+  },
+  "2.0.11": {
+    "en": "Bugfix"
   }
 }
