@@ -2,12 +2,14 @@
 
 const Homey = require('homey');
 const SpotPriceAPI = require('./api');
+const IntervalManager = require('../../helpers/IntervalManager');
 
 class CZSpotPricesDevice extends Homey.Device {
 
   async onInit() {
     this.homey.log('Initializing device...');
-    
+
+    this.intervalManager = new IntervalManager(this.homey);
     const deviceId = this.getData().id || this.getStoreValue('device_id');
     if (!deviceId) {
       const newDeviceId = this.generateDeviceId();
@@ -52,35 +54,11 @@ class CZSpotPricesDevice extends Homey.Device {
     this.driver.scheduleMidnightUpdate();
 
     // Nastavení hodinové aktualizace
-    this.scheduleHourlyUpdate();
+    this.setupScheduledTasks();
     
     // Nastavení kontroly průměrných cen
     const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
     const currentHour = timeInfo.hour;
-    
-    try {
-      // Okamžitá kontrola průměrných cen
-      await this.checkAveragePrice().catch(err => {
-        this.error('Error in initial average price check:', err);
-      });
-
-      // Plánování další kontroly na začátek příští hodiny
-      const now = new Date();
-      const nextHour = new Date(now);
-      nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
-      const delay = nextHour.getTime() - now.getTime();
-
-      this.averagePriceTimeout = this.homey.setTimeout(() => {
-        this.checkAveragePrice();
-        
-        // Nastavení hodinového intervalu
-        this.averagePriceInterval = this.homey.setInterval(() => {
-          this.checkAveragePrice();
-        }, 60 * 60 * 1000);
-      }, delay);
-    } catch (error) {
-      this.error('Error setting up average price checks:', error);
-    }
     
     // Nastavení iniciálního tarifu
     const initialTariff = this.driver.isLowTariff(currentHour, this) ? 'low' : 'high';
@@ -99,85 +77,88 @@ class CZSpotPricesDevice extends Homey.Device {
     this.homey.log('Device initialization completed');
 }
 
-  setupHourlyAveragePriceCheck() {
-    const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-    const now = new Date();
-    const nextHour = new Date(now);
-    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
-    const delay = nextHour.getTime() - now.getTime();
+async setupScheduledTasks() {
+  // Vytvoříme callback pro hodinovou aktualizaci
+  const hourlyCallback = async () => {
+      try {
+          const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+          let currentHour = timeInfo.hour;
+          currentHour = (currentHour === 24) ? 0 : currentHour;
+          
+          // Získáme hodnoty pro aktuální hodinu
+          const price = await this.getCapabilityValue(`hour_price_CZK_${currentHour}`);
+          const index = await this.getCapabilityValue(`hour_price_index_${currentHour}`);
+          
+          if (price !== null && index !== null) {
+              // Nastavíme nové hodnoty
+              await Promise.all([
+                  this.setCapabilityValue('measure_current_spot_price_CZK', price),
+                  this.setCapabilityValue('measure_current_spot_index', index)
+              ]);
 
-    this.homey.setTimeout(() => {
-      this.checkAveragePrice();
-      
-      this.averagePriceInterval = this.homey.setInterval(() => {
-        this.checkAveragePrice();
-      }, 60 * 60 * 1000);
-    }, delay);
+              // Spustíme trigger pro změnu ceny
+              await this.driver.triggerCurrentPriceChangedFlow(this, { price });
+              
+              this.homey.log('Current price úspěšně aktualizována');
+          } else {
+              this.error(`Chybějící data pro hodinu ${currentHour}:`, { price, index });
+          }
+      } catch (error) {
+          this.error('Chyba při aktualizaci current price:', error);
+      }
+  };
+
+  // Přidáváme callback pro průměrné ceny
+  const averagePriceCallback = async () => {
+      try {
+          await this.checkAveragePrice();
+          this.homey.log('Average price check completed');
+      } catch (error) {
+          this.error('Error in average price check:', error);
+      }
+  };
+
+  // Vypočítáme zpoždění do příští hodiny
+  const initialDelay = this.intervalManager.calculateDelayToNextHour();
+  const minutes = Math.floor(initialDelay / 60000);
+  const seconds = Math.floor((initialDelay % 60000) / 1000);
+  
+  this.homey.log(`Příští aktualizace naplánována za ${minutes} minut a ${seconds} sekund`);
+
+  // Nastavíme oba intervaly pomocí IntervalManageru
+  this.intervalManager.setScheduledInterval(
+      'hourly',              // Klíč pro tento interval
+      hourlyCallback,        // Funkce která se bude volat
+      60 * 60 * 1000,       // Interval - 1 hodina v milisekundách
+      initialDelay          // Počáteční zpoždění do příští celé hodiny
+  );
+
+  // Přidán nový interval pro průměrné ceny
+  this.intervalManager.setScheduledInterval(
+      'average',            // Klíč pro průměrné ceny
+      averagePriceCallback, // Callback pro průměrné ceny
+      60 * 60 * 1000,      // Stejný hodinový interval
+      initialDelay         // Stejné počáteční zpoždění
+  );
+
+  // Spustíme oba callbacky okamžitě při inicializaci
+  this.homey.log('Running initial callbacks...');
+  try {
+      // Spustíme oba callbacky paralelně pomocí Promise.all
+      await Promise.all([
+          hourlyCallback(),
+          averagePriceCallback()
+      ]);
+      this.homey.log('Initial callbacks completed successfully');
+  } catch (error) {
+      this.error('Error in initial callbacks:', error);
   }
 
-  scheduleHourlyUpdate() {
-    
-    const scheduleNextUpdate = () => {
-      const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-      let currentHour = timeInfo.hour;
-      currentHour = (currentHour === 24) ? 0 : currentHour;
-      const nextHour = new Date();
-        nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0); // Nastavíme 0ms po celé hodině
-        
-        // Vypočítáme zpoždění do příští aktualizace
-        const delay = nextHour.getTime() - Date.now();
-        
-        const minutes = Math.floor(delay / 60000); // Převod na minuty
-        const seconds = Math.floor((delay % 60000) / 1000); // Zbývající sekundy
-        this.homey.log(`Příští aktualizace current price naplánována za ${minutes} minut a ${seconds} sekund (${new Date(nextHour).toISOString()})`);
-
-        // Naplánujeme aktualizaci
-        this.hourlyUpdateTimeout = this.homey.setTimeout(async () => {
-            try {
-                const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-                const currentHour = timeInfo.hour;
-                currentHour = (currentHour === 24) ? 0 : currentHour;
-                
-                // Získáme hodnoty pro aktuální hodinu
-                const price = await this.getCapabilityValue(`hour_price_CZK_${currentHour}`);
-                const index = await this.getCapabilityValue(`hour_price_index_${currentHour}`);
-                
-                if (price !== null && index !== null) {
-                    // Nastavíme nové hodnoty
-                    await Promise.all([
-                        this.setCapabilityValue('measure_current_spot_price_CZK', price),
-                        this.setCapabilityValue('measure_current_spot_index', index)
-                    ]);
-
-                    // Spustíme trigger pro změnu ceny
-                    await this.driver.triggerCurrentPriceChangedFlow(this, { price });
-                    
-                    this.homey.log('Current price úspěšně aktualizována');
-                } else {
-                    this.error(`Chybějící data pro hodinu ${currentHour}:`, { price, index });
-                }
-            } catch (error) {
-                this.error('Chyba při aktualizaci current price:', error);
-            }
-
-            // Naplánujeme další aktualizaci
-            scheduleNextUpdate();
-        }, delay);
-    };
-
-    // Spustíme první plánování
-    scheduleNextUpdate();
-
-    // Vyčistíme timeout při odstranění zařízení
-    this.registerTimeoutHandler('hourlyUpdateTimeout');
-}
-
-// Pomocná metoda pro registraci timeout handleru
-registerTimeoutHandler(timeoutName) {
-  if (!this._timeoutHandlers) {
-      this._timeoutHandlers = new Set();
-  }
-  this._timeoutHandlers.add(timeoutName);
+  // Debug log na konec funkce
+  this.homey.log('Active intervals:', 
+      Object.keys(this.intervalManager.intervals)
+          .filter(key => this.intervalManager.intervals[key] !== null)
+  );
 }
 
   // Optimalizovaná metoda pro nastavení cenových indexů
@@ -341,30 +322,17 @@ registerTimeoutHandler(timeoutName) {
   
   
   async onDeleted() {
-    this.homey.log('Čištění device resources...');
+    this.homey.log('Cleaning up device resources...');
     
-    // Vyčistíme všechny intervaly
-    if (this.dataFetchInterval) {
-        this.homey.clearInterval(this.dataFetchInterval);
-    }
-    if (this.averagePriceInterval) {
-        this.homey.clearInterval(this.averagePriceInterval);
-    }
-    if (this.averagePriceTimeout) {
-        this.homey.clearTimeout(this.averagePriceTimeout);
+    // Vyčištění všech intervalů najednou
+    if (this.intervalManager) {
+        this.intervalManager.clearAll();
     }
 
-    // Vyčistíme všechny zaregistrované timeouty
-    if (this._timeoutHandlers) {
-        for (const timeoutName of this._timeoutHandlers) {
-            if (this[timeoutName]) {
-                this.homey.clearTimeout(this[timeoutName]);
-                this[timeoutName] = null;
-            }
-        }
-    }
+    // Vyčištění referencí
+    this.spotPriceApi = null;
 
-    this.homey.log('Device cleanup dokončen');
+    this.homey.log('Device cleanup completed');
 }
 
   setupFlowCards() {

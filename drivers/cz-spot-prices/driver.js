@@ -3,6 +3,7 @@
 const Homey = require('homey');
 const crypto = require('crypto');
 const SpotPriceAPI = require('./api');
+const IntervalManager = require('../../helpers/IntervalManager');
 
 class CZSpotPricesDriver extends Homey.Driver {
 
@@ -11,6 +12,9 @@ class CZSpotPricesDriver extends Homey.Driver {
     
     // Inicializace SpotPriceAPI instance pro tento driver
     this.spotPriceApi = new SpotPriceAPI(this.homey);
+
+    // Přidat inicializaci IntervalManageru
+    this.intervalManager = new IntervalManager(this.homey);
     
     // Načtení intervalů tarifů
     this.tariffIntervals = this.homey.settings.get('tariff_intervals') || [];
@@ -26,35 +30,49 @@ class CZSpotPricesDriver extends Homey.Driver {
 }
 
 scheduleMidnightUpdate() {
-    this.homey.log('Scheduling midnight update');
-    
-    const calculateNextMidnight = () => {
-        const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
-        return tomorrow;
-    };
+  this.homey.log('Scheduling midnight update');
+  
+  // Callback pro půlnoční aktualizaci
+  const midnightCallback = async () => {
+      try {
+          await this.executeMidnightUpdate();
+          this.homey.log('Midnight update completed successfully');
+      } catch (error) {
+          this.error('Chyba při půlnoční aktualizaci:', error);
+      }
+  };
 
-    const scheduleNext = () => {
-        const nextMidnight = calculateNextMidnight();
-        const delay = nextMidnight.getTime() - Date.now();
+  // Výpočet času do půlnoci
+  const calculateDelayToMidnight = () => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      return tomorrow.getTime() - Date.now();
+  };
 
-        // Převod `delay` na hodiny, minuty a sekundy
-        const hours = Math.floor(delay / (1000 * 60 * 60));
-        const minutes = Math.floor((delay % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((delay % (1000 * 60)) / 1000);
+  const initialDelay = calculateDelayToMidnight();
 
-        this.homey.log(`Příští aktualizace z API naplánována za ${hours} h, ${minutes} m a ${seconds} s (${nextMidnight.toISOString()})`);
+  // Převod zpoždění na hodiny, minuty a sekundy pro log
+  const hours = Math.floor(initialDelay / (1000 * 60 * 60));
+  const minutes = Math.floor((initialDelay % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((initialDelay % (1000 * 60)) / 1000);
 
-        this.midnightTimeout = this.homey.setTimeout(() => {
-          this.executeMidnightUpdate()
-              .catch(error => this.error('Chyba při půlnoční aktualizaci:', error))
-              .finally(() => scheduleNext());
-        }, delay);
-    };
+  this.homey.log(`Příští aktualizace z API naplánována za ${hours} h, ${minutes} m a ${seconds} s`);
 
-    scheduleNext();
+  // Nastavení intervalu pomocí IntervalManageru
+  this.intervalManager.setScheduledInterval(
+      'midnight',
+      midnightCallback,
+      24 * 60 * 60 * 1000, // 24 hodin
+      initialDelay
+  );
+
+  // Spustíme callback okamžitě pro první aktualizaci
+  this.homey.log('Running initial midnight update...');
+  midnightCallback()
+      .catch(error => this.error('Error in initial midnight update:', error));
+
+  this.homey.log('Midnight update schedule initialized');
 }
 
 async executeMidnightUpdate(retryCount = 0) {
@@ -92,6 +110,14 @@ async executeMidnightUpdate(retryCount = 0) {
   if (success) {
     await device.setCapabilityValue('spot_price_update_status', true);
     this.homey.log('Půlnoční aktualizace úspěšně dokončena');
+    
+    // Vyčištění všech retry intervalů při úspěchu
+    for (let i = 0; i <= retryCount; i++) {
+      const retryIntervalId = `retry_midnight_${i}`;
+      if (this.intervalManager.intervals[retryIntervalId]) {
+        this.intervalManager.clearScheduledInterval(retryIntervalId);
+      }
+    }
   }
 
   if (!success && retryCount < MAX_RETRIES) {
@@ -106,9 +132,13 @@ async executeMidnightUpdate(retryCount = 0) {
       nextRetryIn: Math.round(delay / 60000)
     });
 
-    this.homey.setTimeout(() => {
-      this.executeMidnightUpdate(retryCount + 1);
-    }, delay);
+    // Unikátní ID pro každý retry pokus
+    this.intervalManager.setScheduledInterval(
+      `retry_midnight_${retryCount}`,  // unikátní ID pro každý retry
+      () => this.executeMidnightUpdate(retryCount + 1),
+      null,  // jednorázové spuštění
+      delay
+    );
   } else if (!success) {
     this.error('Vyčerpány všechny pokusy o aktualizaci. Zařízení nemusí mít aktuální data.');
     await this.triggerAPIFailure(device, {
@@ -126,7 +156,7 @@ async executeMidnightUpdate(retryCount = 0) {
       // Pokus o primární API
       try {
         this.homey.log(`Attempting primary API update for device ${device.getName()}`);
-        await device.spotPriceApi.getDailyPrices(device);
+        await this.spotPriceApi.getDailyPrices(device);
         const valid = await this.validatePriceData(device);
         if (valid) {
           this.homey.log(`Successfully updated device ${device.getName()} using primary API`);
@@ -142,7 +172,7 @@ async executeMidnightUpdate(retryCount = 0) {
       // Pokus o záložní API
       try {
         this.homey.log(`Attempting backup API update for device ${device.getName()}`);
-        await device.spotPriceApi.getBackupDailyPrices(device);
+        await this.spotPriceApi.getBackupDailyPrices(device);
         const valid = await this.validatePriceData(device);
         if (valid) {
           this.homey.log(`Successfully updated device ${device.getName()} using backup API`);
@@ -209,27 +239,33 @@ async executeMidnightUpdate(retryCount = 0) {
   }
 
   setupTariffCheck() {
-    // Přímé volání getCurrentTimeInfo z instance SpotPriceAPI
     const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
     const currentHour = timeInfo.hour;
-    const nextHour = new Date();
-    nextHour.setHours(currentHour + 1, 0, 0, 0); // Nastavení na příští celou hodinu
-    const timeToNextHour = nextHour.getTime() - Date.now(); // Výpočet zpoždění
-
-    this.checkTariffChange();
-    // Nastavení hodinového intervalu pro kontrolu tarifu
-    this.homey.setTimeout(() => {
-      this.checkTariffChange();
-
-      this.tariffCheckInterval = this.homey.setInterval(() => {
+    
+    // Callback pro kontrolu změny tarifu
+    const tariffCheckCallback = async () => {
         this.checkTariffChange();
-      }, 60 * 60 * 1000);
+    };
 
-    }, timeToNextHour);
+    // Vypočítáme zpoždění do příští hodiny
+    const now = new Date();
+    const nextHour = new Date(now);
+    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
+    const initialDelay = nextHour.getTime() - now.getTime();
 
-    this.homey.log(`Next tariff check scheduled in ${Math.round(timeToNextHour / 1000)} seconds`);
+    // Nastavení intervalu pomocí IntervalManageru
+    this.intervalManager.setScheduledInterval(
+        'tariff',
+        tariffCheckCallback,
+        60 * 60 * 1000, // 1 hodina
+        initialDelay
+    );
+
+    // První kontrola
+    this.checkTariffChange();
+
+    this.homey.log(`Next tariff check scheduled in ${Math.round(initialDelay / 1000)} seconds`);
 }
-
 
   registerFlowCards() {
     this.homey.log('Registering flow cards...');
@@ -469,14 +505,11 @@ async executeMidnightUpdate(retryCount = 0) {
 
   // Cleanup při odstranění driveru
   async onUninit() {
-    if (this.tariffCheckInterval) {
-      this.homey.clearInterval(this.tariffCheckInterval);
+    if (this.intervalManager) {
+        this.intervalManager.clearAll();
     }
-    if (this.midnightTimeout) {
-      this.homey.clearTimeout(this.midnightTimeout);
-    }
-    this.homey.log('Driver uninitialized, all intervals and timeouts cleared');
-  }
+    this.homey.log('Driver uninitialized, all intervals cleared');
+}
 }
 
 module.exports = CZSpotPricesDriver;
