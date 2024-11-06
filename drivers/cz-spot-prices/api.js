@@ -192,7 +192,7 @@ class SpotPriceAPI {
       })));
   
       const timeInfo = this.getCurrentTimeInfo();
-      const currentHour = timeInfo.hour;
+      let currentHour = timeInfo.hour;
       currentHour = (currentHour === 24) ? 0 : currentHour;
   
       for (const { hour, priceCZK, level } of pricesWithIndexes) {

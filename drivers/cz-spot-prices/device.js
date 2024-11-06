@@ -119,7 +119,7 @@ class CZSpotPricesDevice extends Homey.Device {
     
     const scheduleNextUpdate = () => {
       const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-      const currentHour = timeInfo.hour;
+      let currentHour = timeInfo.hour;
       currentHour = (currentHour === 24) ? 0 : currentHour;
       const nextHour = new Date();
         nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0); // Nastavíme 0ms po celé hodině
@@ -257,7 +257,7 @@ registerTimeoutHandler(timeoutName) {
       }
   
       const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-      const currentHour = timeInfo.hour;
+      let currentHour = timeInfo.hour;
       currentHour = (currentHour === 24) ? 0 : currentHour;
       const currentHourData = pricesWithIndexes.find(price => price.hour === currentHour);
   
@@ -429,7 +429,7 @@ registerTimeoutHandler(timeoutName) {
 async checkAveragePrice() {
   try {
     const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-    const currentHour = timeInfo.hour;
+    let currentHour = timeInfo.hour;
     currentHour = (currentHour === 24) ? 0 : currentHour;
     
     const triggerCard = this.homey.flow.getDeviceTriggerCard('average-price-trigger');
