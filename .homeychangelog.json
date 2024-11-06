@@ -115,5 +115,8 @@
   },
   "2.0.12": {
     "en": "bugfix"
+  },
+  "2.0.13": {
+    "en": "Code optimalization, bugfix"
   }
 }
