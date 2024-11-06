@@ -120,6 +120,7 @@ class CZSpotPricesDevice extends Homey.Device {
     const scheduleNextUpdate = () => {
       const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
       const currentHour = timeInfo.hour;
+      currentHour = (currentHour === 24) ? 0 : currentHour;
       const nextHour = new Date();
         nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0); // Nastavíme 0ms po celé hodině
         
@@ -135,6 +136,7 @@ class CZSpotPricesDevice extends Homey.Device {
             try {
                 const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
                 const currentHour = timeInfo.hour;
+                currentHour = (currentHour === 24) ? 0 : currentHour;
                 
                 // Získáme hodnoty pro aktuální hodinu
                 const price = await this.getCapabilityValue(`hour_price_CZK_${currentHour}`);
@@ -256,6 +258,7 @@ registerTimeoutHandler(timeoutName) {
   
       const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
       const currentHour = timeInfo.hour;
+      currentHour = (currentHour === 24) ? 0 : currentHour;
       const currentHourData = pricesWithIndexes.find(price => price.hour === currentHour);
   
       if (currentHourData) {
@@ -427,6 +430,7 @@ async checkAveragePrice() {
   try {
     const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
     const currentHour = timeInfo.hour;
+    currentHour = (currentHour === 24) ? 0 : currentHour;
     
     const triggerCard = this.homey.flow.getDeviceTriggerCard('average-price-trigger');
     const flows = await triggerCard.getArgumentValues(this);
@@ -474,6 +478,7 @@ async checkAveragePrice() {
       let total = 0;
       
       for (let i = startHour; i < startHour + hours; i++) {
+        const checkedHour = (i === 24) ? 0 : i;
         const price = await this.getCapabilityValue(`hour_price_CZK_${i}`);
         
         if (price === null || price === undefined) {

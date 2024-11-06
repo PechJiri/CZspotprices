@@ -193,6 +193,7 @@ class SpotPriceAPI {
   
       const timeInfo = this.getCurrentTimeInfo();
       const currentHour = timeInfo.hour;
+      currentHour = (currentHour === 24) ? 0 : currentHour;
   
       for (const { hour, priceCZK, level } of pricesWithIndexes) {
         await device.setCapabilityValue(`hour_price_CZK_${hour}`, priceCZK);

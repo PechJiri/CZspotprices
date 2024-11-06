@@ -47,13 +47,10 @@ scheduleMidnightUpdate() {
 
         this.homey.log(`Příští aktualizace z API naplánována za ${hours} h, ${minutes} m a ${seconds} s (${nextMidnight.toISOString()})`);
 
-        this.homey.setTimeout(async () => {
-            try {
-                await this.fetchAndUpdateSpotPrices();
-            } catch (error) {
-                this.error('Midnight update failed:', error);
-            }
-            scheduleNext();
+        this.midnightTimeout = this.homey.setTimeout(() => {
+          this.executeMidnightUpdate()
+              .catch(error => this.error('Chyba při půlnoční aktualizaci:', error))
+              .finally(() => scheduleNext());
         }, delay);
     };
 
@@ -63,61 +60,63 @@ scheduleMidnightUpdate() {
 async executeMidnightUpdate(retryCount = 0) {
   const MAX_RETRIES = 5;
   const BASE_DELAY = 5 * 60 * 1000; // 5 minut v milisekundách
+
+  this.homey.log(`Spouštím půlnoční aktualizaci (pokus: ${retryCount} z ${MAX_RETRIES})`);
   
-  this.homey.log(`Executing midnight update (retry: ${retryCount} of ${MAX_RETRIES})`);
-  
+  // Získáme první (a jediné) zařízení
   const devices = this.getDevices();
+  const device = Object.values(devices)[0];
+  
+  if (!device) {
+    this.error('Nenalezeno žádné zařízení pro aktualizaci');
+    return;
+  }
+
   let success = true;
 
-  for (const device of Object.values(devices)) {
-      try {
-          // Nastavení spot_price_update_status na false před aktualizací
-          await device.setCapabilityValue('spot_price_update_status', false);
-          const updateResult = await this.tryUpdateDevice(device);
-          if (!updateResult) {
-              success = false;
-              this.homey.log(`Failed to update device ${device.getName()} using both APIs`);
-          }
-      } catch (error) {
-          success = false;
-          this.error(`Error updating device ${device.getName()}:`, error);
-      }
+  try {
+    // Nastavení spot_price_update_status na false před aktualizací
+    await device.setCapabilityValue('spot_price_update_status', false);
+    const updateResult = await this.tryUpdateDevice(device);
+    
+    if (!updateResult) {
+      success = false;
+      this.homey.log(`Nepodařilo se aktualizovat zařízení ${device.getName()} pomocí obou API`);
+    }
+  } catch (error) {
+    success = false;
+    this.error(`Chyba při aktualizaci zařízení ${device.getName()}:`, error);
   }
 
   // Nastavení spot_price_update_status na true po úspěšné aktualizaci
   if (success) {
-    for (const device of Object.values(devices)) {
-        await device.setCapabilityValue('spot_price_update_status', true);
-    }
+    await device.setCapabilityValue('spot_price_update_status', true);
+    this.homey.log('Půlnoční aktualizace úspěšně dokončena');
   }
 
   if (!success && retryCount < MAX_RETRIES) {
-      const delay = BASE_DELAY * Math.pow(2, retryCount);
-      this.homey.log(`Scheduling retry ${retryCount + 1} in ${delay/60000} minutes`);
-      
-      for (const device of Object.values(devices)) {
-          await this.triggerAPIFailure(device, {
-              primaryAPI: 'Update failed',
-              backupAPI: 'Update failed',
-              willRetry: true,
-              retryCount: retryCount + 1,
-              nextRetryIn: Math.round(delay / 60000)
-          });
-      }
+    const delay = BASE_DELAY * Math.pow(2, retryCount);
+    this.homey.log(`Plánuji další pokus ${retryCount + 1} za ${delay/60000} minut`);
+    
+    await this.triggerAPIFailure(device, {
+      primaryAPI: 'Aktualizace selhala',
+      backupAPI: 'Aktualizace selhala',
+      willRetry: true,
+      retryCount: retryCount + 1,
+      nextRetryIn: Math.round(delay / 60000)
+    });
 
-      this.homey.setTimeout(() => {
-          this.executeMidnightUpdate(retryCount + 1);
-      }, delay);
+    this.homey.setTimeout(() => {
+      this.executeMidnightUpdate(retryCount + 1);
+    }, delay);
   } else if (!success) {
-      this.error('All retry attempts exhausted. Some devices may not have current data.');
-      for (const device of Object.values(devices)) {
-          await this.triggerAPIFailure(device, {
-              primaryAPI: 'Update failed',
-              backupAPI: 'Update failed',
-              willRetry: false,
-              maxRetriesReached: true
-          });
-      }
+    this.error('Vyčerpány všechny pokusy o aktualizaci. Zařízení nemusí mít aktuální data.');
+    await this.triggerAPIFailure(device, {
+      primaryAPI: 'Aktualizace selhala',
+      backupAPI: 'Aktualizace selhala',
+      willRetry: false,
+      maxRetriesReached: true
+    });
   }
 }
 
@@ -171,6 +170,7 @@ async executeMidnightUpdate(retryCount = 0) {
   async validatePriceData(device) {
     try {
       for (let hour = 0; hour < 24; hour++) {
+        let checkedHour = (hour === 24) ? 0 : hour;
         const price = await device.getCapabilityValue(`hour_price_CZK_${hour}`);
         if (price === null || price === undefined || typeof price !== 'number' || !isFinite(price)) {
           this.homey.log(`Missing or invalid price for hour ${hour}: ${price}`);
