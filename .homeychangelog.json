@@ -121,5 +121,8 @@
   },
   "2.0.14": {
     "en": "more code optimalisation"
+  },
+  "2.0.15": {
+    "en": "code optimalisation - added price calculator"
   }
 }
