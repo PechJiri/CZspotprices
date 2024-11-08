@@ -6,6 +6,7 @@ class PriceCalculator {
         this.priceCache = new Map();
         this.averagePriceCache = new Map();
         this.lastCalculationHour = null;
+        this.logger = null; // Přidáme property pro logger
         
         // Konstanty pro cache
         this.PRICE_CACHE_TTL = 60 * 60 * 1000; // 1 hodina
@@ -13,6 +14,18 @@ class PriceCalculator {
         
         // Nastavení automatického čištění cache
         this.setupCacheCleanup();
+    }
+
+    // Přidáme metody pro práci s loggerem
+    setLogger(logger) {
+        this.logger = logger;
+        if (this.logger) {
+            this.logger.debug('PriceCalculator: Logger inicializován');
+        }
+    }
+
+    getLogger() {
+        return this.logger;
     }
 
     /**
@@ -23,6 +36,13 @@ class PriceCalculator {
         this.homey.setInterval(() => {
             this.cleanupCache();
         }, this.PRICE_CACHE_TTL);
+
+        if (this.logger) {
+            this.logger.debug('Cache cleanup nastaven', {
+                interval: this.PRICE_CACHE_TTL,
+                nextCleanup: new Date(Date.now() + this.PRICE_CACHE_TTL).toISOString()
+            });
+        }
     }
 
     /**
@@ -31,6 +51,10 @@ class PriceCalculator {
      */
     cleanupCache() {
         const now = Date.now();
+        const beforeCleanup = {
+            priceCache: this.priceCache.size,
+            averageCache: this.averagePriceCache.size
+        };
         
         for (const [key, value] of this.priceCache.entries()) {
             if (now - value.timestamp > this.PRICE_CACHE_TTL) {
@@ -44,10 +68,21 @@ class PriceCalculator {
             }
         }
 
-        this.homey.log('Cache vyčištěna', {
-            priceCacheSize: this.priceCache.size,
-            averageCacheSize: this.averagePriceCache.size
-        });
+        const afterCleanup = {
+            priceCache: this.priceCache.size,
+            averageCache: this.averagePriceCache.size
+        };
+
+        if (this.logger) {
+            this.logger.debug('Cache vyčištěna', {
+                before: beforeCleanup,
+                after: afterCleanup,
+                removed: {
+                    priceCache: beforeCleanup.priceCache - afterCleanup.priceCache,
+                    averageCache: beforeCleanup.averageCache - afterCleanup.averageCache
+                }
+            });
+        }
     }
 
     /**
@@ -55,25 +90,53 @@ class PriceCalculator {
      */
     validatePriceData(data) {
         if (!Array.isArray(data)) {
-            this.homey.error('Neplatná data - není pole');
+            if (this.logger) {
+                this.logger.error('Neplatná data - není pole', new Error('Invalid data type'));
+            }
             return false;
         }
 
         if (data.length !== 24) {
-            this.homey.error('Neplatná data - nesprávný počet hodin');
+            if (this.logger) {
+                this.logger.error('Neplatná data - nesprávný počet hodin', new Error('Invalid data length'), {
+                    expectedLength: 24,
+                    actualLength: data.length
+                });
+            }
             return false;
         }
 
-        return data.every(item => {
+        const validationResults = data.map((item, index) => {
             const hasValidPrice = typeof item.priceCZK === 'number' && !isNaN(item.priceCZK);
             const hasValidHour = typeof item.hour === 'number' && item.hour >= 0 && item.hour < 24;
             
             if (!hasValidPrice || !hasValidHour) {
-                this.homey.log('Neplatná data pro hodinu', item);
+                if (this.logger) {
+                    this.logger.debug('Neplatná data pro hodinu', {
+                        index,
+                        item,
+                        validPrice: hasValidPrice,
+                        validHour: hasValidHour
+                    });
+                }
             }
             
             return hasValidPrice && hasValidHour;
         });
+
+        const isValid = validationResults.every(result => result);
+        
+        if (this.logger) {
+            this.logger.debug('Validace dat dokončena', {
+                isValid,
+                invalidHours: validationResults
+                    .map((result, index) => ({ index, valid: result }))
+                    .filter(item => !item.valid)
+                    .map(item => item.index)
+            });
+        }
+
+        return isValid;
     }
 
     /**
@@ -82,22 +145,28 @@ class PriceCalculator {
     addDistributionPrice(basePrice, settings, hour) {
         try {
             if (typeof basePrice !== 'number' || isNaN(basePrice)) {
-                throw new Error('Neplatná základní cena');
+                const error = new Error('Neplatná základní cena');
+                if (this.logger) {
+                    this.logger.error('Chyba při výpočtu distribuční ceny:', error, { basePrice });
+                }
+                throw error;
             }
-
+    
             const lowTariffPrice = parseFloat(settings.low_tariff_price) || 0;
             const highTariffPrice = parseFloat(settings.high_tariff_price) || 0;
             const isLowTariff = this.isLowTariff(hour, settings);
-
+    
             const finalPrice = basePrice + (isLowTariff ? lowTariffPrice : highTariffPrice);
-            
-            this.homey.log(
-                `Výpočet distribuční ceny: hour: ${hour}, basePrice: ${basePrice}, tariffPrice: ${isLowTariff ? lowTariffPrice : highTariffPrice}, finalPrice: ${finalPrice}`
-            );
-
+    
+            if (this.logger) {
+                this.logger.debug(`Výpočet distribuční ceny: hour: ${hour}, basePrice: ${basePrice}, tariffPrice: ${isLowTariff ? lowTariffPrice : highTariffPrice}, finalPrice: ${finalPrice}`);
+            }
+    
             return finalPrice;
         } catch (error) {
-            this.homey.error('Chyba při výpočtu distribuční ceny:', error);
+            if (this.logger) {
+                this.logger.error('Chyba při výpočtu distribuční ceny:', error, { basePrice, settings, hour });
+            }
             return basePrice;
         }
     }
@@ -108,13 +177,25 @@ class PriceCalculator {
     isLowTariff(hour, settings) {
         try {
             if (hour < 0 || hour >= 24) {
-                throw new Error('Neplatná hodina');
+                const chyba = new Error('Neplatná hodina');
+                if (this.logger) {
+                    this.logger.error('Chyba při kontrole nízkého tarifu:', chyba, { hour });
+                }
+                throw chyba;
             }
-
-            const tariffHours = this.getTariffHours(settings);
-            return tariffHours.includes(hour);
-        } catch (error) {
-            this.homey.error('Chyba při kontrole nízkého tarifu:', error);
+    
+            const tarifniHodiny = this.getTariffHours(settings);
+            const jeNizkyTarif = tarifniHodiny.includes(hour);
+    
+            if (this.logger) {
+                this.logger.debug(`Kontrola nízkého tarifu: hour=${hour}, jeNizkyTarif=${jeNizkyTarif}`);
+            }
+    
+            return jeNizkyTarif;
+        } catch (chyba) {
+            if (this.logger) {
+                this.logger.error('Chyba při kontrole nízkého tarifu:', chyba, { hour, settings });
+            }
             return false;
         }
     }
@@ -124,10 +205,18 @@ class PriceCalculator {
      */
     getTariffHours(settings) {
         try {
-            return Array.from({ length: 24 }, (_, i) => i)
+            const tarifniHodiny = Array.from({ length: 24 }, (_, i) => i)
                 .filter(i => settings[`hour_${i}`]);
-        } catch (error) {
-            this.homey.error('Chyba při získávání hodin tarifu:', error);
+    
+            if (this.logger) {
+                this.logger.debug('Získání hodin tarifu', { tarifniHodiny });
+            }
+    
+            return tarifniHodiny;
+        } catch (chyba) {
+            if (this.logger) {
+                this.logger.error('Chyba při získávání hodin tarifu:', chyba, { settings });
+            }
             return [];
         }
     }
@@ -138,47 +227,60 @@ class PriceCalculator {
     setPriceIndexes(hoursToday, lowIndexHours, highIndexHours) {
         try {
             if (!this.validatePriceData(hoursToday)) {
-                throw new Error('Neplatná vstupní data pro výpočet indexů');
+                const chyba = new Error('Neplatná vstupní data pro výpočet indexů');
+                if (this.logger) {
+                    this.logger.error('Chyba při nastavování cenových indexů:', chyba);
+                }
+                throw chyba;
             }
-
+    
             const cacheKey = `${hoursToday.map(h => h.priceCZK).join('-')}-${lowIndexHours}-${highIndexHours}`;
-            
+    
             if (this.priceCache.has(cacheKey)) {
                 const cachedData = this.priceCache.get(cacheKey);
                 if (Date.now() - cachedData.timestamp < this.PRICE_CACHE_TTL) {
+                    if (this.logger) {
+                        this.logger.debug('Použití dat z cenové cache', { cacheKey });
+                    }
                     return cachedData.data;
                 }
             }
-
-            const sortedPrices = [...hoursToday]
+    
+            const serazeneVP = [...hoursToday]
                 .sort((a, b) => a.priceCZK - b.priceCZK)
-                .map((price, index) => ({
-                    ...price,
-                    sortedIndex: index
+                .map((cena, index) => ({
+                    ...cena,
+                    serazenyIndex: index
                 }));
-
-            const totalHours = sortedPrices.length;
-            const result = sortedPrices.map(hourData => {
-                let level;
-                if (hourData.sortedIndex < lowIndexHours) {
-                    level = 'low';
-                } else if (hourData.sortedIndex >= totalHours - highIndexHours) {
-                    level = 'high';
+    
+            const celkovePocetHodin = serazeneVP.length;
+            const vysledek = serazeneVP.map(hodinoveData => {
+                let uroven;
+                if (hodinoveData.serazenyIndex < lowIndexHours) {
+                    uroven = 'low';
+                } else if (hodinoveData.serazenyIndex >= celkovePocetHodin - highIndexHours) {
+                    uroven = 'high';
                 } else {
-                    level = 'medium';
+                    uroven = 'medium';
                 }
-                return { ...hourData, level };
+                return { ...hodinoveData, uroven };
             }).sort((a, b) => a.hour - b.hour);
-
+    
             this.priceCache.set(cacheKey, {
-                data: result,
+                data: vysledek,
                 timestamp: Date.now()
             });
-
-            return result;
-        } catch (error) {
-            this.homey.error('Chyba při nastavování cenových indexů:', error);
-            return hoursToday.map(hourData => ({ ...hourData, level: 'unknown' }));
+    
+            if (this.logger) {
+                this.logger.debug('Nastavení cenových indexů', { cacheKey, vysledek });
+            }
+    
+            return vysledek;
+        } catch (chyba) {
+            if (this.logger) {
+                this.logger.error('Chyba při nastavování cenových indexů:', chyba);
+            }
+            return hoursToday.map(hodinoveData => ({ ...hodinoveData, uroven: 'unknown' }));
         }
     }
 
@@ -187,95 +289,119 @@ class PriceCalculator {
      */
     async calculateAveragePrices(device, hours, startFromHour = 0) {
         try {
-            const currentHour = new Date().getHours();
-            const cacheKey = `${hours}-${startFromHour}-${currentHour}`;
-
+            const aktualniHodina = new Date().getHours();
+            const cacheKey = `${hours}-${startFromHour}-${aktualniHodina}`;
+    
             if (this.averagePriceCache.has(cacheKey) && 
-                this.lastCalculationHour === currentHour) {
+                this.lastCalculationHour === aktualniHodina) {
                 const cachedData = this.averagePriceCache.get(cacheKey);
                 if (Date.now() - cachedData.timestamp < this.AVERAGE_CACHE_TTL) {
+                    if (this.logger) {
+                        this.logger.debug('Použití dat z průměrné cache', { cacheKey });
+                    }
                     return cachedData.data;
                 }
             }
-
-            const allCombinations = [];
+    
+            const vsechnyKombinace = [];
             
-            for (let startHour = startFromHour; startHour <= 24 - hours; startHour++) {
-                let total = 0;
-                let validPrices = true;
-                const prices = [];
-
-                for (let i = startHour; i < startHour + hours; i++) {
-                    const price = await device.getCapabilityValue(`hour_price_CZK_${i}`);
-                    if (price === null || price === undefined) {
-                        validPrices = false;
+            for (let startHodina = startFromHour; startHodina <= 24 - hours; startHodina++) {
+                let celkem = 0;
+                let platneVP = true;
+                const ceny = [];
+    
+                for (let i = startHodina; i < startHodina + hours; i++) {
+                    const cena = await device.getCapabilityValue(`hour_price_CZK_${i}`);
+                    if (cena === null || cena === undefined) {
+                        platneVP = false;
                         break;
                     }
-                    prices.push(price);
-                    total += price;
+                    ceny.push(cena);
+                    celkem += cena;
                 }
-
-                if (validPrices) {
-                    allCombinations.push({
-                        startHour,
-                        avg: total / hours,
-                        prices
+    
+                if (platneVP) {
+                    vsechnyKombinace.push({
+                        startHodina,
+                        prumer: celkem / hours,
+                        ceny
                     });
                 }
             }
-
+    
             this.averagePriceCache.set(cacheKey, {
-                data: allCombinations,
+                data: vsechnyKombinace,
                 timestamp: Date.now()
             });
-            this.lastCalculationHour = currentHour;
-
-            return allCombinations;
-        } catch (error) {
-            this.homey.error('Chyba při výpočtu průměrných cen:', error);
+            this.lastCalculationHour = aktualniHodina;
+    
+            if (this.logger) {
+                this.logger.debug('Výpočet průměrných cen', { cacheKey, vsechnyKombinace });
+            }
+    
+            return vsechnyKombinace;
+        } catch (chyba) {
+            if (this.logger) {
+                this.logger.error('Chyba při výpočtu průměrných cen:', chyba);
+            }
             return [];
         }
     }
 
-    /**
-     * Vyčištění všech cache
-     */
     clearCache() {
+        const beforeSize = {
+            priceCache: this.priceCache.size,
+            averageCache: this.averagePriceCache.size
+        };
+
         this.priceCache.clear();
         this.averagePriceCache.clear();
         this.lastCalculationHour = null;
-        this.homey.log('Cache vyčištěna');
+
+        if (this.logger) {
+            this.logger.debug('Cache vyčištěna', {
+                before: beforeSize,
+                after: {
+                    priceCache: 0,
+                    averageCache: 0
+                }
+            });
+        }
     }
 
-    /**
- * Konverze ceny mezi MWh a kWh
- * @param {number} price - Cena k převodu
- * @param {boolean} priceInKWh - Převést na kWh?
- * @returns {number} - Převedená cena
- */
     convertPrice(price, priceInKWh) {
         try {
-            // Přidáme rychlou kontrolu na začátku
             if (!priceInKWh) {
                 return price;
             }
     
             if (typeof price !== 'number' || isNaN(price)) {
-                throw new Error('Neplatná cena pro konverzi');
+                const error = new Error('Neplatná cena pro konverzi');
+                if (this.logger) {
+                    this.logger.error('Chyba při konverzi ceny', error, { price });
+                }
+                throw error;
             }
     
             const result = price / 1000;
             
-            this.homey.log('Konverze ceny:', {
-                vstupní: price,
-                výsledek: result,
-                kWh: true
-            });
+            if (this.logger) {
+                this.logger.debug('Konverze ceny', {
+                    vstupní: price,
+                    výsledek: result,
+                    kWh: true
+                });
+            }
     
             return result;
         } catch (error) {
-            this.error('Chyba při konverzi ceny:', error);
-            return price;  
+            if (this.logger) {
+                this.logger.error('Chyba při konverzi ceny', error, {
+                    price,
+                    priceInKWh
+                });
+            }
+            return price;
         }
     }
 }

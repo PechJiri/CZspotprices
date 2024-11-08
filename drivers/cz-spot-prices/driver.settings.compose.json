@@ -1,5 +1,16 @@
 [
   {
+    "id": "enable_logging",
+    "type": "checkbox",
+    "label": {
+        "en": "Enable debug logging"
+    },
+    "value": false,
+    "hint": {
+        "en": "Enable detailed logging for debugging purposes"
+    }
+  },
+  {
     "id": "price_in_kwh",
     "type": "checkbox",
     "label": {

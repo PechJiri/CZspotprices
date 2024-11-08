@@ -6,13 +6,16 @@ class FlowCardManager {
     constructor(homey, device) {
         this.homey = homey;
         this.device = device;
+        this.logger = null;
         
         // Reference na flow karty
         this._flowCards = {
             triggers: new Map(),
             conditions: new Map(),
             actions: new Map()
-        };
+        };    
+
+        if (this.logger) this.logger.debug('Inicializace FlowCardManageru');
 
         // Registrace základních typů karet
         this._basicTriggers = [
@@ -33,6 +36,8 @@ class FlowCardManager {
             }
         ];
 
+        if (this.logger) this.logger.debug(`Základní triggery nastaveny: ${this._basicTriggers.length}`);
+
         this._basicConditions = [
             {
                 id: 'price-lower-than-condition',
@@ -50,6 +55,18 @@ class FlowCardManager {
                 comparison: (current, value) => current === value
             }
         ];
+
+        if (this.logger) this.logger.debug(`Základní podmínky nastaveny: ${this._basicConditions.length}`);
+    }
+
+    // Metody pro práci s loggerem
+    setLogger(logger) {
+        this.logger = logger;
+        if (this.logger) this.logger.debug('Logger nastaven pro FlowCardManager');
+    }
+
+    getLogger() {
+        return this.logger;
     }
 
     /**
@@ -57,7 +74,9 @@ class FlowCardManager {
      */
     async initialize() {
         try {
-            this.homey.log('Initializing Flow cards...');
+            if (this.logger) {
+                this.logger.log('Initializing Flow cards...');
+            }
     
             await this._initializeTriggers();
             await this._initializeConditions();
@@ -68,49 +87,65 @@ class FlowCardManager {
             const registeredConditions = Array.from(this._flowCards.conditions.keys());
             const registeredActions = Array.from(this._flowCards.actions.keys());
     
-            this.homey.log('Registered Flow triggers:', registeredTriggers);
-            this.homey.log('Registered Flow conditions:', registeredConditions);
-            this.homey.log('Registered Flow actions:', registeredActions);
-    
-            this.homey.log('Flow cards initialized successfully.');
+            if (this.logger) {
+                this.logger.debug('Registered Flow triggers', { registeredTriggers });
+                this.logger.debug('Registered Flow conditions', { registeredConditions });
+                this.logger.debug('Registered Flow actions', { registeredActions });
+                this.logger.log('Flow cards initialized successfully.');
+            }
         } catch (error) {
-            this.homey.error('Error during Flow card initialization:', error);
+            if (this.logger) {
+                this.logger.error('Error during Flow card initialization', error);
+            }
             throw error;
         }
-    }
-    
+    }    
 
     /**
      * Inicializace trigger karet
      */
     async _initializeTriggers() {
         try {
+            if (this.logger) {
+                this.logger.log('Initializing Flow card triggers...');
+            }
+    
             // Registrace základních triggerů
             for (const trigger of this._basicTriggers) {
                 await this._registerBasicTriggerCard(trigger);
+                if (this.logger) {
+                    this.logger.debug('Basic trigger registered', { trigger });
+                }
             }
-
+    
             // Registrace speciálních triggerů
             await this._registerAveragePriceTrigger();
             await this._registerApiFailureTrigger();
             await this._registerPriceChangeTrigger();
             await this._registerTariffChangeTrigger();
-
+    
+            if (this.logger) {
+                this.logger.log('Flow card triggers initialized successfully');
+            }
         } catch (error) {
-            this.homey.error('Chyba při inicializaci trigger karet:', error);
+            if (this.logger) {
+                this.logger.error('Chyba při inicializaci trigger karet', error);
+            }
             throw error;
         }
     }
-
+    
     /**
      * Registrace základní trigger karty
      */
     async _registerBasicTriggerCard(triggerConfig) {
         if (this._flowCards.triggers.has(triggerConfig.id)) {
-            this.homey.log(`Trigger karta ${triggerConfig.id} již je registrována`);
+            if (this.logger) {
+                this.logger.debug(`Trigger karta ${triggerConfig.id} již je registrována`);
+            }
             return;
         }
-
+    
         const card = this.homey.flow.getDeviceTriggerCard(triggerConfig.id);
         
         card.registerRunListener(async (args, state) => {
@@ -119,148 +154,193 @@ class FlowCardManager {
                 if (currentValue === null || currentValue === undefined) {
                     throw new Error(`Hodnota není dostupná pro ${triggerConfig.capability}`);
                 }
-
+    
                 const result = triggerConfig.comparison(currentValue, args.value);
-                
-                this.homey.log(`Trigger ${triggerConfig.id} vyhodnocen:`, {
-                    current: currentValue,
-                    target: args.value,
-                    result
-                });
-
+    
+                if (this.logger) {
+                    this.logger.debug(`Trigger ${triggerConfig.id} vyhodnocen`, {
+                        current: currentValue,
+                        target: args.value,
+                        result
+                    });
+                }
+    
                 return result;
             } catch (error) {
-                this.homey.error(`Chyba v trigger kartě ${triggerConfig.id}:`, error);
+                if (this.logger) {
+                    this.logger.error(`Chyba v trigger kartě ${triggerConfig.id}`, error);
+                }
                 return false;
             }
         });
-
+    
         this._flowCards.triggers.set(triggerConfig.id, card);
+    
+        if (this.logger) {
+            this.logger.log(`Trigger karta ${triggerConfig.id} úspěšně registrována`);
+        }
     }
-
+    
     /**
      * Registrace průměrné ceny trigger
      */
     async _registerAveragePriceTrigger() {
         if (this._flowCards.triggers.has('average-price-trigger')) {
-            this.homey.log('Average price trigger již je registrován');
+            if (this.logger) {
+                this.logger.debug('Average price trigger již je registrován');
+            }
             return;
         }
-
+    
         const card = this.homey.flow.getDeviceTriggerCard('average-price-trigger');
-        
+    
         card.registerRunListener(async (args, state) => {
             try {
                 const { hours, condition } = args;
                 const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
                 const currentHour = timeInfo.hour;
-
+    
                 const allCombinations = await this.device.priceCalculator.calculateAveragePrices(
                     this.device, 
                     hours, 
                     0
                 );
-
+    
                 if (!allCombinations || allCombinations.length === 0) {
-                    this.homey.error('Žádné platné kombinace pro průměrnou cenu');
+                    if (this.logger) {
+                        this.logger.error('Žádné platné kombinace pro průměrnou cenu');
+                    }
                     return false;
                 }
-
+    
                 const prices = allCombinations.sort((a, b) => a.avg - b.avg);
                 const targetCombination = condition === 'lowest' ? prices[0] : prices[prices.length - 1];
-
+    
                 const result = currentHour >= targetCombination.startHour && 
-                           currentHour < (targetCombination.startHour + hours);
-
-                this.homey.log('Average price trigger vyhodnocen:', {
-                    currentHour,
-                    startHour: targetCombination.startHour,
-                    hours,
-                    condition,
-                    result
-                });
-
+                               currentHour < (targetCombination.startHour + hours);
+    
+                if (this.logger) {
+                    this.logger.debug('Average price trigger vyhodnocen', {
+                        currentHour,
+                        startHour: targetCombination.startHour,
+                        hours,
+                        condition,
+                        result
+                    });
+                }
+    
                 return result;
             } catch (error) {
-                this.homey.error('Chyba v average price triggeru:', error);
+                if (this.logger) {
+                    this.logger.error('Chyba v average price triggeru', error);
+                }
                 return false;
             }
         });
-
+    
         this._flowCards.triggers.set('average-price-trigger', card);
-    }
+    
+        if (this.logger) {
+            this.logger.log('Average price trigger úspěšně registrován');
+        }
+    }    
 
     /**
      * Registrace API failure triggeru
      */
     async _registerApiFailureTrigger() {
         if (this._flowCards.triggers.has('when-api-call-fails-trigger')) {
-            this.homey.log('API failure trigger již je registrován');
+            if (this.logger) {
+                this.logger.debug('API failure trigger již je registrován');
+            }
             return;
         }
-
+    
         const card = this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger');
-        
+    
         card.registerRunListener(async (args, state) => {
-            this.homey.log('API failure trigger spuštěn:', { 
-                args: args.type, 
-                state: state.type 
-            });
+            if (this.logger) {
+                this.logger.debug('API failure trigger spuštěn', {
+                    argsType: args.type,
+                    stateType: state.type
+                });
+            }
             return args.type === state.type;
         });
-
+    
         this._flowCards.triggers.set('when-api-call-fails-trigger', card);
-    }
+    
+        if (this.logger) {
+            this.logger.log('API failure trigger úspěšně registrován');
+        }
+    }    
 
     /**
      * Registrace price change triggeru
      */
     async _registerPriceChangeTrigger() {
         if (this._flowCards.triggers.has('when-current-price-changes')) {
-            this.homey.log('Price change trigger již je registrován');
+            if (this.logger) {
+                this.logger.debug('Price change trigger již je registrován');
+            }
             return;
         }
-
-        this.homey.log('Registrace price change triggeru...');
-
+    
+        if (this.logger) {
+            this.logger.log('Registrace price change triggeru...');
+        }
+    
         const card = this.homey.flow.getDeviceTriggerCard('when-current-price-changes');
-        
+    
         card.registerRunListener(async (args, state) => {
-            this.homey.log('Price change trigger spuštěn');
+            if (this.logger) {
+                this.logger.debug('Price change trigger spuštěn');
+            }
             return true;
         });
-
+    
         this._flowCards.triggers.set('when-current-price-changes', card);
-        this.homey.log('Price change trigger registrován.');
-    }
+    
+        if (this.logger) {
+            this.logger.log('Price change trigger registrován');
+        }
+    }    
 
     /**
      * Registrace tariff change triggeru
      */
     async _registerTariffChangeTrigger() {
         if (this._flowCards.triggers.has('when-distribution-tariff-changes')) {
-            this.homey.log('Tariff change trigger již je registrován');
+            if (this.logger) {
+                this.logger.debug('Tariff change trigger již je registrován');
+            }
             return;
         }
-
+    
         const card = this.homey.flow.getDeviceTriggerCard('when-distribution-tariff-changes');
-        
+    
         card.registerRunListener(async (args, state) => {
             const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
             const currentHour = timeInfo.hour;
             const settings = this.device.getSettings();
             const currentTariff = this.device.priceCalculator.isLowTariff(currentHour, settings) ? 'low' : 'high';
-            
-            this.homey.log('Distribution tariff change trigger spuštěn:', {
-                currentHour,
-                currentTariff
-            });
-            
+    
+            if (this.logger) {
+                this.logger.debug('Distribution tariff change trigger spuštěn', {
+                    currentHour,
+                    currentTariff
+                });
+            }
+    
             return true;
         });
-
+    
         this._flowCards.triggers.set('when-distribution-tariff-changes', card);
-    }
+    
+        if (this.logger) {
+            this.logger.log('Tariff change trigger registrován');
+        }
+    }    
 
     /**
      * Inicializace condition karet

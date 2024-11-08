@@ -5,17 +5,28 @@ const crypto = require('crypto');
 const SpotPriceAPI = require('./api');
 const IntervalManager = require('../../helpers/IntervalManager');
 const PriceCalculator = require('../../helpers/PriceCalculator');
+const Logger = require('../../helpers/Logger');
 
 class CZSpotPricesDriver extends Homey.Driver {
 
   async onInit() {
     try {
-        this.homey.log('CZSpotPricesDriver initialized');
+        // Inicializace loggeru jako první
+        this.logger = new Logger(this.homey, 'CZSpotPricesDriver');
+        // Driver logger vždy zapnutý
+        this.logger.setEnabled(true);
+        
+        this.logger.log('Inicializace CZSpotPricesDriver');
         
         // Inicializace všech helperů
         this.spotPriceApi = new SpotPriceAPI(this.homey);
         this.intervalManager = new IntervalManager(this.homey);
         this.priceCalculator = new PriceCalculator(this.homey);
+
+        // Předání loggeru všem komponentám
+        if (this.spotPriceApi) this.spotPriceApi.setLogger(this.logger);
+        if (this.intervalManager) this.intervalManager.setLogger(this.logger);
+        if (this.priceCalculator) this.priceCalculator.setLogger(this.logger);
 
         // Validace instancí
         this.validateInstances();
@@ -23,55 +34,80 @@ class CZSpotPricesDriver extends Homey.Driver {
         // Společné plánování půlnoční aktualizace pro všechna zařízení
         await this.scheduleMidnightUpdate();
 
-        this.homey.log('Driver úspěšně inicializován');
+        this.logger.log('Driver úspěšně inicializován');
 
     } catch (error) {
-        this.error('Chyba při inicializaci driveru:', error);
+        this.logger.error('Chyba při inicializaci driveru', error, {
+            driverId: this.id
+        });
         throw error; // Propagace chyby výš pro případné zachycení Homey
     }
-}
-
-validateInstances() {
-  const validations = [
-      { instance: this.spotPriceApi, name: 'SpotPriceAPI' },
-      { instance: this.intervalManager, name: 'IntervalManager' },
-      { instance: this.priceCalculator, name: 'PriceCalculator' }
-  ];
-
-  const missingInstances = validations
-      .filter(({instance}) => !instance)
-      .map(({name}) => name);
-
-  if (missingInstances.length > 0) {
-      throw new Error(`Chybí instance: ${missingInstances.join(', ')}`);
   }
 
-  return true;
-}
+  validateInstances() {
+    this.logger.debug('Validace instancí komponent');
+    
+    const validations = [
+        { instance: this.spotPriceApi, name: 'SpotPriceAPI' },
+        { instance: this.intervalManager, name: 'IntervalManager' },
+        { instance: this.priceCalculator, name: 'PriceCalculator' }
+    ];
+
+    const missingInstances = validations
+        .filter(({instance}) => !instance)
+        .map(({name}) => name);
+
+    if (missingInstances.length > 0) {
+        const error = new Error(`Chybí instance: ${missingInstances.join(', ')}`);
+        this.logger.error('Chyba validace instancí', error, { 
+            missing: missingInstances 
+        });
+        throw error;
+    }
+
+    // Validace nastavení loggeru
+    const invalidLoggers = validations
+        .filter(({instance}) => instance && (!instance.getLogger || !instance.getLogger()))
+        .map(({name}) => name);
+
+    if (invalidLoggers.length > 0) {
+        this.logger.debug(`Komponenty bez loggeru: ${invalidLoggers.join(', ')}`);
+    }
+
+    this.logger.debug('Validace instancí úspěšná');
+    return true;
+  }
 
   async scheduleMidnightUpdate() {
-    this.homey.log('Scheduling midnight update');
-    
+    if (this.logger) {
+        this.logger.log('Scheduling midnight update');
+    }
+
     // Callback pro půlnoční aktualizaci
     const midnightCallback = async () => {
         try {
             const devices = this.getDevices();
             const now = new Date();
-            const todayMidnight = new Date(now).setHours(0,0,0,0);
-            
+            const todayMidnight = new Date(now).setHours(0, 0, 0, 0);
+
             for (const device of Object.values(devices)) {
                 const lastUpdate = await device.getStoreValue('lastMidnightUpdate');
-                
+
                 if (!lastUpdate || new Date(lastUpdate).getTime() < todayMidnight) {
                     await this.executeMidnightUpdate();
                     await device.setStoreValue('lastMidnightUpdate', now.getTime());
-                    this.homey.log('Midnight update completed successfully');
-                } else {
-                    this.homey.log('Skipping midnight update - already done today');
+
+                    if (this.logger) {
+                        this.logger.log('Midnight update completed successfully', { deviceId: device.getData().id });
+                    }
+                } else if (this.logger) {
+                    this.logger.debug('Skipping midnight update - already done today', { deviceId: device.getData().id });
                 }
             }
         } catch (error) {
-            this.error('Chyba při půlnoční aktualizaci:', error);
+            if (this.logger) {
+                this.logger.error('Error during midnight update', error);
+            }
         }
     };
 
@@ -87,8 +123,10 @@ validateInstances() {
     // Nastavení intervalu
     const initialDelay = calculateDelayToMidnight();
     const { hours, minutes, seconds } = this._formatDelay(initialDelay);
-    
-    this.homey.log(`Příští aktualizace z API naplánována za ${hours} h, ${minutes} m a ${seconds} s`);
+
+    if (this.logger) {
+        this.logger.log(`Příští aktualizace z API naplánována za ${hours} h, ${minutes} m a ${seconds} s`);
+    }
 
     this.intervalManager.setScheduledInterval(
         'midnight',
@@ -106,26 +144,30 @@ _formatDelay(delay) {
     return { hours, minutes, seconds };
 }
 
-  async executeMidnightUpdate(retryCount = 0) {
-    const MAX_RETRIES = 5;
-    const BASE_DELAY = 5 * 60 * 1000;
+async executeMidnightUpdate(retryCount = 0) {
+  const MAX_RETRIES = 5;
+  const BASE_DELAY = 5 * 60 * 1000;
 
-    this.homey.log(`Spouštím půlnoční aktualizaci (pokus: ${retryCount} z ${MAX_RETRIES})`);
-    
-    const device = this._getFirstDevice();
-    if (!device) {
-      this.error('Nenalezeno žádné zařízení pro aktualizaci');
-      return;
-    }
-
-    const success = await this._tryUpdatePrices(device);
-
-    if (success) {
-      await this._handleUpdateSuccess(device, retryCount);
-    } else {
-      await this._handleUpdateFailure(device, retryCount, MAX_RETRIES, BASE_DELAY);
-    }
+  if (this.logger) {
+      this.logger.log(`Spouštím půlnoční aktualizaci (pokus: ${retryCount} z ${MAX_RETRIES})`);
   }
+
+  const device = this._getFirstDevice();
+  if (!device) {
+      if (this.logger) {
+          this.logger.error('Nenalezeno žádné zařízení pro aktualizaci');
+      }
+      return;
+  }
+
+  const success = await this._tryUpdatePrices(device);
+
+  if (success) {
+      await this._handleUpdateSuccess(device, retryCount);
+  } else {
+      await this._handleUpdateFailure(device, retryCount, MAX_RETRIES, BASE_DELAY);
+  }
+}
 
   _getFirstDevice() {
     const devices = this.getDevices();
@@ -134,72 +176,110 @@ _formatDelay(delay) {
 
   async _tryUpdatePrices(device) {
     try {
-      await device.setCapabilityValue('spot_price_update_status', false);
-      const updateResult = await this.tryUpdateDevice(device);
-      if (updateResult) {
-        await device.setCapabilityValue('spot_price_update_status', true);
-      }
-      return updateResult;
-    } catch (error) {
-      this.error(`Chyba při aktualizaci zařízení ${device.getName()}:`, error);
-      return false;
-    }
-  }
-
-  async _handleUpdateSuccess(device, retryCount) {
-    // Vyčištění všech retry intervalů při úspěchu
-    for (let i = 0; i <= retryCount; i++) {
-      const retryIntervalId = `retry_midnight_${i}`;
-      this.intervalManager.clearScheduledInterval(retryIntervalId);
-    }
-    this.homey.log('Půlnoční aktualizace úspěšně dokončena');
-  }
-
-  async _handleUpdateFailure(device, retryCount, maxRetries, baseDelay) {
-    if (retryCount < maxRetries) {
-      await this._scheduleRetry(device, retryCount, baseDelay);
-    } else {
-      await this._handleMaxRetriesReached(device);
-    }
-  }
-
-  async _scheduleRetry(device, retryCount, baseDelay) {
-    try {
-        const delay = baseDelay * Math.pow(2, retryCount);
-        this.homey.log(`Plánuji další pokus ${retryCount + 1} za ${delay/60000} minut`);
+        await device.setCapabilityValue('spot_price_update_status', false);
         
-        // Použijeme triggerAPIFailure z device instance
-        if (device && typeof device.triggerAPIFailure === 'function') {
-            await device.triggerAPIFailure({
-                primaryAPI: 'Aktualizace selhala',
-                backupAPI: 'Aktualizace selhala',
-                willRetry: true,
-                retryCount: retryCount + 1,
-                nextRetryIn: Math.round(delay / 60000)
-            });
-        } else {
-            this.homey.error('Device instance není dostupná pro API failure trigger');
+        const updateResult = await this.tryUpdateDevice(device);
+        
+        if (updateResult) {
+            await device.setCapabilityValue('spot_price_update_status', true);
+            if (this.logger) {
+                this.logger.log(`Aktualizace zařízení ${device.getName()} proběhla úspěšně`);
+            }
         }
 
-        // Naplánování dalšího pokusu
-        this.intervalManager.setScheduledInterval(
-            `retry_midnight_${retryCount}`,
-            () => this.executeMidnightUpdate(retryCount + 1),
-            null,
-            delay
-        );
-        
-        this.homey.log(`Další pokus naplánován za ${Math.round(delay/60000)} minut`);
+        return updateResult;
     } catch (error) {
-        this.error('Chyba při plánování dalšího pokusu:', error);
-        // I když selže trigger, pokračujeme v plánování dalšího pokusu
+        if (this.logger) {
+            this.logger.error(`Chyba při aktualizaci zařízení ${device.getName()}`, error);
+        }
+        return false;
     }
+}
+
+async _handleUpdateSuccess(device, retryCount) {
+  // Vyčištění všech retry intervalů při úspěchu
+  for (let i = 0; i <= retryCount; i++) {
+      const retryIntervalId = `retry_midnight_${i}`;
+      this.intervalManager.clearScheduledInterval(retryIntervalId);
+  }
+
+  if (this.logger) {
+      this.logger.log('Půlnoční aktualizace úspěšně dokončena', { deviceId: device.getData().id });
+  }
+}
+
+async _handleUpdateFailure(device, retryCount, maxRetries, baseDelay) {
+  if (retryCount < maxRetries) {
+      if (this.logger) {
+          this.logger.warn('Půlnoční aktualizace selhala, plánuje se další pokus', { 
+              deviceId: device.getData().id, 
+              retryCount 
+          });
+      }
+      await this._scheduleRetry(device, retryCount, baseDelay);
+  } else {
+      if (this.logger) {
+          this.logger.error('Půlnoční aktualizace selhala po dosažení maximálního počtu pokusů', {
+              deviceId: device.getData().id,
+              retryCount
+          });
+      }
+      await this._handleMaxRetriesReached(device);
+  }
+}
+
+async _scheduleRetry(device, retryCount, baseDelay) {
+  try {
+      const delay = baseDelay * Math.pow(2, retryCount);
+
+      if (this.logger) {
+          this.logger.warn(`Plánuji další pokus ${retryCount + 1} za ${delay / 60000} minut`, {
+              deviceId: device.getData().id,
+              retryCount,
+              delayMinutes: Math.round(delay / 60000)
+          });
+      }
+
+      // Použijeme triggerAPIFailure z device instance
+      if (device && typeof device.triggerAPIFailure === 'function') {
+          await device.triggerAPIFailure({
+              primaryAPI: 'Aktualizace selhala',
+              backupAPI: 'Aktualizace selhala',
+              willRetry: true,
+              retryCount: retryCount + 1,
+              nextRetryIn: Math.round(delay / 60000)
+          });
+      } else if (this.logger) {
+          this.logger.error('Device instance není dostupná pro API failure trigger', { deviceId: device ? device.getData().id : null });
+      }
+
+      // Naplánování dalšího pokusu
+      this.intervalManager.setScheduledInterval(
+          `retry_midnight_${retryCount}`,
+          () => this.executeMidnightUpdate(retryCount + 1),
+          null,
+          delay
+      );
+
+      if (this.logger) {
+          this.logger.log(`Další pokus naplánován za ${Math.round(delay / 60000)} minut`, {
+              deviceId: device.getData().id,
+              nextRetry: delay / 60000
+          });
+      }
+  } catch (error) {
+      if (this.logger) {
+          this.logger.error('Chyba při plánování dalšího pokusu', error);
+      }
+  }
 }
 
 async _handleMaxRetriesReached(device) {
   try {
-      this.error('Vyčerpány všechny pokusy o aktualizaci. Zařízení nemusí mít aktuální data.');
-      
+      if (this.logger) {
+          this.logger.error('Vyčerpány všechny pokusy o aktualizaci. Zařízení nemusí mít aktuální data.', { deviceId: device.getData().id });
+      }
+
       // Použijeme triggerAPIFailure z device instance
       if (device && typeof device.triggerAPIFailure === 'function') {
           await device.triggerAPIFailure({
@@ -208,94 +288,142 @@ async _handleMaxRetriesReached(device) {
               willRetry: false,
               maxRetriesReached: true
           });
-          
-          this.homey.log('API failure trigger spuštěn pro maximální počet pokusů');
-      } else {
-          this.homey.error('Device instance není dostupná pro API failure trigger');
+
+          if (this.logger) {
+              this.logger.log('API failure trigger spuštěn pro maximální počet pokusů', { deviceId: device.getData().id });
+          }
+      } else if (this.logger) {
+          this.logger.error('Device instance není dostupná pro API failure trigger', { deviceId: device ? device.getData().id : null });
       }
 
       // Nastavení indikátoru chyby na zařízení, pokud je dostupné
       if (device && typeof device.setCapabilityValue === 'function') {
           await device.setCapabilityValue('primary_api_fail', true);
           await device.setCapabilityValue('spot_price_update_status', false);
+
+          if (this.logger) {
+              this.logger.debug('Indikátory chyby nastaveny na zařízení', { deviceId: device.getData().id });
+          }
       }
 
   } catch (error) {
-      this.error('Chyba při zpracování maximálního počtu pokusů:', error);
+      if (this.logger) {
+          this.logger.error('Chyba při zpracování maximálního počtu pokusů', error);
+      }
   }
 }
 
-  async tryUpdateDevice(device) {
-    try {
-        const dailyPrices = await this.spotPriceApi.getDailyPrices(device);
-        // Použijeme PriceCalculator z device instance
-        if (!device.priceCalculator) {
-            this.error('PriceCalculator není dostupný v device instanci');
-            return false;
-        }
+async tryUpdateDevice(device) {
+  try {
+      const dailyPrices = await this.spotPriceApi.getDailyPrices(device);
 
-        if (!device.priceCalculator.validatePriceData(dailyPrices)) {
-            throw new Error('Neplatná data z API');
-        }
+      // Použijeme PriceCalculator z device instance
+      if (!device.priceCalculator) {
+          if (this.logger) {
+              this.logger.error('PriceCalculator není dostupný v device instanci', { deviceId: device.getData().id });
+          }
+          return false;
+      }
 
-        const settings = device.getSettings();
-        const processedPrices = dailyPrices.map(priceData => ({
-            ...priceData,
-            priceCZK: device.priceCalculator.addDistributionPrice(
-                priceData.priceCZK,
-                settings,
-                priceData.hour
-            )
-        }));
+      if (!device.priceCalculator.validatePriceData(dailyPrices)) {
+          const errorMessage = 'Neplatná data z API';
+          if (this.logger) {
+              this.logger.error(errorMessage, new Error(errorMessage), { deviceId: device.getData().id });
+          }
+          throw new Error(errorMessage);
+      }
 
-        await device.updateAllPrices(processedPrices);
-        return true;
-    } catch (error) {
-        this.homey.error('Chyba při aktualizaci dat:', error);
-        return false;
-    }
+      const settings = device.getSettings();
+      const processedPrices = dailyPrices.map(priceData => ({
+          ...priceData,
+          priceCZK: device.priceCalculator.addDistributionPrice(
+              priceData.priceCZK,
+              settings,
+              priceData.hour
+          )
+      }));
+
+      await device.updateAllPrices(processedPrices);
+
+      if (this.logger) {
+          this.logger.log('Zařízení úspěšně aktualizováno', { deviceId: device.getData().id });
+      }
+
+      return true;
+  } catch (error) {
+      if (this.logger) {
+          this.logger.error('Chyba při aktualizaci dat', error, { deviceId: device.getData().id });
+      }
+      return false;
+  }
 }
 
 async onPairListDevices() {
   try {
-    const deviceId = crypto.randomUUID();
-    const deviceName = 'CZ Spot Prices Device';
-    
-    // Logování před vrácením hodnoty
-    this.homey.log('Setting up device with name:', deviceName);
+      const deviceId = crypto.randomUUID();
+      const deviceName = 'CZ Spot Prices Device';
 
-    return [{
-      name: deviceName,
-      data: { id: deviceId }
-    }];
+      if (this.logger) {
+          this.logger.log('Setting up device for pairing', { deviceName, deviceId });
+      }
+
+      return [{
+          name: deviceName,
+          data: { id: deviceId }
+      }];
   } catch (error) {
-    this.error("Error during pairing:", error);
-    throw error;
+      if (this.logger) {
+          this.logger.error('Error during pairing', error);
+      }
+      throw error;
   }
 }
 
-  async settingsChanged(data) {
-    try {
+async settingsChanged(data) {
+  try {
       const devices = this.getDevices();
-      for (const device of Object.values(devices)) {
-        await device.fetchAndUpdateSpotPrices();
+
+      if (this.logger) {
+          this.logger.log('Settings changed, updating all devices', { changedData: data });
       }
+
+      for (const device of Object.values(devices)) {
+          await device.fetchAndUpdateSpotPrices();
+          if (this.logger) {
+              this.logger.debug('Device prices updated', { deviceId: device.getData().id });
+          }
+      }
+
       // Vyčistíme cache PriceCalculatoru při změně nastavení
       this.priceCalculator.clearCache();
-    } catch (error) {
-      this.error("Error updating prices after settings change:", error);
-    }
+
+      if (this.logger) {
+          this.logger.debug('PriceCalculator cache cleared after settings change');
+      }
+  } catch (error) {
+      if (this.logger) {
+          this.logger.error('Error updating prices after settings change', error);
+      }
   }
+}
 
   // Cleanup při odstranění driveru
   async onUninit() {
     if (this.intervalManager) {
-      this.intervalManager.clearAll();
+        this.intervalManager.clearAll();
+        if (this.logger) {
+            this.logger.debug('All intervals cleared');
+        }
     }
     if (this.priceCalculator) {
-      this.priceCalculator.clearCache();
+        this.priceCalculator.clearCache();
+        if (this.logger) {
+            this.logger.debug('PriceCalculator cache cleared');
+        }
     }
-    this.homey.log('Driver uninitialized, all intervals cleared and cache cleared');
+    if (this.logger) {
+        this.logger.log('Driver uninitialized successfully');
+    }
   }
 }
 
