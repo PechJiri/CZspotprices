@@ -127,5 +127,8 @@
   },
   "2.0.16": {
     "en": "more code optimalisation, moved flow cards to separate flowcardmanager"
+  },
+  "2.0.17": {
+    "en": "code optimalisation - added logger and option to turn off logs in device settings"
   }
 }
