@@ -91,13 +91,9 @@ class PriceCalculator {
 
             const finalPrice = basePrice + (isLowTariff ? lowTariffPrice : highTariffPrice);
             
-            this.homey.log('Výpočet distribuční ceny:', {
-                hour,
-                basePrice,
-                isLowTariff,
-                tariffPrice: isLowTariff ? lowTariffPrice : highTariffPrice,
-                finalPrice
-            });
+            this.homey.log(
+                `Výpočet distribuční ceny: hour: ${hour}, basePrice: ${basePrice}, tariffPrice: ${isLowTariff ? lowTariffPrice : highTariffPrice}, finalPrice: ${finalPrice}`
+            );
 
             return finalPrice;
         } catch (error) {
@@ -259,24 +255,26 @@ class PriceCalculator {
  */
     convertPrice(price, priceInKWh) {
         try {
+            // Přidáme rychlou kontrolu na začátku
+            if (!priceInKWh) {
+                return price;
+            }
+    
             if (typeof price !== 'number' || isNaN(price)) {
                 throw new Error('Neplatná cena pro konverzi');
             }
     
-            // Kontrola že priceInKWh je skutečně boolean
-            const shouldConvert = Boolean(priceInKWh);
-            const result = shouldConvert ? price / 1000 : price;
+            const result = price / 1000;
             
             this.homey.log('Konverze ceny:', {
                 vstupní: price,
                 výsledek: result,
-                kWh: shouldConvert,
-                requestedConversion: priceInKWh  // přidáme pro debug
+                kWh: true
             });
     
             return result;
         } catch (error) {
-            this.homey.error('Chyba při konverzi ceny:', error);
+            this.error('Chyba při konverzi ceny:', error);
             return price;  
         }
     }

@@ -4,62 +4,114 @@ const Homey = require('homey');
 const SpotPriceAPI = require('./api');
 const IntervalManager = require('../../helpers/IntervalManager');
 const PriceCalculator = require('../../helpers/PriceCalculator');
+const FlowCardManager = require('./FlowCardManager');
 
 class CZSpotPricesDevice extends Homey.Device {
 
     async onInit() {
-      try {
-        await this.initializeBasicSettings();
+        // Inicializace `flowCardManager` před `try`
+        this.flowCardManager = new FlowCardManager(this.homey, this);
+    
+        try {
+            // Inicializace základních nastavení
+            await this.initializeBasicSettings();
+            this.homey.log('Basic settings initialized successfully');
+
+            // Vždy inicializujeme FlowCardManager bez ohledu na fetch dat
+            this.flowCardManager = new FlowCardManager(this.homey, this);
+            this.homey.log('Initializing FlowCardManager...');
         
-        // Načtení dat jen pokud nemáme čerstvá data
-        const lastUpdate = await this.getStoreValue('lastDataUpdate');
-        const now = Date.now();
-        if (!lastUpdate || (now - lastUpdate > 15 * 60 * 1000)) {
-            await this.initialDataFetch();
-        } else {
-            this.homey.log('Skipping initial data fetch - using recent data');
+            // Obalíme inicializaci FlowCardManageru do try-catch pro případné logování chyb
+             try {
+             await this.flowCardManager.initialize();
+                this.homey.log('FlowCardManager initialized successfully');
+                } catch (error) {
+             this.homey.error('Error initializing FlowCardManager:', error);
+                throw error;
+            }
+    
+            // Nastavení timeoutu pro případ, že by inicializace trvala příliš dlouho
+            const initTimeout = setTimeout(() => {
+                throw new Error('Device initialization timeout');
+            }, 30000);
+    
+            // Načtení dat s retry mechanismem
+            const lastUpdate = await this.getStoreValue('lastDataUpdate');
+            const now = Date.now();
+    
+            if (!lastUpdate || (now - lastUpdate > 15 * 60 * 1000)) {
+                let retryCount = 0;
+                const maxRetries = 3;
+    
+                while (retryCount < maxRetries) {
+                    try {
+                        await this.initialDataFetch();
+                        this.homey.log('Initial data fetched successfully');
+                        break; // Pokud se fetch povede, opustí se while smyčka
+                    } catch (error) {
+                        retryCount++;
+                        this.error(`Initial data fetch failed on attempt ${retryCount}:`, error);
+    
+                        if (retryCount === maxRetries) {
+                            throw new Error('Max retries reached for initial data fetch');
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 5000 * retryCount));
+                    }
+                }
+            } else {
+                this.homey.log('Using recent data - initial fetch skipped');
+            }
+    
+            // Zrušení timeoutu po úspěšné inicializaci
+            clearTimeout(initTimeout);
+    
+            // Nastavení plánovaných úloh
+            await this.setupScheduledTasks(false);
+            this.homey.log('Scheduled tasks set up successfully');
+    
+            this.homey.log('Device initialization completed');
+        } catch (error) {
+            this.error('Device initialization failed:', error);
+            await this.setUnavailable(`Initialization failed: ${error.message}`);
         }
+    }    
+  
+    async initializeBasicSettings() {
+        this.homey.log('Initializing device...');
         
-        // Nastavení plánovaných úloh bez okamžitého spuštění
-        await this.setupScheduledTasks(false);
+        // Inicializace helperů - musí být před ověřením závislostí
+        this.priceCalculator = new PriceCalculator(this.homey);
+        this.spotPriceApi = new SpotPriceAPI(this.homey);
+        this.intervalManager = new IntervalManager(this.homey);
         
-        // Nastavení flow karet a ostatní inicializace...
+        // Ověření, že všechny závislosti byly inicializovány
+        const requiredDependencies = [this.spotPriceApi, this.intervalManager, this.priceCalculator];
+        requiredDependencies.forEach(dep => {
+            if (!dep) throw new Error('Dependency is not initialized.');
+        });
+        
+        this.homey.log('All dependencies are initialized.');
+    
+        // Inicializace device ID s kontrolním logováním
+        await this.initializeDeviceId();
+        this.homey.log('Device ID initialized successfully.');
+        
+        // Načtení nastavení
+        await this.initializeSettings();
+        this.homey.log('Device settings initialized.');
+        
+        // Registrace capabilities
         await this._registerCapabilities();
-        this.setupFlowCards();
+        this.homey.log('Device capabilities registered.');
         
-        this.homey.log('Device initialization completed');
-    } catch (error) {
-        this.error('Device initialization failed:', error);
-        await this.setUnavailable('Initialization failed');
-    }
-  }
-  
-  async initializeBasicSettings() {
-      this.homey.log('Initializing device...');
-  
-      // Inicializace helperů
-      this.priceCalculator = new PriceCalculator(this.homey);
-      this.spotPriceApi = new SpotPriceAPI(this.homey);
-      this.intervalManager = new IntervalManager(this.homey);
-  
-      // Inicializace device ID
-      await this.initializeDeviceId();
-  
-      // Načtení nastavení
-      await this.initializeSettings();
-  
-      // Registrace capabilities
-      await this._registerCapabilities();
-  
-      // Nastavení Flow karet
-      this.setupFlowCards();
-  
-      // Nastavení iniciálního tarifu
-      await this.initializeInitialTariff();
-  }
+        // Nastavení iniciálního tarifu
+        await this.initializeInitialTariff();
+        this.homey.log('Initial tariff set.');
+    }   
   
   async initializeDeviceId() {
       const deviceId = this.getData().id || this.getStoreValue('device_id');
+      this.homey.log('Current Device ID:', deviceId);
       if (!deviceId) {
           const newDeviceId = this.generateDeviceId();
           await this.setStoreValue('device_id', newDeviceId);
@@ -113,7 +165,7 @@ class CZSpotPricesDevice extends Homey.Device {
     }
 }
   
-  async setupScheduledTasks(runImmediately = false) {
+async setupScheduledTasks(runImmediately = false) {
     this.homey.log('Setting up scheduled tasks...');
     
     // Ověření, že máme všechny potřebné instance
@@ -194,6 +246,52 @@ class CZSpotPricesDevice extends Homey.Device {
     this.homey.log(`Next update scheduled in ${hours ? hours + 'h ' : ''}${minutes}m ${seconds}s`);
 }
 
+async setupTariffCheck() {
+    try {
+        const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+        const currentHour = timeInfo.hour;
+        
+        // První kontrola při startu
+        await this._checkTariffChange(currentHour);
+        
+        // Nastavení hodinové kontroly
+        const nextHour = new Date();
+        nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
+        const initialDelay = nextHour.getTime() - Date.now();
+
+        this.intervalManager.setScheduledInterval(
+            'tariff',
+            () => this._checkTariffChange(currentHour),
+            60 * 60 * 1000,
+            initialDelay
+        );
+
+        this.homey.log('Kontrola tarifu nastavena');
+    } catch (error) {
+        this.error('Chyba při nastavování kontroly tarifu:', error);
+    }
+}
+
+async _checkTariffChange(currentHour) {
+    try {
+        const settings = this.getSettings();
+        const previousTariff = await this.getStoreValue('previousTariff');
+        const currentTariff = this.priceCalculator.isLowTariff(currentHour, settings) ? 'low' : 'high';
+
+        if (previousTariff !== currentTariff) {
+            await this.setStoreValue('previousTariff', currentTariff);
+            
+            // Spuštění triggeru
+            if (this.tariffChangeTrigger) {
+                await this.tariffChangeTrigger.trigger(this, { tariff: currentTariff });
+                this.homey.log('Tariff change trigger proveden');
+            }
+        }
+    } catch (error) {
+        this.error('Chyba při kontrole změny tarifu:', error);
+    }
+}
+
 async updateHourlyData() {
   try {
       // Získání aktuálního času s respektováním časové zóny
@@ -241,17 +339,12 @@ async updateHourlyData() {
       }
 
       // Trigger pro změnu ceny s rozšířenými informacemi
-      try {
-          await this.triggerCurrentPriceChanged({
-              price: currentPrice,
-              index: currentIndex,
-              hour: timeInfo.hour,
-              timestamp: new Date().toISOString()
-          });
-      } catch (error) {
-          this.error('Chyba při spouštění price change triggeru:', error);
-          // Pokračujeme dál i když trigger selže
-      }
+      await this.triggerCurrentPriceChanged({
+        price: currentPrice,
+        index: currentIndex,
+        hour: timeInfo.hour,
+        timestamp: new Date().toISOString()
+        });
 
       // Rozšířené logování pro debugging
       this.homey.log('Hodinová aktualizace dokončena:', {
@@ -559,6 +652,27 @@ async updateAllPrices(processedPrices) {
   }
 }
 
+async triggerAPIFailure(errorInfo) {
+    try {
+        if (!this.apiFailTrigger) {
+            this.apiFailTrigger = this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger');
+        }
+
+        const tokens = {
+            error_message: `Primary API: ${errorInfo.primaryAPI}, Backup API: ${errorInfo.backupAPI}`,
+            will_retry: errorInfo.willRetry || false,
+            retry_count: errorInfo.retryCount || 0,
+            next_retry: errorInfo.nextRetryIn ? `${errorInfo.nextRetryIn} minutes` : 'No retry scheduled',
+            max_retries_reached: errorInfo.maxRetriesReached || false
+        };
+
+        await this.apiFailTrigger.trigger(this, tokens);
+        this.homey.log('API failure trigger spuštěn s tokeny:', tokens);
+    } catch (error) {
+        this.error('Chyba při spouštění API failure triggeru:', error);
+    }
+}
+
 /**
 * Helper pro aktualizaci hodinových capabilities
 */
@@ -576,12 +690,9 @@ async _updateHourlyCapabilities(pricesWithIndexes) {
       );
 
       // Logování pro kontrolu hodnot
-      this.homey.log('Updating capability with:', {
-          hour: priceData.hour,
-          originalPrice: priceData.priceCZK,
-          convertedPrice,
-          priceInKWh: currentPriceInKWh
-      });
+      this.homey.log(
+        `Aktualizuji capability: hour: ${priceData.hour}, Price: ${convertedPrice}`
+        );
 
       // Paralelní aktualizace capabilities pro danou hodinu
       return Promise.all([
@@ -627,11 +738,9 @@ async _updateCurrentPrice(pricesWithIndexes) {
           currentPriceInKWh // používáme přímo this.priceInKWh
       );
 
-      this.homey.log('Cena před aktualizací capabilities:', {
-          originalPrice: currentHourData.priceCZK,
-          convertedPrice,
-          priceInKWh: currentPriceInKWh
-      });
+      this.homey.log(
+        `Cena před aktualizací capabilities: OldPrice: ${convertedPrice}, priceInKWh: ${currentPriceInKWh}`
+        );
 
       // Aktualizace capabilities s lepším error handlingem
       await Promise.all([
@@ -649,24 +758,17 @@ async _updateCurrentPrice(pricesWithIndexes) {
 
       // Trigger pro změnu ceny s rozšířenými informacemi
       await this.triggerCurrentPriceChanged({
-          price: convertedPrice,
-          index: currentHourData.level,
-          hour: timeInfo.hour,
-          timestamp: new Date().toISOString(),
-          priceInKWh: currentPriceInKWh // přidáno pro kontext
-      });
+        price: convertedPrice,
+        index: currentHourData.level,
+        hour: timeInfo.hour,
+        timestamp: new Date().toISOString(),
+        priceInKWh: this.priceInKWh
+        });
       
       // Rozšířené logování pro debugging
-      this.homey.log('Aktuální cena aktualizována:', {
-          hour: timeInfo.hour,
-          systemHour: new Date().getHours(),
-          price: convertedPrice,
-          originalPrice: currentHourData.priceCZK,
-          index: currentHourData.level,
-          timezone: this.homey.clock.getTimezone(),
-          settingPriceInKWh: currentPriceInKWh,
-          methodPriceInKWh: this.getPriceInKWh() // pro porovnání s hodnotou z nastavení
-      });
+      this.homey.log(
+        `Aktuální cena aktualizována: hour: ${timeInfo.hour}, price: ${convertedPrice}, originalPrice: ${currentHourData.priceCZK}, index: ${currentHourData.level}, timezone: ${this.homey.clock.getTimezone()}`
+        );
 
   } catch (error) {
       this.error('Chyba při aktualizaci aktuální ceny:', error);
@@ -694,226 +796,72 @@ async _updateDailyAverage(pricesWithIndexes) {
   }
 }
 
-
- /**
- * Registrace všech flow karet
- */
-setupFlowCards() {
-  this.homey.log('Setting up flow cards for device.');
-  
-  // Základní podmínkové karty
-  this._registerConditionCard('price-lower-than-condition', 'measure_current_spot_price_CZK', current => current < value);
-  this._registerConditionCard('price-higher-than-condition', 'measure_current_spot_price_CZK', current => current > value);
-  this._registerConditionCard('price-index-is-condition', 'measure_current_spot_index', (current, target) => current === target);
-  
-  // Registrace karty pro průměrnou cenu
-  this._registerAveragePriceCondition();
-
-  // Základní trigger karty
-  this._registerTriggerCard('current-price-lower-than-trigger', 'measure_current_spot_price_CZK', current => current < value);
-  this._registerTriggerCard('current-price-higher-than-trigger', 'measure_current_spot_price_CZK', current => current > value);
-  this._registerTriggerCard('current-price-index-trigger', 'measure_current_spot_index', (current, target) => current === target);
-
-  // Speciální trigger karty
-  this._registerApiFailureCard();
-  this._registerPriceChangeCard();
-  this._registerDistributionTariffChangeCard();
-}
-
-/**
-* Registrace základní podmínkové karty
-*/
-_registerConditionCard(cardId, capability, comparison) {
-  this.homey.flow.getConditionCard(cardId)
-      .registerRunListener(async (args, state) => {
-          try {
-              const currentValue = await this.getCapabilityValue(capability);
-              
-              if (currentValue === null || currentValue === undefined) {
-                  throw new Error(`Value not available for ${capability}`);
-              }
-
-              const result = comparison(currentValue, args.value);
-              this.homey.log(`Condition ${cardId} evaluated:`, {
-                  current: currentValue,
-                  target: args.value,
-                  result
-              });
-
-              return result;
-          } catch (error) {
-              this.error(`Error in condition card ${cardId}:`, error);
-              return false;
-          }
-      });
-}
-
-/**
-* Registrace karty pro průměrnou cenu
-*/
-_registerAveragePriceCondition() {
-  this.homey.flow.getConditionCard('average-price-condition')
-      .registerRunListener(async (args, state) => {
-          try {
-              const { hours, condition } = args;
-              const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-              const currentHour = timeInfo.hour;
-
-              const allCombinations = await this.priceCalculator.calculateAveragePrices(this, hours, 0);
-              const prices = allCombinations.sort((a, b) => a.avg - b.avg);
-              const targetCombination = condition === 'lowest' ? prices[0] : prices[prices.length - 1];
-
-              const result = currentHour >= targetCombination.startHour && 
-                          currentHour < (targetCombination.startHour + hours);
-
-              this.homey.log('Average price condition result:', {
-                  currentHour,
-                  targetStartHour: targetCombination.startHour,
-                  hours,
-                  condition,
-                  result
-              });
-
-              return result;
-          } catch (error) {
-              this.error('Error in average price condition:', error);
-              return false;
-          }
-      });
-}
-
-/**
-* Registrace základní trigger karty
-*/
-_registerTriggerCard(cardId, capability, comparison) {
-  this.homey.flow.getDeviceTriggerCard(cardId)
-      .registerRunListener(async (args, state) => {
-          try {
-              const currentValue = await this.getCapabilityValue(capability);
-              
-              if (currentValue === null || currentValue === undefined) {
-                  throw new Error(`Value not available for ${capability}`);
-              }
-
-              const result = comparison(currentValue, args.value);
-              this.homey.log(`Trigger ${cardId} evaluated:`, {
-                  current: currentValue,
-                  target: args.value,
-                  result
-              });
-
-              return result;
-          } catch (error) {
-              this.error(`Error in trigger card ${cardId}:`, error);
-              return false;
-          }
-      });
-}
-
-/**
-* Registrace karty pro API chyby
-*/
-_registerApiFailureCard() {
-  this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger')
-      .registerRunListener(async (args, state) => {
-          this.homey.log('API failure trigger invoked:', { 
-              args: args.type, 
-              state: state.type 
-          });
-          return args.type === state.type;
-      });
-}
-
-/**
-* Registrace karty pro změnu ceny
-*/
-_registerPriceChangeCard() {
-  this.homey.flow.getDeviceTriggerCard('when-current-price-changes')
-      .registerRunListener(async (args, state) => {
-          this.homey.log('Price change trigger invoked');
-          return true;
-      });
-}
-
-/**
-* Registrace karty pro změnu distribučního tarifu
-*/
-_registerDistributionTariffChangeCard() {
-  this.homey.flow.getDeviceTriggerCard('when-distribution-tariff-changes')
-      .registerRunListener(async (args, state) => {
-          const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-          const currentHour = timeInfo.hour;
-          const settings = this.getSettings();
-          const currentTariff = this.priceCalculator.isLowTariff(currentHour, settings) ? 'low' : 'high';
-          
-          this.homey.log('Distribution tariff change trigger invoked:', {
-              currentHour,
-              currentTariff
-          });
-          
-          return true;
-      });
-}
-
-/**
-* Trigger pro změnu aktuální ceny
-*/
+//nove proxy metody pro flowcardmanager
 async triggerCurrentPriceChanged(tokens) {
-  try {
-      const triggerCard = this.homey.flow.getDeviceTriggerCard('when-current-price-changes');
-      await triggerCard.trigger(this, tokens);
-      this.homey.log('Current price changed trigger executed with tokens:', tokens);
-  } catch (error) {
-      this.error('Error triggering current price changed:', error);
-  }
+    if (this.flowCardManager) {
+        await this.flowCardManager.triggerCurrentPriceChanged(tokens);
+    }
+}
+
+async triggerAPIFailure(errorInfo) {
+    if (this.flowCardManager) {
+        await this.flowCardManager.triggerApiFailure(errorInfo);
+    }
 }
 
  /**
  * Cleanup při odstranění zařízení
  */
-async onDeleted() {
-  this.homey.log('Cleaning up device resources...');
+ async onDeleted() {
+    this.homey.log('Cleaning up device resources...');
 
-  try {
-      // Vyčištění všech intervalů
-      if (this.intervalManager) {
-          this.intervalManager.clearAll();
-          this.homey.log('All intervals cleared');
-      }
+    try {
+        // Vyčištění všech intervalů
+        if (this.intervalManager) {
+            this.intervalManager.clearAll();
+            this.homey.log('All intervals cleared');
+        }
 
-      // Vyčištění cache priceCalculatoru
-      if (this.priceCalculator) {
-          this.priceCalculator.clearCache();
-          this.homey.log('Price calculator cache cleared');
-      }
+        // Vyčištění cache priceCalculatoru
+        if (this.priceCalculator) {
+            this.priceCalculator.clearCache();
+            this.homey.log('Price calculator cache cleared');
+        }
 
-      // Vyčištění store hodnot
-      const storeKeys = [
-          'device_id',
-          'previousTariff'
-      ];
+        // Vyčištění FlowCardManageru
+        if (this.flowCardManager) {
+            this.flowCardManager.destroy();
+            this.flowCardManager = null;
+            this.homey.log('Flow card manager destroyed');
+        }
 
-      await Promise.all(
-          storeKeys.map(async key => {
-              try {
-                  await this.unsetStoreValue(key);
-              } catch (error) {
-                  this.error(`Failed to unset store value ${key}:`, error);
-              }
-          })
-      );
-      this.homey.log('Store values cleared');
+        // Pokus o odstranění store hodnot s chytáním konkrétní chyby 404
+        const storeKeys = ['device_id', 'previousTariff'];
+        for (const key of storeKeys) {
+            try {
+                await this.unsetStoreValue(key);
+                this.homey.log(`Store value ${key} unset successfully`);
+            } catch (error) {
+                if (error.statusCode === 404) {
+                    this.homey.log(`Store value ${key} already deleted or device not found.`);
+                } else {
+                    this.error(`Failed to unset store value ${key}:`, error);
+                }
+            }
+        }
 
-      // Vyčištění referencí
-      this.spotPriceApi = null;
-      this.priceCalculator = null;
-      this.intervalManager = null;
+        // Vyčištění referencí
+        this.spotPriceApi = null;
+        this.priceCalculator = null;
+        this.intervalManager = null;
+        this.flowCardManager = null;
 
-      this.homey.log('Device cleanup completed successfully');
-  } catch (error) {
-      this.error('Error during device cleanup:', error);
-  }
+        this.homey.log('Device cleanup completed successfully');
+    } catch (error) {
+        this.error('Error during device cleanup:', error);
+    }
 }
+
 
 /**
  * Helper pro získání aktuální hodiny a její data
