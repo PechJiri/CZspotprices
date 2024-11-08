@@ -124,5 +124,8 @@
   },
   "2.0.15": {
     "en": "code optimalisation - added price calculator"
+  },
+  "2.0.16": {
+    "en": "more code optimalisation, moved flow cards to separate flowcardmanager"
   }
 }
