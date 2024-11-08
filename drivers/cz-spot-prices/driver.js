@@ -9,40 +9,40 @@ const Logger = require('../../helpers/Logger');
 
 class CZSpotPricesDriver extends Homey.Driver {
 
-  async onInit() {
-    try {
-        // Inicializace loggeru jako první
-        this.logger = new Logger(this.homey, 'CZSpotPricesDriver');
-        // Driver logger vždy zapnutý
-        this.logger.setEnabled(true);
-        
-        this.logger.log('Inicializace CZSpotPricesDriver');
-        
-        // Inicializace všech helperů
-        this.spotPriceApi = new SpotPriceAPI(this.homey);
-        this.intervalManager = new IntervalManager(this.homey);
-        this.priceCalculator = new PriceCalculator(this.homey);
+    async onInit() {
+        try {
+            // Inicializace loggeru jako první
+            this.logger = new Logger(this.homey, 'CZSpotPricesDriver');
+            // Driver logger vždy zapnutý
+            this.logger.setEnabled(true);
+            
+            this.logger.log('Inicializace CZSpotPricesDriver');
+            
+            // Inicializace všech helperů s jejich kontexty
+            this.spotPriceApi = new SpotPriceAPI(this.homey, 'SpotPriceAPI');
+            this.intervalManager = new IntervalManager(this.homey, 'IntervalManager');
+            this.priceCalculator = new PriceCalculator(this.homey, 'PriceCalculator');
 
-        // Předání loggeru všem komponentám
-        if (this.spotPriceApi) this.spotPriceApi.setLogger(this.logger);
-        if (this.intervalManager) this.intervalManager.setLogger(this.logger);
-        if (this.priceCalculator) this.priceCalculator.setLogger(this.logger);
+            // Předání loggeru všem komponentám
+            if (this.spotPriceApi) this.spotPriceApi.setLogger(this.logger);
+            if (this.intervalManager) this.intervalManager.setLogger(this.logger);
+            if (this.priceCalculator) this.priceCalculator.setLogger(this.logger);
 
-        // Validace instancí
-        this.validateInstances();
+            // Validace instancí
+            this.validateInstances();
 
-        // Společné plánování půlnoční aktualizace pro všechna zařízení
-        await this.scheduleMidnightUpdate();
+            // Společné plánování půlnoční aktualizace pro všechna zařízení
+            await this.scheduleMidnightUpdate();
 
-        this.logger.log('Driver úspěšně inicializován');
+            this.logger.log('Driver úspěšně inicializován');
 
-    } catch (error) {
-        this.logger.error('Chyba při inicializaci driveru', error, {
-            driverId: this.id
-        });
-        throw error; // Propagace chyby výš pro případné zachycení Homey
+        } catch (error) {
+            this.logger.error('Chyba při inicializaci driveru', error, {
+                driverId: this.id
+            });
+            throw error; // Propagace chyby výš pro případné zachycení Homey
+        }
     }
-  }
 
   validateInstances() {
     this.logger.debug('Validace instancí komponent');

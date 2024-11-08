@@ -63,4 +63,5 @@ class Logger {
     }
 }
 
+// Opravený export
 module.exports = Logger;

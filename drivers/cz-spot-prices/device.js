@@ -106,80 +106,105 @@ class CZSpotPricesDevice extends Homey.Device {
     }  
   
     async initializeBasicSettings() {
-        if (this.logger) {
-            this.logger.log('Initializing device...');
-        }
+        try {
+            if (this.logger) {
+                this.logger.log('Začátek inicializace základních nastavení');
+            }
     
-        // Inicializace helperů - musí být před ověřením závislostí
-        this.priceCalculator = new PriceCalculator(this.homey);
-        this.spotPriceApi = new SpotPriceAPI(this.homey);
-        this.intervalManager = new IntervalManager(this.homey);
+            // Inicializace helperů s vlastními loggery a kontextem
+            this.logger.debug('Inicializace helper tříd');
+            
+            this.priceCalculator = new PriceCalculator(this.homey, 'PriceCalculator');
+            this.spotPriceApi = new SpotPriceAPI(this.homey, 'SpotPriceAPI');
+            this.intervalManager = new IntervalManager(this.homey);
+            
+            // Pro intervalManager stále nastavíme logger z device
+            if (this.intervalManager) {
+                this.intervalManager.setLogger(this.logger);
+                this.logger.debug('Logger nastaven pro IntervalManager');
+            }
     
-        // Ověření, že všechny závislosti byly inicializovány
-        const requiredDependencies = [this.spotPriceApi, this.intervalManager, this.priceCalculator];
-        requiredDependencies.forEach(dep => {
-            if (!dep) {
-                const errorMessage = 'Dependency is not initialized.';
-                if (this.logger) {
+            // Ověření, že všechny závislosti byly inicializovány
+            const requiredDependencies = [
+                { name: 'SpotPriceAPI', instance: this.spotPriceApi },
+                { name: 'IntervalManager', instance: this.intervalManager },
+                { name: 'PriceCalculator', instance: this.priceCalculator }
+            ];
+    
+            this.logger.debug('Kontrola inicializace závislostí');
+            
+            requiredDependencies.forEach(({ name, instance }) => {
+                if (!instance) {
+                    const errorMessage = `Dependency ${name} is not initialized.`;
                     this.logger.error(errorMessage, new Error(errorMessage));
+                    throw new Error(errorMessage);
                 }
-                throw new Error(errorMessage);
-            }
-        });
+                this.logger.debug(`${name} úspěšně inicializován`);
+            });
     
-        if (this.logger) {
-            this.logger.log('All dependencies are initialized.');
-        }
+            this.logger.log('Všechny závislosti jsou inicializovány');
     
-        // Inicializace device ID s kontrolním logováním
-        try {
-            await this.initializeDeviceId();
-            if (this.logger) {
-                this.logger.log('Device ID initialized successfully.');
+            // Inicializace device ID s kontrolním logováním
+            this.logger.debug('Začátek inicializace Device ID');
+            try {
+                await this.initializeDeviceId();
+                this.logger.log('Device ID úspěšně inicializováno');
+            } catch (error) {
+                this.logger.error('Chyba při inicializaci Device ID', error, {
+                    deviceId: this.getData().id
+                });
+                throw error;
             }
+    
+            // Načtení nastavení
+            this.logger.debug('Začátek načítání nastavení');
+            try {
+                await this.initializeSettings();
+                this.logger.log('Nastavení zařízení inicializováno', {
+                    deviceId: this.getData().id,
+                    settings: {
+                        lowIndexHours: this.lowIndexHours,
+                        highIndexHours: this.highIndexHours,
+                        priceInKWh: this.priceInKWh
+                    }
+                });
+            } catch (error) {
+                this.logger.error('Chyba při načítání nastavení zařízení', error, {
+                    deviceId: this.getData().id
+                });
+                throw error;
+            }
+    
+            // Registrace capabilities
+            this.logger.debug('Začátek registrace capabilities');
+            try {
+                await this._registerCapabilities();
+                this.logger.log('Capabilities úspěšně registrovány');
+            } catch (error) {
+                this.logger.error('Chyba při registraci capabilities', error, {
+                    deviceId: this.getData().id
+                });
+                throw error;
+            }
+    
+            // Nastavení iniciálního tarifu
+            this.logger.debug('Začátek nastavení iniciálního tarifu');
+            try {
+                await this.initializeInitialTariff();
+                this.logger.log('Iniciální tarif nastaven');
+            } catch (error) {
+                this.logger.error('Chyba při nastavení počátečního tarifu', error, {
+                    deviceId: this.getData().id
+                });
+                throw error;
+            }
+    
+            this.logger.log('Inicializace základních nastavení dokončena úspěšně');
+            
         } catch (error) {
-            if (this.logger) {
-                this.logger.error('Chyba při inicializaci Device ID', error);
-            }
-            throw error;
-        }
-    
-        // Načtení nastavení
-        try {
-            await this.initializeSettings();
-            if (this.logger) {
-                this.logger.log('Device settings initialized.');
-            }
-        } catch (error) {
-            if (this.logger) {
-                this.logger.error('Chyba při načítání nastavení zařízení', error);
-            }
-            throw error;
-        }
-    
-        // Registrace capabilities
-        try {
-            await this._registerCapabilities();
-            if (this.logger) {
-                this.logger.log('Device capabilities registered.');
-            }
-        } catch (error) {
-            if (this.logger) {
-                this.logger.error('Chyba při registraci capabilities', error);
-            }
-            throw error;
-        }
-    
-        // Nastavení iniciálního tarifu
-        try {
-            await this.initializeInitialTariff();
-            if (this.logger) {
-                this.logger.log('Initial tariff set.');
-            }
-        } catch (error) {
-            if (this.logger) {
-                this.logger.error('Chyba při nastavení počátečního tarifu', error);
-            }
+            this.logger.error('Kritická chyba při inicializaci základních nastavení', error, {
+                deviceId: this.getData().id
+            });
             throw error;
         }
     }

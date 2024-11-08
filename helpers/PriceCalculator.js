@@ -1,19 +1,24 @@
 'use strict';
 
+const Logger = require('./Logger');
+
 class PriceCalculator {
-    constructor(homey) {
+    constructor(homey, deviceContext = 'PriceCalculator') {
         this.homey = homey;
+        this.homey = homey;
+        this.logger = new Logger(this.homey, deviceContext);
+        this.logger.setEnabled(true);
         this.priceCache = new Map();
         this.averagePriceCache = new Map();
         this.lastCalculationHour = null;
-        this.logger = null; // Přidáme property pro logger
-        
         // Konstanty pro cache
         this.PRICE_CACHE_TTL = 60 * 60 * 1000; // 1 hodina
         this.AVERAGE_CACHE_TTL = 15 * 60 * 1000; // 15 minut
         
         // Nastavení automatického čištění cache
         this.setupCacheCleanup();
+        
+        this.logger.debug('PriceCalculator inicializován');
     }
 
     // Přidáme metody pro práci s loggerem
@@ -85,59 +90,69 @@ class PriceCalculator {
         }
     }
 
-    /**
-     * Validace vstupních dat pro výpočet ceny
-     */
-    validatePriceData(data) {
-        if (!Array.isArray(data)) {
-            if (this.logger) {
-                this.logger.error('Neplatná data - není pole', new Error('Invalid data type'));
-            }
-            return false;
-        }
-
-        if (data.length !== 24) {
-            if (this.logger) {
-                this.logger.error('Neplatná data - nesprávný počet hodin', new Error('Invalid data length'), {
-                    expectedLength: 24,
-                    actualLength: data.length
-                });
-            }
-            return false;
-        }
-
-        const validationResults = data.map((item, index) => {
-            const hasValidPrice = typeof item.priceCZK === 'number' && !isNaN(item.priceCZK);
-            const hasValidHour = typeof item.hour === 'number' && item.hour >= 0 && item.hour < 24;
-            
-            if (!hasValidPrice || !hasValidHour) {
-                if (this.logger) {
-                    this.logger.debug('Neplatná data pro hodinu', {
-                        index,
-                        item,
-                        validPrice: hasValidPrice,
-                        validHour: hasValidHour
-                    });
-                }
-            }
-            
-            return hasValidPrice && hasValidHour;
-        });
-
-        const isValid = validationResults.every(result => result);
-        
+validatePriceData(data) {
+    if (!Array.isArray(data)) {
         if (this.logger) {
-            this.logger.debug('Validace dat dokončena', {
-                isValid,
-                invalidHours: validationResults
-                    .map((result, index) => ({ index, valid: result }))
-                    .filter(item => !item.valid)
-                    .map(item => item.index)
+            this.logger.debug('Vstupní data pro validaci', { 
+                receivedType: typeof data,
+                receivedValue: data 
             });
         }
-
-        return isValid;
+        
+        if (this.logger) {
+            this.logger.error('Neplatná data - není pole', new Error('Invalid data type'));
+        }
+        return false;
     }
+
+    if (data.length !== 24) {
+        if (this.logger) {
+            this.logger.error('Neplatná data - nesprávný počet hodin', new Error('Invalid data length'), {
+                expectedLength: 24,
+                actualLength: data.length
+            });
+        }
+        return false;
+    }
+
+    const validationResults = data.map((item, index) => {
+        // Kontrolujeme pouze povinné vlastnosti - hour a priceCZK
+        const hasValidPrice = typeof item.priceCZK === 'number' && !isNaN(item.priceCZK);
+        const hasValidHour = typeof item.hour === 'number' && item.hour >= 0 && item.hour < 24;
+        
+        // Level je volitelná vlastnost - přijde jen z primárního API
+        // Pokud není, dopočítáme ji později v setPriceIndexes
+        
+        if (!hasValidPrice || !hasValidHour) {
+            if (this.logger) {
+                this.logger.debug('Neplatná data pro hodinu', {
+                    index,
+                    item,
+                    validPrice: hasValidPrice,
+                    validHour: hasValidHour,
+                    hasLevel: Boolean(item.level) // jen pro logging
+                });
+            }
+        }
+        
+        return hasValidPrice && hasValidHour;
+    });
+
+    const isValid = validationResults.every(result => result);
+    
+    if (this.logger) {
+        this.logger.debug('Validace dat dokončena', {
+            isValid,
+            hasLevels: data.every(item => Boolean(item.level)), // pro logging
+            invalidHours: validationResults
+                .map((result, index) => ({ index, valid: result }))
+                .filter(item => !item.valid)
+                .map(item => item.index)
+        });
+    }
+
+    return isValid;
+}
 
     /**
      * Přidání distribučního tarifu k základní ceně
@@ -226,6 +241,7 @@ class PriceCalculator {
      */
     setPriceIndexes(hoursToday, lowIndexHours, highIndexHours) {
         try {
+            // Validace vstupních dat
             if (!this.validatePriceData(hoursToday)) {
                 const chyba = new Error('Neplatná vstupní data pro výpočet indexů');
                 if (this.logger) {
@@ -234,6 +250,19 @@ class PriceCalculator {
                 throw chyba;
             }
     
+            // Pokud všechna data již obsahují level, použijeme ho přímo
+            const allHaveLevel = hoursToday.every(hour => hour.level && typeof hour.level === 'string');
+            if (allHaveLevel) {
+                if (this.logger) {
+                    this.logger.debug('Použití existujících level hodnot z API', {
+                        sample: hoursToday[0]
+                    });
+                }
+    
+                return hoursToday;
+            }
+    
+            // Cache kontrola pro vypočítané hodnoty
             const cacheKey = `${hoursToday.map(h => h.priceCZK).join('-')}-${lowIndexHours}-${highIndexHours}`;
     
             if (this.priceCache.has(cacheKey)) {
@@ -246,6 +275,15 @@ class PriceCalculator {
                 }
             }
     
+            // Výpočet hodnot pokud nejsou v API ani v cache
+            if (this.logger) {
+                this.logger.debug('Výpočet nových cenových indexů', {
+                    lowIndexHours,
+                    highIndexHours,
+                    totalHours: hoursToday.length
+                });
+            }
+    
             const serazeneVP = [...hoursToday]
                 .sort((a, b) => a.priceCZK - b.priceCZK)
                 .map((cena, index) => ({
@@ -255,32 +293,45 @@ class PriceCalculator {
     
             const celkovePocetHodin = serazeneVP.length;
             const vysledek = serazeneVP.map(hodinoveData => {
-                let uroven;
+                let level;
                 if (hodinoveData.serazenyIndex < lowIndexHours) {
-                    uroven = 'low';
+                    level = 'low';
                 } else if (hodinoveData.serazenyIndex >= celkovePocetHodin - highIndexHours) {
-                    uroven = 'high';
+                    level = 'high';
                 } else {
-                    uroven = 'medium';
+                    level = 'medium';
                 }
-                return { ...hodinoveData, uroven };
+                return { ...hodinoveData, level };
             }).sort((a, b) => a.hour - b.hour);
     
+            // Uložení do cache
             this.priceCache.set(cacheKey, {
                 data: vysledek,
                 timestamp: Date.now()
             });
     
             if (this.logger) {
-                this.logger.debug('Nastavení cenových indexů', { cacheKey, vysledek });
+                this.logger.debug('Nastavení cenových indexů dokončeno', {
+                    cacheKey,
+                    sampleData: vysledek[0],
+                    totalProcessed: vysledek.length
+                });
             }
     
             return vysledek;
+    
         } catch (chyba) {
             if (this.logger) {
-                this.logger.error('Chyba při nastavování cenových indexů:', chyba);
+                this.logger.error('Chyba při nastavování cenových indexů:', chyba, {
+                    inputLength: hoursToday?.length,
+                    firstItem: hoursToday?.[0]
+                });
             }
-            return hoursToday.map(hodinoveData => ({ ...hodinoveData, uroven: 'unknown' }));
+            // V případě chyby vrátíme data s 'unknown' hodnotou
+            return hoursToday.map(hodinoveData => ({ 
+                ...hodinoveData, 
+                level: 'unknown'
+            }));
         }
     }
 
