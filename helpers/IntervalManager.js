@@ -15,10 +15,9 @@ class IntervalManager {
             tariff: null,
             midnight: null
         };
-        this.logger = null; // Přidáme property pro logger
+        this.logger = null;
     }
 
-    // Přidáme metodu pro nastavení loggeru
     setLogger(logger) {
         this.logger = logger;
         if (this.logger) {
@@ -26,41 +25,34 @@ class IntervalManager {
         }
     }
 
-    // Getter pro logger instance pro možnost kontroly
     getLogger() {
         return this.logger;
     }
 
-    // Nastavení intervalu s počátečním zpožděním
     setScheduledInterval(key, callback, interval, initialDelay = 0) {
-        // Vyčistíme existující interval a timeout pro daný klíč
         this.clearScheduledInterval(key);
 
         if (this.logger) {
             this.logger.debug('Nastavuji nový interval', {
                 key,
                 interval,
-                initialDelay
+                initialDelay: this._formatDelay(initialDelay)
             });
         }
 
-        // Pokud je initialDelay, nejprve naplánujeme timeout
         if (initialDelay > 0) {
             this.timeouts[key] = this.homey.setTimeout(() => {
                 if (this.logger) {
                     this.logger.debug('Spouštím callback po initial delay', { key });
                 }
-                callback(); // Spustíme callback okamžitě po uplynutí delay
-                // Nastavíme pravidelný interval
+                callback();
                 this.intervals[key] = this.homey.setInterval(callback, interval);
             }, initialDelay);
         } else {
-            // Bez zpoždění nastavíme rovnou interval
             this.intervals[key] = this.homey.setInterval(callback, interval);
         }
     }
 
-    // Vyčištění konkrétního intervalu a timeoutu
     clearScheduledInterval(key) {
         if (this.intervals[key]) {
             this.homey.clearInterval(this.intervals[key]);
@@ -78,7 +70,6 @@ class IntervalManager {
         }
     }
 
-    // Vyčištění všech intervalů a timeoutů
     clearAll() {
         if (this.logger) {
             this.logger.debug('Vyčišťuji všechny intervaly a timeouty');
@@ -93,7 +84,6 @@ class IntervalManager {
         }
     }
 
-    // Helper pro výpočet zpoždění do další celé hodiny
     calculateDelayToNextHour() {
         const now = new Date();
         const nextHour = new Date(now);
@@ -101,14 +91,22 @@ class IntervalManager {
         const delay = nextHour.getTime() - now.getTime();
 
         if (this.logger) {
-            this.logger.debug('Vypočítáno zpoždění do další hodiny', { 
+            this.logger.debug('Vypočítáno zpoždění do další hodiny', {
                 currentTime: now.toISOString(),
                 nextHour: nextHour.toISOString(),
-                delayMs: delay 
+                delayInMs: delay,
+                delayFormatted: this._formatDelay(delay)
             });
         }
 
         return delay;
+    }
+
+    _formatDelay(delay) {
+        const hours = Math.floor(delay / (1000 * 60 * 60));
+        const minutes = Math.floor((delay % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((delay % (1000 * 60)) / 1000);
+        return `${hours} h ${minutes} m ${seconds} s`;
     }
 }
 

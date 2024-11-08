@@ -5,7 +5,7 @@
     "label": {
         "en": "Enable debug logging"
     },
-    "value": false,
+    "value": true,
     "hint": {
         "en": "Enable detailed logging for debugging purposes"
     }
