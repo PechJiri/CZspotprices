@@ -320,37 +320,90 @@ class FlowCardManager {
      * Registrace tariff change triggeru
      */
     async _registerTariffChangeTrigger() {
-        if (this._flowCards.triggers.has('when-distribution-tariff-changes')) {
-            if (this.logger) {
-                this.logger.debug('Tariff change trigger již je registrován');
+        try {
+            // Kontrola existence triggeru
+            if (this._flowCards.triggers.has('when-distribution-tariff-changes')) {
+                if (this.logger) {
+                    this.logger.debug('Tariff change trigger již je registrován');
+                }
+                return;
             }
-            return;
-        }
     
-        const card = this.homey.flow.getDeviceTriggerCard('when-distribution-tariff-changes');
+            // Získání trigger karty
+            const card = this.homey.flow.getDeviceTriggerCard('when-distribution-tariff-changes');
+            
+            if (!card) {
+                throw new Error('Nepodařilo se získat trigger kartu pro změnu tarifu');
+            }
     
-        card.registerRunListener(async (args, state) => {
-            const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
-            const currentHour = timeInfo.hour;
-            const settings = this.device.getSettings();
-            const currentTariff = this.device.priceCalculator.isLowTariff(currentHour, settings) ? 'low' : 'high';
+            // Registrace run listeneru s validací
+            card.registerRunListener(async (args, state) => {
+                try {
+                    // Kontrola dostupnosti required dependencies
+                    if (!this.device || !this.device.spotPriceApi || !this.device.priceCalculator) {
+                        throw new Error('Chybí required dependencies pro tariff trigger');
+                    }
     
+                    const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
+                    const currentHour = timeInfo.hour;
+                    const settings = this.device.getSettings();
+    
+                    // Kontrola validity currentHour
+                    if (currentHour < 0 || currentHour >= 24) {
+                        throw new Error(`Neplatná hodina: ${currentHour}`);
+                    }
+    
+                    const currentTariff = this.device.priceCalculator.isLowTariff(currentHour, settings) ? 'low' : 'high';
+                    
+                    // Přidání validace pro state
+                    const expectedTariff = state ? state.tariff : null;
+                    const tariffMatches = !expectedTariff || expectedTariff === currentTariff;
+    
+                    if (this.logger) {
+                        this.logger.debug('Distribution tariff change trigger vyhodnocen', {
+                            currentHour,
+                            currentTariff,
+                            expectedTariff,
+                            tariffMatches,
+                            args,
+                            state
+                        });
+                    }
+    
+                    return tariffMatches;
+    
+                } catch (error) {
+                    if (this.logger) {
+                        this.logger.error('Chyba v run listeneru tariff triggeru', error, {
+                            args,
+                            state
+                        });
+                    }
+                    return false;
+                }
+            });
+    
+            // Registrace triggeru
+            this._flowCards.triggers.set('when-distribution-tariff-changes', card);
+    
+            // Logování úspěšné registrace
             if (this.logger) {
-                this.logger.debug('Distribution tariff change trigger spuštěn', {
-                    currentHour,
-                    currentTariff
+                this.logger.log('Tariff change trigger úspěšně registrován', {
+                    triggerId: 'when-distribution-tariff-changes',
+                    deviceId: this.device?.getData()?.id
                 });
             }
     
-            return true;
-        });
+            // Můžeme vrátit kartu pro další použití
+            return card;
     
-        this._flowCards.triggers.set('when-distribution-tariff-changes', card);
-    
-        if (this.logger) {
-            this.logger.log('Tariff change trigger registrován');
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Kritická chyba při registraci tariff triggeru', error);
+            }
+            throw error; // Propagujeme error výš pro správné zachycení
         }
-    }    
+    }
 
     /**
      * Inicializace condition karet

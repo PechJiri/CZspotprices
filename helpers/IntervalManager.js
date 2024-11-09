@@ -30,26 +30,84 @@ class IntervalManager {
     }
 
     setScheduledInterval(key, callback, interval, initialDelay = 0) {
-        this.clearScheduledInterval(key);
-
-        if (this.logger) {
-            this.logger.debug('Nastavuji nový interval', {
-                key,
-                interval,
-                initialDelay: this._formatDelay(initialDelay)
-            });
-        }
-
-        if (initialDelay > 0) {
-            this.timeouts[key] = this.homey.setTimeout(() => {
+        try {
+            // Kontrola vstupních parametrů
+            if (!key || typeof key !== 'string') {
+                throw new Error('Neplatný klíč intervalu');
+            }
+            if (typeof callback !== 'function') {
+                throw new Error('Callback musí být funkce');
+            }
+            if (typeof interval !== 'number' || interval <= 0) {
+                throw new Error('Interval musí být kladné číslo');
+            }
+    
+            // Kontrola existence intervalu a timeoutu
+            if (this.intervals[key] || this.timeouts[key]) {
                 if (this.logger) {
-                    this.logger.debug('Spouštím callback po initial delay', { key });
+                    this.logger.debug('Nalezen existující interval/timeout, provádím vyčištění', {
+                        key,
+                        hasInterval: !!this.intervals[key],
+                        hasTimeout: !!this.timeouts[key]
+                    });
                 }
-                callback();
+                this.clearScheduledInterval(key);
+            }
+    
+            if (this.logger) {
+                this.logger.debug('Nastavuji nový interval', {
+                    key,
+                    interval,
+                    initialDelay: this._formatDelay(initialDelay),
+                    hasCallback: !!callback
+                });
+            }
+    
+            // Nastavení nového intervalu s initial delay
+            if (initialDelay > 0) {
+                this.timeouts[key] = this.homey.setTimeout(() => {
+                    if (this.logger) {
+                        this.logger.debug('Spouštím callback po initial delay', { key });
+                    }
+                    try {
+                        callback();
+                        // Nastavení pravidelného intervalu po uplynutí initial delay
+                        this.intervals[key] = this.homey.setInterval(callback, interval);
+    
+                        if (this.logger) {
+                            this.logger.debug('Interval nastaven po initial delay', { 
+                                key,
+                                nextRun: new Date(Date.now() + interval).toISOString()
+                            });
+                        }
+                    } catch (error) {
+                        if (this.logger) {
+                            this.logger.error('Chyba při spuštění callbacku po initial delay', error, { key });
+                        }
+                    }
+                }, initialDelay);
+            } else {
+                // Okamžité nastavení intervalu bez delay
                 this.intervals[key] = this.homey.setInterval(callback, interval);
-            }, initialDelay);
-        } else {
-            this.intervals[key] = this.homey.setInterval(callback, interval);
+    
+                if (this.logger) {
+                    this.logger.debug('Interval nastaven okamžitě', { 
+                        key,
+                        nextRun: new Date(Date.now() + interval).toISOString()
+                    });
+                }
+            }
+    
+            return true;
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Chyba při nastavování intervalu', error, {
+                    key,
+                    interval,
+                    initialDelay
+                });
+            }
+            throw error;
         }
     }
 

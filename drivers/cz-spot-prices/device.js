@@ -6,6 +6,8 @@ const IntervalManager = require('../../helpers/IntervalManager');
 const PriceCalculator = require('../../helpers/PriceCalculator');
 const FlowCardManager = require('./FlowCardManager');
 const Logger = require('../../helpers/Logger');
+const LockManager = require('../../helpers/LockManager');
+
 
 class CZSpotPricesDevice extends Homey.Device {
 
@@ -18,6 +20,13 @@ class CZSpotPricesDevice extends Homey.Device {
                 const enableLogging = this.getSetting('enable_logging') || false;
                 this.logger.setEnabled(enableLogging);
                 this.logger.debug('Logger inicializován');
+            }
+
+            // Inicializace LockManageru před voláním initializeBasicSettings
+            if (!this.lockManager) {
+                this.lockManager = new LockManager(this.homey, 'DeviceLockManager');
+                this.lockManager.setLogger(this.logger);
+                this.logger.debug('LockManager inicializován včetně loggeru');
             }
             
             // Inicializace `flowCardManager` pouze pokud ještě neexistuje
@@ -139,7 +148,8 @@ class CZSpotPricesDevice extends Homey.Device {
             // Inicializace s předáním kontextu
             this.priceCalculator = new PriceCalculator(this.homey, 'PriceCalculator');
             this.spotPriceApi = new SpotPriceAPI(this.homey, 'SpotPriceAPI');
-            this.intervalManager = new IntervalManager(this.homey);
+            this.intervalManager = new IntervalManager(this.homey), 'IntervalManager';
+            this.LockManager = new LockManager(this.homey, 'DeviceLockManager');
             
             // Nastavení loggerů pro všechny komponenty
             if (this.priceCalculator) {
@@ -155,6 +165,11 @@ class CZSpotPricesDevice extends Homey.Device {
             if (this.intervalManager) {
                 this.intervalManager.setLogger(this.logger);
                 this.logger.debug('Logger nastaven pro IntervalManager');
+            }
+
+            if (this.LockManager) {
+                this.LockManager.setLogger(this.logger);
+                this.logger.debug('Logger nastaven pro LockManager');
             }
     
             // Kontrola závislostí včetně kontroly nastavení loggerů
@@ -172,6 +187,11 @@ class CZSpotPricesDevice extends Homey.Device {
                 { 
                     name: 'PriceCalculator', 
                     instance: this.priceCalculator,
+                    checkLogger: true 
+                },
+                { 
+                    name: 'LockManager', 
+                    instance: this.lockManager,
                     checkLogger: true 
                 }
             ];
@@ -495,27 +515,66 @@ class CZSpotPricesDevice extends Homey.Device {
             const currentTariff = this.priceCalculator.isLowTariff(currentHour, settings) ? 'low' : 'high';
     
             if (this.logger) {
-                this.logger.debug('Kontrola změny tarifu', { currentHour, previousTariff, currentTariff });
+                this.logger.debug('Kontrola změny tarifu', { 
+                    currentHour, 
+                    previousTariff, 
+                    currentTariff 
+                });
             }
     
             if (previousTariff !== currentTariff) {
+                // Uložíme nový stav
                 await this.setStoreValue('previousTariff', currentTariff);
+                
+                // Spustíme jednoduchý trigger
+                await this.triggerTariffChange(previousTariff, currentTariff);
     
-                // Spuštění triggeru
-                if (this.tariffChangeTrigger) {
-                    await this.tariffChangeTrigger.trigger(this, { tariff: currentTariff });
-                    
-                    if (this.logger) {
-                        this.logger.log('Tariff change trigger proveden', { currentTariff });
-                    }
+                if (this.logger) {
+                    this.logger.log('Změna tarifu detekována a zpracována', {
+                        previousTariff,
+                        currentTariff,
+                        hour: currentHour
+                    });
                 }
             }
         } catch (error) {
             if (this.logger) {
-                this.logger.error('Chyba při kontrole změny tarifu', error);
+                this.logger.error('Chyba při kontrole změny tarifu', error, {
+                    deviceId: this.getData().id,
+                    hour: currentHour
+                });
             }
         }
-    }    
+    }
+
+    async triggerTariffChange(previousTariff, currentTariff) {
+        try {
+            const triggerCard = this.homey.flow.getDeviceTriggerCard('when-distribution-tariff-changes');
+            
+            if (!triggerCard) {
+                throw new Error('Trigger karta není k dispozici');
+            }
+    
+            // Jednoduchý trigger bez tokenů
+            await triggerCard.trigger(this);
+    
+            if (this.logger) {
+                this.logger.log('Tariff change trigger spuštěn', {
+                    previousTariff,
+                    currentTariff,
+                    deviceId: this.getData().id
+                });
+            }
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Chyba při spouštění tariff change triggeru', error, {
+                    deviceId: this.getData().id,
+                    previousTariff,
+                    currentTariff
+                });
+            }
+        }
+    }
 
     async updateHourlyData() {
         try {
@@ -1011,66 +1070,84 @@ async checkAveragePrice() {
 * Aktualizace všech cenových dat
 */
 async updateAllPrices(processedPrices) {
+    const operationId = `update-${Date.now()}`;
+    
     try {
         if (this.logger) {
             this.logger.debug('Začátek updateAllPrices', {
+                operationId,
                 processedPricesCount: processedPrices?.length
             });
         }
 
-        // Kontrola všech potřebných závislostí
-        if (!this.priceCalculator || !this.spotPriceApi) {
-            throw new Error('Chybí required dependencies pro updateAllPrices');
+        // Získání zámku
+        const lockAcquired = await this.lockManager.acquireLock(this.getData().id, operationId);
+        if (!lockAcquired) {
+            const message = 'Nelze získat zámek pro aktualizaci - jiná operace právě probíhá';
+            if (this.logger) {
+                this.logger.warn(message, {
+                    operationId,
+                    lockInfo: this.lockManager.getLockInfo(this.getData().id)
+                });
+            }
+            throw new Error(message);
         }
 
-        // Získání a validace nastavení
-        const settings = this.getSettings();
-        const lowIndexHours = settings.low_index_hours || 8;
-        const highIndexHours = settings.high_index_hours || 8;
-
-        // Validace vstupních dat
-        if (!Array.isArray(processedPrices) || processedPrices.length !== 24) {
-            throw new Error('Neplatná vstupní data pro updateAllPrices');
-        }
-
-        // Použití lokálního PriceCalculatoru
-        const pricesWithIndexes = this.priceCalculator.setPriceIndexes(
-            processedPrices,
-            lowIndexHours,
-            highIndexHours
-        );
-
-        // Aktualizace capabilities s try/catch pro každou operaci
         try {
+            // Kontrola všech potřebných závislostí
+            if (!this.priceCalculator || !this.spotPriceApi) {
+                throw new Error('Chybí required dependencies pro updateAllPrices');
+            }
+
+            // Získání a validace nastavení
+            const settings = this.getSettings();
+            const lowIndexHours = settings.low_index_hours || 8;
+            const highIndexHours = settings.high_index_hours || 8;
+
+            // Validace vstupních dat
+            if (!Array.isArray(processedPrices) || processedPrices.length !== 24) {
+                throw new Error('Neplatná vstupní data pro updateAllPrices');
+            }
+
+            // Použití lokálního PriceCalculatoru
+            const pricesWithIndexes = this.priceCalculator.setPriceIndexes(
+                processedPrices,
+                lowIndexHours,
+                highIndexHours
+            );
+
+            // Aktualizace capabilities s try/catch pro každou operaci
             await this._updateHourlyCapabilities(pricesWithIndexes);
             await this._updateCurrentPrice(pricesWithIndexes);
             await this._updateDailyAverage(pricesWithIndexes);
 
             if (this.logger) {
                 this.logger.log('Všechny ceny a indexy úspěšně aktualizovány', {
+                    operationId,
                     indexStats: {
                         low: pricesWithIndexes.filter(p => p.level === 'low').length,
                         medium: pricesWithIndexes.filter(p => p.level === 'medium').length,
                         high: pricesWithIndexes.filter(p => p.level === 'high').length
-                    },
-                    timestamp: new Date().toISOString()
+                    }
                 });
             }
 
             return true;
-        } catch (error) {
+
+        } finally {
+            // Uvolnění zámku v finally bloku
+            this.lockManager.releaseLock(this.getData().id, operationId);
             if (this.logger) {
-                this.logger.error('Chyba při aktualizaci capabilities', {
-                    message: error.message,
-                    stack: error.stack
+                this.logger.debug('Zámek uvolněn po aktualizaci', {
+                    operationId
                 });
             }
-            throw error;
         }
 
     } catch (error) {
         if (this.logger) {
             this.logger.error('Kritická chyba v updateAllPrices', {
+                operationId,
                 message: error.message,
                 stack: error.stack,
                 deviceId: this.getData().id
@@ -1271,10 +1348,15 @@ async triggerAPIFailure(errorInfo) {
  */
  async onDeleted() {
     if (this.logger) {
-        this.logger.log('Cleaning up device resources...');
+        this.logger.log('Cleaning up device resources...', {
+            deviceId: this.getData().id
+        });
     }
 
     try {
+        // Zrušení případných probíhajících operací
+        this.isInitialized = false;
+        
         // Vyčištění všech intervalů
         if (this.intervalManager) {
             this.intervalManager.clearAll();
@@ -1300,8 +1382,26 @@ async triggerAPIFailure(errorInfo) {
             }
         }
 
-        // Pokus o odstranění store hodnot s chytáním konkrétní chyby 404
-        const storeKeys = ['device_id', 'previousTariff'];
+        // V metodě onDeleted v device.js
+        if (this.lockManager) {
+            this.lockManager.clearAllLocks();
+            if (this.logger) {
+                this.logger.log('Lock manager cleared');
+            }
+        }       
+
+        // Rozšířený seznam store hodnot
+        const storeKeys = [
+            'device_id', 
+            'previousTariff',
+            'lastDataUpdate',
+            'lastMidnightUpdate',
+            'lastHourlyUpdate',
+            'lastAverageUpdate',
+            'firstInit'
+        ];
+
+        // Pokus o odstranění store hodnot
         for (const key of storeKeys) {
             try {
                 await this.unsetStoreValue(key);
@@ -1321,18 +1421,50 @@ async triggerAPIFailure(errorInfo) {
             }
         }
 
+        // Reset všech capabilities na null
+        try {
+            const capabilities = this.getCapabilities();
+            await Promise.all(capabilities.map(capability => 
+                this.setCapabilityValue(capability, null).catch(err => {
+                    if (this.logger) {
+                        this.logger.warn(`Failed to reset capability ${capability}`, err);
+                    }
+                })
+            ));
+            if (this.logger) {
+                this.logger.log('All capabilities reset');
+            }
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Error resetting capabilities', error);
+            }
+        }
+
+        // Odpojení event listenerů, pokud nějaké existují
+        this.homey.removeAllListeners('spot_prices_updated');
+        this.homey.removeAllListeners('settings_changed');
+
         // Vyčištění referencí
         this.spotPriceApi = null;
         this.priceCalculator = null;
         this.intervalManager = null;
         this.flowCardManager = null;
 
+        // Vyčištění loggeru jako poslední
         if (this.logger) {
-            this.logger.log('Device cleanup completed successfully');
+            this.logger.log('Device cleanup completed successfully', {
+                deviceId: this.getData().id,
+                timestamp: new Date().toISOString()
+            });
+            this.logger = null;
         }
+
     } catch (error) {
         if (this.logger) {
-            this.logger.error('Error during device cleanup', error);
+            this.logger.error('Error during device cleanup', error, {
+                deviceId: this.getData().id,
+                timestamp: new Date().toISOString()
+            });
         }
     }
 }

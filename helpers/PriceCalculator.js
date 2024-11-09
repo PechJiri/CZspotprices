@@ -380,7 +380,7 @@ validatePriceData(data) {
     async calculateAveragePrices(device, hours, startFromHour = 0) {
         try {
             const currentHour = new Date().getHours();
-            const cacheKey = `${hours}-${startFromHour}-${currentHour}`;
+            const cacheKey = `${hours}-${startFromHour}-${currentHour}-${device.getPriceInKWh()}`;
     
             if (this.averagePriceCache.has(cacheKey) && 
                 this.lastCalculationHour === currentHour) {
