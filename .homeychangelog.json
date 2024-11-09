@@ -145,5 +145,8 @@
   },
   "2.0.22": {
     "en": "bugfix"
+  },
+  "2.0.23": {
+    "en": "Added LockManager to better manage updating prices via API"
   }
 }
