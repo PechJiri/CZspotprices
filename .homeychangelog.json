@@ -139,5 +139,8 @@
   },
   "2.0.20": {
     "en": "bugfix"
+  },
+  "2.0.21": {
+    "en": "bugfix average trigger and condition"
   }
 }
