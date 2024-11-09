@@ -10,100 +10,122 @@ const Logger = require('../../helpers/Logger');
 class CZSpotPricesDevice extends Homey.Device {
 
     async onInit() {
-        // Vytvoření instance loggeru jako první věc
-        this.logger = new Logger(this.homey, 'CZSpotPricesDevice');
-        const enableLogging = this.getSetting('enable_logging') || false;
-        this.logger.setEnabled(enableLogging);
-        
-        // Inicializace `flowCardManager` před `try`
-        this.flowCardManager = new FlowCardManager(this.homey, this);
-        if (this.flowCardManager) this.flowCardManager.setLogger(this.logger);
-    
         try {
-            this.logger.debug('Začátek inicializace zařízení');
+            this.isInitialized = false;
+            // Vytvoření instance loggeru jako první věc, pouze pokud neexistuje
+            if (!this.logger) {
+                this.logger = new Logger(this.homey, 'CZSpotPricesDevice');
+                const enableLogging = this.getSetting('enable_logging') || false;
+                this.logger.setEnabled(enableLogging);
+                this.logger.debug('Logger inicializován');
+            }
             
+            // Inicializace `flowCardManager` pouze pokud ještě neexistuje
+            if (!this.flowCardManager) {
+                this.flowCardManager = new FlowCardManager(this.homey, this);
+                if (this.flowCardManager) {
+                    this.flowCardManager.setLogger(this.logger);
+                    this.logger.debug('Logger nastaven pro FlowCardManager');
+                }
+            }
+    
+            this.logger.debug('Začátek inicializace zařízení');
+    
             // Inicializace základních nastavení
             await this.initializeBasicSettings();
             this.logger.log('Základní nastavení inicializována');
     
             // Inicializace FlowCardManageru
-            try {
-                this.logger.debug('Inicializace FlowCardManageru');
-                await this.flowCardManager.initialize();
-                this.logger.log('FlowCardManager úspěšně inicializován');
-            } catch (error) {
-                this.logger.error('Chyba při inicializaci FlowCardManageru', error);
-                throw error;
+            if (this.flowCardManager) {
+                try {
+                    this.logger.debug('Inicializace FlowCardManageru');
+                    await this.flowCardManager.initialize();
+                    this.logger.log('FlowCardManager úspěšně inicializován');
+                } catch (error) {
+                    this.logger.error('Chyba při inicializaci FlowCardManageru', error);
+                    throw error;
+                }
             }
     
-            // Nastavení timeoutu pro případ, že by inicializace trvala příliš dlouho
-            const initTimeout = setTimeout(() => {
-                this.logger.error('Timeout při inicializaci zařízení');
-                throw new Error('Device initialization timeout');
-            }, 30000);
-    
-            // Načtení dat s retry mechanismem
-            const lastUpdate = await this.getStoreValue('lastDataUpdate');
-            const now = Date.now();
-    
-            this.logger.debug('Kontrola posledního updatu', {
-                lastUpdate,
-                now,
-                diff: now - lastUpdate,
-                needsUpdate: !lastUpdate || (now - lastUpdate > 15 * 60 * 1000)
+            // Nastavení timeoutu pro inicializaci
+            const initTimeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => {
+                    reject(new Error('Device initialization timeout after 30s'));
+                }, 30000);
             });
     
-            if (!lastUpdate || (now - lastUpdate > 15 * 60 * 1000)) {
-                let retryCount = 0;
-                const maxRetries = 3;
+            // Načtení dat s retry mechanismem
+            const dataPromise = this._loadInitialData();
     
-                while (retryCount < maxRetries) {
-                    try {
-                        this.logger.debug(`Pokus o načtení dat #${retryCount + 1}`);
-                        await this.initialDataFetch();
-                        this.logger.log('Data úspěšně načtena');
-                        break;
-                    } catch (error) {
-                        retryCount++;
-                        this.logger.error(`Pokus ${retryCount} o načtení dat selhal`, error, {
-                            retryCount,
-                            maxRetries,
-                            nextRetryIn: retryCount < maxRetries ? `${5 * retryCount}s` : 'N/A'
-                        });
-    
-                        if (retryCount === maxRetries) {
-                            this.logger.error('Dosažen maximální počet pokusů o načtení dat');
-                            throw new Error('Max retries reached for initial data fetch');
-                        }
-                        await new Promise(resolve => setTimeout(resolve, 5000 * retryCount));
-                    }
-                }
-            } else {
-                this.logger.log('Použití nedávných dat - přeskakuji načítání');
-            }
-    
-            // Zrušení timeoutu po úspěšné inicializaci
-            clearTimeout(initTimeout);
+            // Použití Promise.race pro handling timeoutu
+            await Promise.race([dataPromise, initTimeoutPromise]);
     
             // Nastavení plánovaných úloh
             this.logger.debug('Nastavování plánovaných úloh');
             await this.setupScheduledTasks(false);
             this.logger.log('Plánované úlohy nastaveny');
     
+            this.isInitialized = true;
             this.logger.log('Inicializace zařízení dokončena', {
                 deviceId: this.getData().id,
                 name: this.getName(),
-                loggingEnabled: enableLogging
+                loggingEnabled: this.logger.enabled
             });
     
         } catch (error) {
+            this.isInitialized = false;
             this.logger.error('Selhání inicializace zařízení', error, {
                 deviceId: this.getData().id,
                 name: this.getName()
             });
             await this.setUnavailable(`Initialization failed: ${error.message}`);
+            throw error; // Propagujeme error dál
         }
-    }  
+    }
+    
+    // Pomocná metoda pro načtení dat
+    async _loadInitialData() {
+        const lastUpdate = await this.getStoreValue('lastDataUpdate');
+        const now = Date.now();
+    
+        this.logger.debug('Kontrola posledního updatu', {
+            lastUpdate,
+            now,
+            diff: now - lastUpdate,
+            needsUpdate: !lastUpdate || (now - lastUpdate > 15 * 60 * 1000)
+        });
+    
+        if (!lastUpdate || (now - lastUpdate > 15 * 60 * 1000)) {
+            let retryCount = 0;
+            const maxRetries = 3;
+    
+            while (retryCount < maxRetries) {
+                try {
+                    this.logger.debug(`Pokus o načtení dat #${retryCount + 1}`);
+                    await this.initialDataFetch();
+                    await this.setStoreValue('lastDataUpdate', now);
+                    this.logger.log('Data úspěšně načtena');
+                    return true;
+                } catch (error) {
+                    retryCount++;
+                    this.logger.error(`Pokus ${retryCount} o načtení dat selhal`, error, {
+                        retryCount,
+                        maxRetries,
+                        nextRetryIn: retryCount < maxRetries ? `${5 * retryCount}s` : 'N/A'
+                    });
+    
+                    if (retryCount === maxRetries) {
+                        this.logger.error('Dosažen maximální počet pokusů o načtení dat');
+                        throw new Error('Max retries reached for initial data fetch');
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 5000 * retryCount));
+                }
+            }
+        } else {
+            this.logger.log('Použití nedávných dat - přeskakuji načítání');
+            return true;
+        }
+    } 
   
     async initializeBasicSettings() {
         try {
@@ -114,37 +136,67 @@ class CZSpotPricesDevice extends Homey.Device {
             // Inicializace helperů s vlastními loggery a kontextem
             this.logger.debug('Inicializace helper tříd');
             
+            // Inicializace s předáním kontextu
             this.priceCalculator = new PriceCalculator(this.homey, 'PriceCalculator');
             this.spotPriceApi = new SpotPriceAPI(this.homey, 'SpotPriceAPI');
             this.intervalManager = new IntervalManager(this.homey);
             
-            // Pro intervalManager stále nastavíme logger z device
+            // Nastavení loggerů pro všechny komponenty
+            if (this.priceCalculator) {
+                this.priceCalculator.setLogger(this.logger);
+                this.logger.debug('Logger nastaven pro PriceCalculator');
+            }
+            
+            if (this.spotPriceApi) {
+                this.spotPriceApi.setLogger(this.logger);
+                this.logger.debug('Logger nastaven pro SpotPriceAPI');
+            }
+            
             if (this.intervalManager) {
                 this.intervalManager.setLogger(this.logger);
                 this.logger.debug('Logger nastaven pro IntervalManager');
             }
     
-            // Ověření, že všechny závislosti byly inicializovány
+            // Kontrola závislostí včetně kontroly nastavení loggerů
             const requiredDependencies = [
-                { name: 'SpotPriceAPI', instance: this.spotPriceApi },
-                { name: 'IntervalManager', instance: this.intervalManager },
-                { name: 'PriceCalculator', instance: this.priceCalculator }
+                { 
+                    name: 'SpotPriceAPI', 
+                    instance: this.spotPriceApi,
+                    checkLogger: true 
+                },
+                { 
+                    name: 'IntervalManager', 
+                    instance: this.intervalManager,
+                    checkLogger: true 
+                },
+                { 
+                    name: 'PriceCalculator', 
+                    instance: this.priceCalculator,
+                    checkLogger: true 
+                }
             ];
     
-            this.logger.debug('Kontrola inicializace závislostí');
+            this.logger.debug('Kontrola inicializace závislostí a jejich loggerů');
             
-            requiredDependencies.forEach(({ name, instance }) => {
+            for (const { name, instance, checkLogger } of requiredDependencies) {
                 if (!instance) {
-                    const errorMessage = `Dependency ${name} is not initialized.`;
+                    const errorMessage = `Komponenta ${name} není inicializována`;
                     this.logger.error(errorMessage, new Error(errorMessage));
                     throw new Error(errorMessage);
                 }
-                this.logger.debug(`${name} úspěšně inicializován`);
-            });
     
-            this.logger.log('Všechny závislosti jsou inicializovány');
+                if (checkLogger && (!instance.getLogger || !instance.getLogger())) {
+                    const errorMessage = `Logger není správně nastaven pro ${name}`;
+                    this.logger.error(errorMessage, new Error(errorMessage));
+                    throw new Error(errorMessage);
+                }
     
-            // Inicializace device ID s kontrolním logováním
+                this.logger.debug(`${name} úspěšně inicializován včetně loggeru`);
+            }
+    
+            this.logger.log('Všechny komponenty a jejich loggery jsou inicializovány');
+    
+            // Inicializace device ID
             this.logger.debug('Začátek inicializace Device ID');
             try {
                 await this.initializeDeviceId();
@@ -160,12 +212,13 @@ class CZSpotPricesDevice extends Homey.Device {
             this.logger.debug('Začátek načítání nastavení');
             try {
                 await this.initializeSettings();
+                const settings = this.getSettings();
                 this.logger.log('Nastavení zařízení inicializováno', {
                     deviceId: this.getData().id,
                     settings: {
-                        lowIndexHours: this.lowIndexHours,
-                        highIndexHours: this.highIndexHours,
-                        priceInKWh: this.priceInKWh
+                        lowIndexHours: settings.low_index_hours || 8,
+                        highIndexHours: settings.high_index_hours || 8,
+                        priceInKWh: settings.price_in_kwh || false
                     }
                 });
             } catch (error) {
@@ -199,7 +252,16 @@ class CZSpotPricesDevice extends Homey.Device {
                 throw error;
             }
     
-            this.logger.log('Inicializace základních nastavení dokončena úspěšně');
+            // Ověření dostupnosti všech kritických metod
+            this.logger.debug('Kontrola dostupnosti kritických metod');
+            if (!this.spotPriceApi.getCurrentTimeInfo) {
+                throw new Error('Metoda getCurrentTimeInfo není dostupná v SpotPriceAPI');
+            }
+    
+            this.logger.log('Inicializace základních nastavení dokončena úspěšně', {
+                deviceId: this.getData().id,
+                componentsInitialized: requiredDependencies.map(d => d.name)
+            });
             
         } catch (error) {
             this.logger.error('Kritická chyba při inicializaci základních nastavení', error, {
@@ -900,39 +962,69 @@ async checkAveragePrice() {
 */
 async updateAllPrices(processedPrices) {
     try {
-        if (!this.priceCalculator) {
-            throw new Error('PriceCalculator není inicializován');
+        if (this.logger) {
+            this.logger.debug('Začátek updateAllPrices', {
+                processedPricesCount: processedPrices?.length
+            });
         }
 
-        // Získání aktuálního nastavení pro indexy
-        const lowIndexHours = this.getSetting('low_index_hours') || 8;
-        const highIndexHours = this.getSetting('high_index_hours') || 8;
+        // Kontrola všech potřebných závislostí
+        if (!this.priceCalculator || !this.spotPriceApi) {
+            throw new Error('Chybí required dependencies pro updateAllPrices');
+        }
 
+        // Získání a validace nastavení
+        const settings = this.getSettings();
+        const lowIndexHours = settings.low_index_hours || 8;
+        const highIndexHours = settings.high_index_hours || 8;
+
+        // Validace vstupních dat
+        if (!Array.isArray(processedPrices) || processedPrices.length !== 24) {
+            throw new Error('Neplatná vstupní data pro updateAllPrices');
+        }
+
+        // Použití lokálního PriceCalculatoru
         const pricesWithIndexes = this.priceCalculator.setPriceIndexes(
             processedPrices,
             lowIndexHours,
             highIndexHours
         );
 
-        if (this.logger) {
-            this.logger.debug('Ceny s přepočítanými indexy', {
-                low: pricesWithIndexes.filter(p => p.level === 'low').length,
-                medium: pricesWithIndexes.filter(p => p.level === 'medium').length,
-                high: pricesWithIndexes.filter(p => p.level === 'high').length
-            });
+        // Aktualizace capabilities s try/catch pro každou operaci
+        try {
+            await this._updateHourlyCapabilities(pricesWithIndexes);
+            await this._updateCurrentPrice(pricesWithIndexes);
+            await this._updateDailyAverage(pricesWithIndexes);
+
+            if (this.logger) {
+                this.logger.log('Všechny ceny a indexy úspěšně aktualizovány', {
+                    indexStats: {
+                        low: pricesWithIndexes.filter(p => p.level === 'low').length,
+                        medium: pricesWithIndexes.filter(p => p.level === 'medium').length,
+                        high: pricesWithIndexes.filter(p => p.level === 'high').length
+                    },
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            return true;
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Chyba při aktualizaci capabilities', {
+                    message: error.message,
+                    stack: error.stack
+                });
+            }
+            throw error;
         }
 
-        // Paralelní aktualizace všech capabilities
-        await Promise.all([
-            this._updateHourlyCapabilities(pricesWithIndexes),
-            this._updateCurrentPrice(pricesWithIndexes),
-            this._updateDailyAverage(pricesWithIndexes)
-        ]);
-
-        return true;
     } catch (error) {
         if (this.logger) {
-            this.logger.error('Error updating prices', error);
+            this.logger.error('Kritická chyba v updateAllPrices', {
+                message: error.message,
+                stack: error.stack,
+                deviceId: this.getData().id
+            });
         }
         throw error;
     }
@@ -1005,6 +1097,11 @@ async _updateHourlyCapabilities(pricesWithIndexes) {
 */
 async _updateCurrentPrice(pricesWithIndexes) {
     try {
+        // Kontrola inicializace spotPriceApi
+        if (!this.spotPriceApi) {
+            throw new Error('SpotPriceApi není inicializován');
+        }
+
         // Získání aktuálního času s respektováním časové zóny
         const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
 
@@ -1012,7 +1109,7 @@ async _updateCurrentPrice(pricesWithIndexes) {
         const currentPriceInKWh = this.priceInKWh;
 
         if (this.logger) {
-            this.logger.log('Začátek aktualizace current price', {
+            this.logger.debug('Začátek aktualizace current price', {
                 hour: timeInfo.hour,
                 priceInKWh: currentPriceInKWh
             });
@@ -1036,13 +1133,6 @@ async _updateCurrentPrice(pricesWithIndexes) {
             currentPriceInKWh
         );
 
-        if (this.logger) {
-            this.logger.debug('Cena před aktualizací capabilities', {
-                convertedPrice,
-                priceInKWh: currentPriceInKWh
-            });
-        }
-
         // Aktualizace capabilities s lepším error handlingem
         await Promise.all([
             this.setCapabilityValue('measure_current_spot_price_CZK', convertedPrice)
@@ -1061,23 +1151,11 @@ async _updateCurrentPrice(pricesWithIndexes) {
                 })
         ]);
 
-        // Trigger pro změnu ceny s rozšířenými informacemi
-        await this.triggerCurrentPriceChanged({
-            price: convertedPrice,
-            index: currentHourData.level,
-            hour: timeInfo.hour,
-            timestamp: new Date().toISOString(),
-            priceInKWh: this.priceInKWh
-        });
-
-        // Rozšířené logování pro debugging
         if (this.logger) {
-            this.logger.log('Aktuální cena aktualizována', {
+            this.logger.debug('Aktuální cena aktualizována', {
                 hour: timeInfo.hour,
                 price: convertedPrice,
-                originalPrice: currentHourData.priceCZK,
-                index: currentHourData.level,
-                timezone: this.homey.clock.getTimezone()
+                index: currentHourData.level
             });
         }
 

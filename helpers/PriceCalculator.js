@@ -353,42 +353,6 @@ validatePriceData(data) {
                 high: vysledek.filter(h => h.level === 'high').length
             };
     
-            if (this.logger) {
-                this.logger.debug('Detailní výsledky indexování', {
-                    očekávané: {
-                        low: lowIndexHours,
-                        high: highIndexHours,
-                        medium: 24 - lowIndexHours - highIndexHours
-                    },
-                    skutečné: statistiky,
-                    detailníPřehled: vysledek.map(h => ({
-                        hour: h.hour,
-                        price: h.priceCZK,
-                        level: h.level
-                    })).sort((a, b) => a.hour - b.hour)
-                });
-                
-                if (statistiky.low !== lowIndexHours || 
-                    statistiky.high !== highIndexHours || 
-                    statistiky.low + statistiky.medium + statistiky.high !== 24) {
-                    this.logger.warn('Neočekávané počty indexů', {
-                        očekávané: {
-                            low: lowIndexHours,
-                            high: highIndexHours,
-                            medium: 24 - lowIndexHours - highIndexHours
-                        },
-                        skutečné: statistiky,
-                        rozdíl: {
-                            low: statistiky.low - lowIndexHours,
-                            high: statistiky.high - highIndexHours,
-                            medium: statistiky.medium - (24 - lowIndexHours - highIndexHours)
-                        }
-                    });
-                } else {
-                    this.logger.debug('Počty indexů odpovídají nastavení');
-                }
-            }
-    
             // Uložení do cache
             this.priceCache.set(cacheKey, {
                 data: vysledek,
@@ -408,6 +372,7 @@ validatePriceData(data) {
             }));
         }
     }
+
 
     /**
      * Výpočet průměrných cen s cachováním

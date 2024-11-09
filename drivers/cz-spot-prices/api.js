@@ -2,6 +2,11 @@
 
 const Homey = require('homey');
 const axios = require('axios');
+const instance = axios.create({
+    httpsAgent: new require('https').Agent({
+        rejectUnauthorized: false
+    })
+});
 const PriceCalculator = require('../../helpers/PriceCalculator');
 const Logger = require('../../helpers/Logger');
 
@@ -13,6 +18,8 @@ class SpotPriceAPI {
         // Defaultně zapneme logging pro API
         this.logger.setEnabled(true);
         
+        
+
         this.baseUrl = 'https://spotovaelektrina.cz/api/v1/price';
         const today = new Date().toISOString().slice(0, 10); // získá datum ve formátu RRRR-MM-DD
         this.backupUrl = `https://www.ote-cr.cz/cs/kratkodobe-trhy/elektrina/denni-trh/@@chart-data?date=${today}`;
@@ -263,14 +270,6 @@ async _fetchFromPrimaryAPI(timeoutMs) {
 
         const data = response.data;
 
-        // Logování celé vstupní hodnoty z API bez ořezání
-        if (this.logger) {
-            this.logger.debug('Vstupní hodnota z primárního API', {
-                url,
-                receivedData: data // Log celého objektu bez ořezání
-            });
-        }
-
         // Ověření struktury dat
         if (!data.hoursToday || !Array.isArray(data.hoursToday) || data.hoursToday.length !== 24) {
             const invalidDataError = new Error('Neplatná struktura dat z API');
@@ -281,13 +280,6 @@ async _fetchFromPrimaryAPI(timeoutMs) {
                 });
             }
             throw invalidDataError;
-        }
-
-        // Logování celé výstupní hodnoty z funkce bez ořezání
-        if (this.logger) {
-            this.logger.debug('Výstupní hodnota z _fetchFromPrimaryAPI', {
-                hoursToday: data.hoursToday // Log celého pole `hoursToday` bez ořezání
-            });
         }
 
         // Vrátíme pouze pole `hoursToday`
