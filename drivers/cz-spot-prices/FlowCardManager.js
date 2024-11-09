@@ -197,6 +197,13 @@ class FlowCardManager {
         card.registerRunListener(async (args, state) => {
             try {
                 const { hours, condition } = args;
+                if (this.logger) {
+                    this.logger.debug('Average price trigger check začíná', {
+                        hours,
+                        condition,
+                        state
+                    });
+                }
                 const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
                 const currentHour = timeInfo.hour;
     

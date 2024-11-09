@@ -519,28 +519,27 @@ class CZSpotPricesDevice extends Homey.Device {
 
     async updateHourlyData() {
         try {
-            // Získání aktuálního času s respektováním časové zóny
             const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+            const currentHour = timeInfo.hour;
     
             if (this.logger) {
                 this.logger.log('Začátek hodinové aktualizace', {
-                    hour: timeInfo.hour,
+                    hour: currentHour,
                     systemHour: new Date().getHours(),
                     timezone: this.homey.clock.getTimezone()
                 });
             }
     
-            // Získání aktuální ceny a indexu pro danou hodinu
+            // Získání aktuální ceny a indexu
             const [currentPrice, currentIndex] = await Promise.all([
-                this.getCapabilityValue(`hour_price_CZK_${timeInfo.hour}`),
-                this.getCapabilityValue(`hour_price_index_${timeInfo.hour}`)
+                this.getCapabilityValue(`hour_price_CZK_${currentHour}`),
+                this.getCapabilityValue(`hour_price_index_${currentHour}`)
             ]);
     
-            // Validace získaných dat
             if (currentPrice === null || currentIndex === null) {
                 if (this.logger) {
                     this.logger.error('Chybí data pro hodinu', {
-                        hour: timeInfo.hour,
+                        hour: currentHour,
                         price: currentPrice,
                         index: currentIndex
                     });
@@ -548,61 +547,82 @@ class CZSpotPricesDevice extends Homey.Device {
                 return false;
             }
     
-            // Aktualizace current capabilities s lepším error handlingem
-            try {
-                await Promise.all([
-                    this.setCapabilityValue('measure_current_spot_price_CZK', currentPrice)
-                        .catch(err => {
-                            if (this.logger) {
-                                this.logger.error('Chyba při aktualizaci current price capability', err);
-                            }
-                            throw err;
-                        }),
+            // Paralelní provedení všech aktualizací
+            await Promise.all([
+                // 1. Aktualizace capabilities a spuštění price change triggeru
+                Promise.all([
+                    this.setCapabilityValue('measure_current_spot_price_CZK', currentPrice),
                     this.setCapabilityValue('measure_current_spot_index', currentIndex)
-                        .catch(err => {
-                            if (this.logger) {
-                                this.logger.error('Chyba při aktualizaci current index capability', err);
-                            }
-                            throw err;
-                        })
-                ]);
-            } catch (error) {
-                if (this.logger) {
-                    this.logger.error('Chyba při aktualizaci capabilities', error);
-                }
-                return false;
-            }
-    
-            // Trigger pro změnu ceny s rozšířenými informacemi
-            await this.triggerCurrentPriceChanged({
-                price: currentPrice,
-                index: currentIndex,
-                hour: timeInfo.hour,
-                timestamp: new Date().toISOString()
-            });
-    
-            // Rozšířené logování pro debugging
-            if (this.logger) {
-                this.logger.log('Hodinová aktualizace dokončena', {
-                    hour: timeInfo.hour,
-                    systemHour: new Date().getHours(),
+                ]).then(() => this.triggerCurrentPriceChanged({
                     price: currentPrice,
                     index: currentIndex,
-                    timezone: this.homey.clock.getTimezone(),
-                    timeString: new Date().toLocaleString('en-US', { 
-                        timeZone: this.homey.clock.getTimezone() 
-                    })
+                    hour: currentHour,
+                    timestamp: new Date().toISOString()
+                })),
+    
+                // 2. Kontrola změny tarifu
+                this._checkTariffChange(currentHour),
+    
+                // 3. Kontrola average price triggerů
+                (async () => {
+                    try {
+                        const triggerCard = this.homey.flow.getDeviceTriggerCard('average-price-trigger');
+                        const flows = await triggerCard.getArgumentValues(this);
+    
+                        for (const flow of flows) {
+                            const { hours, condition } = flow;
+                            const combinations = await this.priceCalculator.calculateAveragePrices(
+                                this,
+                                hours,
+                                0
+                            );
+    
+                            if (!combinations || combinations.length === 0) {
+                                continue;
+                            }
+    
+                            const sortedByAverage = combinations.sort((a, b) => 
+                                condition === 'lowest' ? 
+                                    a.averagePrice - b.averagePrice : 
+                                    b.averagePrice - a.averagePrice
+                            );
+    
+                            const bestCombination = sortedByAverage[0];
+    
+                            if (currentHour === bestCombination.startHour) {
+                                await triggerCard.trigger(this, {
+                                    average_price: parseFloat(bestCombination.averagePrice.toFixed(2))
+                                }, {
+                                    hours,
+                                    condition
+                                });
+                            }
+                        }
+                    } catch (error) {
+                        if (this.logger) {
+                            this.logger.error('Chyba při kontrole average price triggerů', error);
+                        }
+                    }
+                })()
+            ]);
+    
+            if (this.logger) {
+                this.logger.log('Hodinová aktualizace dokončena', {
+                    hour: currentHour,
+                    price: currentPrice,
+                    index: currentIndex
                 });
             }
     
             return true;
+    
         } catch (error) {
             if (this.logger) {
                 this.logger.error('Kritická chyba při hodinové aktualizaci', error);
             }
             return false;
         }
-    }    
+    }
 
 // Helper pro formátování času
 _formatDelay(delay) {
@@ -617,6 +637,14 @@ async checkAveragePrice() {
         const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
         const currentHour = timeInfo.hour;
 
+        if (this.logger) {
+            this.logger.debug('Začátek kontroly average price', {
+                currentHour,
+                systemHour: new Date().getHours(),
+                timezone: this.homey.clock.getTimezone()
+            });
+        }
+
         // Získat flow kartu pro trigger
         const triggerCard = this.homey.flow.getDeviceTriggerCard('average-price-trigger');
         if (!triggerCard) {
@@ -630,7 +658,14 @@ async checkAveragePrice() {
         // Získat všechny flow s jejich argumenty
         const flows = await triggerCard.getArgumentValues(this);
         if (this.logger) {
-            this.logger.log('Kontrola průměrných cen', { currentHour, flowCount: flows.length });
+            this.logger.debug('Nalezené flows pro average price', {
+                currentHour,
+                flowCount: flows.length,
+                flows: flows.map(f => ({
+                    hours: f.hours,
+                    condition: f.condition
+                }))
+            });
         }
 
         // Zpracovat každý flow zvlášť
@@ -640,11 +675,16 @@ async checkAveragePrice() {
             try {
                 // Použít PriceCalculator místo lokální metody
                 const allCombinations = await this.priceCalculator.calculateAveragePrices(this, hours, 0);
-                if (!allCombinations || allCombinations.length === 0) {
-                    if (this.logger) {
-                        this.logger.error('Nebyly nalezeny žádné kombinace pro výpočet průměru');
-                    }
-                    continue;
+                if (this.logger) {
+                    this.logger.debug('Vypočtené kombinace pro flow', {
+                        hours,
+                        condition,
+                        combinationsCount: allCombinations.length,
+                        firstThree: allCombinations.slice(0, 3).map(c => ({
+                            startHour: c.startHour,
+                            avgPrice: c.averagePrice.toFixed(2)
+                        }))
+                    });
                 }
 
                 // Seřadit kombinace podle průměrné ceny
@@ -654,10 +694,16 @@ async checkAveragePrice() {
                 // Kontrola, zda aktuální je začátkem intervalu
                 if (targetCombination.startHour === currentHour) {
                     if (this.logger) {
-                        this.logger.log(`Nalezen interval pro trigger - ${condition} kombinace pro ${hours} hodin`, {
-                            startHour: targetCombination.startHour,
+                        this.logger.log('Spouštím average price trigger', {
                             currentHour,
-                            averagePrice: targetCombination.avg
+                            interval: `${targetCombination.startHour}:00-${(targetCombination.startHour + hours) % 24}:00`,
+                            averagePrice: targetCombination.averagePrice.toFixed(2),
+                            condition,
+                            hours,
+                            pricesInInterval: targetCombination.prices.map(p => ({
+                                hour: p.hour,
+                                price: p.price.toFixed(2)
+                            }))
                         });
                     }
 
@@ -680,8 +726,12 @@ async checkAveragePrice() {
                         });
                     }
                 } else if (this.logger) {
-                    this.logger.log(`Hodina ${currentHour} není začátkem ${condition} ${hours}-hodinového okna`, {
-                        startHour: targetCombination.startHour
+                    this.logger.debug('Nesplněny podmínky pro spuštění triggeru', {
+                        currentHour,
+                        expectedStartHour: targetCombination.startHour,
+                        condition,
+                        hours,
+                        averagePrice: targetCombination.averagePrice.toFixed(2)
                     });
                 }
             } catch (error) {
