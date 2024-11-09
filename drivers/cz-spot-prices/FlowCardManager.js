@@ -200,36 +200,43 @@ class FlowCardManager {
                 const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
                 const currentHour = timeInfo.hour;
     
-                const allCombinations = await this.device.priceCalculator.calculateAveragePrices(
-                    this.device, 
-                    hours, 
+                const combinations = await this.device.priceCalculator.calculateAveragePrices(
+                    this.device,
+                    hours,
                     0
                 );
     
-                if (!allCombinations || allCombinations.length === 0) {
+                if (!combinations || combinations.length === 0) {
                     if (this.logger) {
                         this.logger.error('Žádné platné kombinace pro průměrnou cenu');
                     }
                     return false;
                 }
     
-                const prices = allCombinations.sort((a, b) => a.avg - b.avg);
-                const targetCombination = condition === 'lowest' ? prices[0] : prices[prices.length - 1];
+                // Seřazení podle průměrné ceny
+                const sortedByAverage = combinations.sort((a, b) => 
+                    condition === 'lowest' ? 
+                        a.averagePrice - b.averagePrice : 
+                        b.averagePrice - a.averagePrice
+                );
     
-                const result = currentHour >= targetCombination.startHour && 
-                               currentHour < (targetCombination.startHour + hours);
+                const bestCombination = sortedByAverage[0];
+    
+                // Trigger se spustí pouze v hodinu, kdy interval začíná
+                const result = currentHour === bestCombination.startHour;
     
                 if (this.logger) {
-                    this.logger.debug('Average price trigger vyhodnocen', {
+                    this.logger.debug('Vyhodnocení average price triggeru', {
                         currentHour,
-                        startHour: targetCombination.startHour,
-                        hours,
+                        bestCombinationStartHour: bestCombination.startHour,
+                        averagePrice: bestCombination.averagePrice,
                         condition,
-                        result
+                        willTrigger: result
                     });
                 }
     
                 return result;
+    
             } catch (error) {
                 if (this.logger) {
                     this.logger.error('Chyba v average price triggeru', error);
@@ -239,11 +246,7 @@ class FlowCardManager {
         });
     
         this._flowCards.triggers.set('average-price-trigger', card);
-    
-        if (this.logger) {
-            this.logger.log('Average price trigger úspěšně registrován');
-        }
-    }    
+    }
 
     /**
      * Registrace API failure triggeru
@@ -402,7 +405,9 @@ class FlowCardManager {
      */
 async _registerAveragePriceCondition() {
     if (this._flowCards.conditions.has('average-price-condition')) {
-        this.homey.log('Average price condition již je registrována');
+        if (this.logger) {
+            this.logger.debug('Average price condition již je registrována');
+        }
         return;
     }
 
@@ -414,33 +419,49 @@ async _registerAveragePriceCondition() {
             const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
             const currentHour = timeInfo.hour;
 
-            const allCombinations = await this.device.priceCalculator.calculateAveragePrices(
+            const combinations = await this.device.priceCalculator.calculateAveragePrices(
                 this.device, 
                 hours, 
                 0
             );
             
-            if (!allCombinations || allCombinations.length === 0) {
-                throw new Error('Nenalezeny žádné kombinace pro výpočet průměru');
+            if (!combinations || combinations.length === 0) {
+                if (this.logger) {
+                    this.logger.error('Nenalezeny žádné kombinace pro výpočet průměru');
+                }
+                return false;
             }
 
-            const prices = allCombinations.sort((a, b) => a.avg - b.avg);
-            const targetCombination = condition === 'lowest' ? prices[0] : prices[prices.length - 1];
+            // Seřazení podle průměrné ceny
+            const sortedByAverage = combinations.sort((a, b) => 
+                condition === 'lowest' ? 
+                    a.averagePrice - b.averagePrice : 
+                    b.averagePrice - a.averagePrice
+            );
 
-            const result = currentHour >= targetCombination.startHour && 
-                       currentHour < (targetCombination.startHour + hours);
+            const bestCombination = sortedByAverage[0];
 
-            this.homey.log('Average price condition vyhodnocena:', {
-                currentHour,
-                targetStartHour: targetCombination.startHour,
-                hours,
-                condition,
-                result
-            });
+            // Podmínka je splněna, pokud jsme v intervalu nejlepší kombinace
+            const isInInterval = currentHour >= bestCombination.startHour && 
+                               currentHour < (bestCombination.startHour + hours);
 
-            return result;
+            if (this.logger) {
+                this.logger.log('Average price condition vyhodnocena:', {
+                    currentHour,
+                    startHour: bestCombination.startHour,
+                    endHour: bestCombination.startHour + hours,
+                    averagePrice: bestCombination.averagePrice,
+                    hours,
+                    condition,
+                    isInInterval
+                });
+            }
+
+            return isInInterval;
         } catch (error) {
-            this.homey.error('Chyba v average price condition:', error);
+            if (this.logger) {
+                this.logger.error('Chyba v average price condition:', error);
+            }
             return false;
         }
     });

@@ -379,11 +379,11 @@ validatePriceData(data) {
      */
     async calculateAveragePrices(device, hours, startFromHour = 0) {
         try {
-            const aktualniHodina = new Date().getHours();
-            const cacheKey = `${hours}-${startFromHour}-${aktualniHodina}`;
+            const currentHour = new Date().getHours();
+            const cacheKey = `${hours}-${startFromHour}-${currentHour}`;
     
             if (this.averagePriceCache.has(cacheKey) && 
-                this.lastCalculationHour === aktualniHodina) {
+                this.lastCalculationHour === currentHour) {
                 const cachedData = this.averagePriceCache.get(cacheKey);
                 if (Date.now() - cachedData.timestamp < this.AVERAGE_CACHE_TTL) {
                     if (this.logger) {
@@ -393,46 +393,65 @@ validatePriceData(data) {
                 }
             }
     
-            const vsechnyKombinace = [];
+            const combinations = [];
             
-            for (let startHodina = startFromHour; startHodina <= 24 - hours; startHodina++) {
-                let celkem = 0;
-                let platneVP = true;
-                const ceny = [];
+            // Procházíme možné začátky intervalu
+            for (let startHour = startFromHour; startHour <= 24 - hours; startHour++) {
+                let totalPrice = 0;
+                let hasAllPrices = true;
+                const intervalPrices = [];
     
-                for (let i = startHodina; i < startHodina + hours; i++) {
-                    const cena = await device.getCapabilityValue(`hour_price_CZK_${i}`);
-                    if (cena === null || cena === undefined) {
-                        platneVP = false;
+                // Pro každý interval sbíráme ceny za daný počet hodin
+                for (let i = 0; i < hours; i++) {
+                    const hourNumber = (startHour + i) % 24;
+                    const price = await device.getCapabilityValue(`hour_price_CZK_${hourNumber}`);
+                    
+                    if (price === null || price === undefined) {
+                        hasAllPrices = false;
+                        if (this.logger) {
+                            this.logger.warn(`Chybí cena pro hodinu ${hourNumber}`);
+                        }
                         break;
                     }
-                    ceny.push(cena);
-                    celkem += cena;
+                    intervalPrices.push({
+                        hour: hourNumber,
+                        price: price
+                    });
+                    totalPrice += price;
                 }
     
-                if (platneVP) {
-                    vsechnyKombinace.push({
-                        startHodina,
-                        prumer: celkem / hours,
-                        ceny
+                if (hasAllPrices) {
+                    combinations.push({
+                        startHour,           // Hodina, od které interval začíná (0-23)
+                        averagePrice: totalPrice / hours,  // Průměrná cena za interval
+                        prices: intervalPrices,  // Detail cen v intervalu
+                        intervalLength: hours    // Délka intervalu v hodinách
                     });
                 }
             }
     
-            this.averagePriceCache.set(cacheKey, {
-                data: vsechnyKombinace,
-                timestamp: Date.now()
-            });
-            this.lastCalculationHour = aktualniHodina;
-    
             if (this.logger) {
-                this.logger.debug('Výpočet průměrných cen', { cacheKey, vsechnyKombinace });
+                this.logger.debug('Vypočtené kombinace průměrných cen', {
+                    počet: combinations.length,
+                    hodinVIntervalu: hours,
+                    příklad: combinations[0] ? {
+                        začátek: combinations[0].startHour,
+                        průměr: combinations[0].averagePrice,
+                        početCen: combinations[0].prices.length
+                    } : 'žádné kombinace'
+                });
             }
     
-            return vsechnyKombinace;
-        } catch (chyba) {
+            this.averagePriceCache.set(cacheKey, {
+                data: combinations,
+                timestamp: Date.now()
+            });
+            this.lastCalculationHour = currentHour;
+    
+            return combinations;
+        } catch (error) {
             if (this.logger) {
-                this.logger.error('Chyba při výpočtu průměrných cen:', chyba);
+                this.logger.error('Chyba při výpočtu průměrných cen:', error);
             }
             return [];
         }
