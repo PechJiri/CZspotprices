@@ -5,7 +5,7 @@
       "en": "Spot Price Update Status"
     },
     "getable": true,
-    "setable": false,
+    "setable": true,
     "uiComponent": null,
     "insights": true,
     "insightsTitleTrue": {

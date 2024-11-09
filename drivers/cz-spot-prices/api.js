@@ -120,8 +120,6 @@ class SpotPriceAPI {
         const errorMessage = 'Neplatná device instance pro getDailyPrices';
         if (this.logger) {
             this.logger.error(errorMessage, new Error(errorMessage));
-        } else {
-            this.homey.error(errorMessage);
         }
         throw new Error(errorMessage);
     }
@@ -131,42 +129,36 @@ class SpotPriceAPI {
     let oteError = null;
 
     try {
-        // Nastavení příznaku pokusu o primární API
-        await device.setCapabilityValue('primary_api_fail', true);
+        // Výchozí stav - normálně získáváme data z primárního API
+        await device.setCapabilityValue('primary_api_fail', false);
 
         if (this.logger) {
             this.logger.debug('Pokus o získání dat z primárního API (spotovaelektrina.cz)');
         }
 
-        // Pokus o získání dat z primárního API
-        const data = await this._fetchFromPrimaryAPI(timeoutMs);
+        const rawData = await this._fetchFromPrimaryAPI(timeoutMs);
 
-        // Logování vrácených dat z `_fetchFromPrimaryAPI`
-        if (this.logger) {
-            this.logger.debug('Výsledná data vrácená z _fetchFromPrimaryAPI', { data });
-        }
-
-        // Ověříme, že `data` je správně definována, a logujeme
-        if (!data) {
+        if (!rawData) {
             this.logger.error('Chyba: data jsou undefined po volání _fetchFromPrimaryAPI');
             throw new Error('Data z primárního API jsou undefined');
         }
 
-        // Logování dat před validací
-        if (this.logger) {
-            this.logger.debug('Data předaná do validatePriceData', { hoursToday: data });
-        }
+        // Transformace dat - pouze hour a priceCZK
+        const data = rawData.map(hourData => ({
+            hour: hourData.hour,
+            priceCZK: hourData.priceCZK
+            // Úmyslně vynecháváme level z API
+        }));
 
-        // Validace dat z primárního API
         if (!this.priceCalculator.validatePriceData(data)) {
             throw new Error('Neplatný formát dat z primárního API');
         }
 
-        // Úspěch - resetujeme příznak selhání
-        await device.setCapabilityValue('primary_api_fail', false);
-
         if (this.logger) {
-            this.logger.log('Data úspěšně získána z primárního API', { source: 'Primary API' });
+            this.logger.log('Data úspěšně získána z primárního API', { 
+                source: 'Primary API',
+                sampleData: data[0] // Log prvního záznamu pro kontrolu
+            });
         }
 
         return data;
@@ -181,6 +173,7 @@ class SpotPriceAPI {
             });
         }
 
+        // Primární API selhalo - přepneme na záložní API
         await device.setCapabilityValue('primary_api_fail', true);
 
         try {
@@ -188,15 +181,19 @@ class SpotPriceAPI {
                 this.logger.debug('Pokus o získání dat ze záložního API (ote.cr)');
             }
 
-            // Pokus o získání záložních dat
-            const backupData = await this.getBackupDailyPrices(device);
+            const rawBackupData = await this.getBackupDailyPrices(device);
 
-            // Validace záložních dat
+            // Transformace záložních dat - opět pouze hour a priceCZK
+            const backupData = rawBackupData.map(hourData => ({
+                hour: hourData.hour,
+                priceCZK: hourData.priceCZK
+                // Opět vynecháváme jakékoliv levely
+            }));
+
             if (!this.priceCalculator.validatePriceData(backupData)) {
                 throw new Error('Neplatný formát dat ze záložního API');
             }
 
-            // Spustíme trigger s informací o záloze
             await device.triggerAPIFailure({
                 primaryAPI: this.getErrorMessage(spotElektrinaError),
                 backupAPI: 'Záložní API úspěšné',
@@ -206,9 +203,13 @@ class SpotPriceAPI {
             });
 
             if (this.logger) {
-                this.logger.log('Data úspěšně získána ze záložního API', { source: 'Backup API' });
+                this.logger.log('Data úspěšně získána ze záložního API', { 
+                    source: 'Backup API',
+                    sampleData: backupData[0] // Log prvního záznamu pro kontrolu
+                });
             }
 
+            // Ponecháme primary_api_fail na true, protože stále používáme záložní API
             return backupData;
 
         } catch (backupError) {
@@ -221,7 +222,6 @@ class SpotPriceAPI {
                 });
             }
 
-            // Spuštění triggeru pro selhání obou API
             await device.triggerAPIFailure({
                 primaryAPI: this.getErrorMessage(spotElektrinaError),
                 backupAPI: this.getErrorMessage(oteError),
@@ -229,6 +229,7 @@ class SpotPriceAPI {
                 maxRetriesReached: true
             });
 
+            // Ponecháme primary_api_fail na true, protože primární API stále nefunguje
             throw new Error(`Selhání obou API: spotovaelektrina.cz: ${this.getErrorMessage(spotElektrinaError)}, ote.cr: ${this.getErrorMessage(oteError)}`);
         }
     }

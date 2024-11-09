@@ -250,18 +250,6 @@ validatePriceData(data) {
                 throw chyba;
             }
     
-            // Pokud všechna data již obsahují level, použijeme ho přímo
-            const allHaveLevel = hoursToday.every(hour => hour.level && typeof hour.level === 'string');
-            if (allHaveLevel) {
-                if (this.logger) {
-                    this.logger.debug('Použití existujících level hodnot z API', {
-                        sample: hoursToday[0]
-                    });
-                }
-    
-                return hoursToday;
-            }
-    
             // Cache kontrola pro vypočítané hodnoty
             const cacheKey = `${hoursToday.map(h => h.priceCZK).join('-')}-${lowIndexHours}-${highIndexHours}`;
     
@@ -269,40 +257,137 @@ validatePriceData(data) {
                 const cachedData = this.priceCache.get(cacheKey);
                 if (Date.now() - cachedData.timestamp < this.PRICE_CACHE_TTL) {
                     if (this.logger) {
-                        this.logger.debug('Použití dat z cenové cache', { cacheKey });
+                        this.logger.debug('Použití dat z cenové cache', { 
+                            cacheKey,
+                            cachedStats: {
+                                low: cachedData.data.filter(h => h.level === 'low').length,
+                                medium: cachedData.data.filter(h => h.level === 'medium').length,
+                                high: cachedData.data.filter(h => h.level === 'high').length
+                            }
+                        });
                     }
                     return cachedData.data;
                 }
             }
     
-            // Výpočet hodnot pokud nejsou v API ani v cache
+            // Výpočet hodnot
             if (this.logger) {
-                this.logger.debug('Výpočet nových cenových indexů', {
-                    lowIndexHours,
-                    highIndexHours,
-                    totalHours: hoursToday.length
+                this.logger.debug('Začátek výpočtu cenových indexů', {
+                    požadovanéIndexy: {
+                        low: lowIndexHours,
+                        high: highIndexHours,
+                        medium: 24 - lowIndexHours - highIndexHours
+                    },
+                    počet_hodin: hoursToday.length,
+                    vstupníData: {
+                        prvníHodina: hoursToday[0],
+                        poslednĺHodina: hoursToday[23]
+                    }
                 });
             }
     
-            const serazeneVP = [...hoursToday]
-                .sort((a, b) => a.priceCZK - b.priceCZK)
-                .map((cena, index) => ({
-                    ...cena,
-                    serazenyIndex: index
-                }));
+            // Seřazení hodin podle ceny od nejnižší po nejvyšší
+            const serazeneCeny = [...hoursToday].sort((a, b) => a.priceCZK - b.priceCZK);
     
-            const celkovePocetHodin = serazeneVP.length;
-            const vysledek = serazeneVP.map(hodinoveData => {
-                let level;
-                if (hodinoveData.serazenyIndex < lowIndexHours) {
-                    level = 'low';
-                } else if (hodinoveData.serazenyIndex >= celkovePocetHodin - highIndexHours) {
-                    level = 'high';
-                } else {
+            if (this.logger) {
+                this.logger.debug('Seřazené ceny', {
+                    nejnižší3: serazeneCeny.slice(0, 3).map(h => ({
+                        hour: h.hour,
+                        price: h.priceCZK
+                    })),
+                    nejvyšší3: serazeneCeny.slice(-3).map(h => ({
+                        hour: h.hour,
+                        price: h.priceCZK
+                    }))
+                });
+            }
+    
+            // Vytvoření mapy indexů pro každou hodinu
+            const indexMap = new Map();
+            
+            // Přiřazení "low" indexů pro nejnižší ceny
+            const lowPrices = serazeneCeny.slice(0, lowIndexHours);
+            lowPrices.forEach(data => {
+                indexMap.set(data.hour, 'low');
+            });
+    
+            if (this.logger) {
+                this.logger.debug('Přiřazeny LOW indexy', {
+                    počet: lowPrices.length,
+                    hodiny: lowPrices.map(h => ({
+                        hour: h.hour,
+                        price: h.priceCZK
+                    }))
+                });
+            }
+    
+            // Přiřazení "high" indexů pro nejvyšší ceny
+            const highPrices = serazeneCeny.slice(-highIndexHours);
+            highPrices.forEach(data => {
+                indexMap.set(data.hour, 'high');
+            });
+    
+            if (this.logger) {
+                this.logger.debug('Přiřazeny HIGH indexy', {
+                    počet: highPrices.length,
+                    hodiny: highPrices.map(h => ({
+                        hour: h.hour,
+                        price: h.priceCZK
+                    }))
+                });
+            }
+    
+            // Přiřazení "medium" indexů pro zbytek
+            const vysledek = hoursToday.map(hodinoveData => {
+                let level = indexMap.get(hodinoveData.hour);
+                if (!level) {
                     level = 'medium';
                 }
                 return { ...hodinoveData, level };
-            }).sort((a, b) => a.hour - b.hour);
+            });
+    
+            // Validace výsledků
+            const statistiky = {
+                low: vysledek.filter(h => h.level === 'low').length,
+                medium: vysledek.filter(h => h.level === 'medium').length,
+                high: vysledek.filter(h => h.level === 'high').length
+            };
+    
+            if (this.logger) {
+                this.logger.debug('Detailní výsledky indexování', {
+                    očekávané: {
+                        low: lowIndexHours,
+                        high: highIndexHours,
+                        medium: 24 - lowIndexHours - highIndexHours
+                    },
+                    skutečné: statistiky,
+                    detailníPřehled: vysledek.map(h => ({
+                        hour: h.hour,
+                        price: h.priceCZK,
+                        level: h.level
+                    })).sort((a, b) => a.hour - b.hour)
+                });
+                
+                if (statistiky.low !== lowIndexHours || 
+                    statistiky.high !== highIndexHours || 
+                    statistiky.low + statistiky.medium + statistiky.high !== 24) {
+                    this.logger.warn('Neočekávané počty indexů', {
+                        očekávané: {
+                            low: lowIndexHours,
+                            high: highIndexHours,
+                            medium: 24 - lowIndexHours - highIndexHours
+                        },
+                        skutečné: statistiky,
+                        rozdíl: {
+                            low: statistiky.low - lowIndexHours,
+                            high: statistiky.high - highIndexHours,
+                            medium: statistiky.medium - (24 - lowIndexHours - highIndexHours)
+                        }
+                    });
+                } else {
+                    this.logger.debug('Počty indexů odpovídají nastavení');
+                }
+            }
     
             // Uložení do cache
             this.priceCache.set(cacheKey, {
@@ -310,22 +395,11 @@ validatePriceData(data) {
                 timestamp: Date.now()
             });
     
-            if (this.logger) {
-                this.logger.debug('Nastavení cenových indexů dokončeno', {
-                    cacheKey,
-                    sampleData: vysledek[0],
-                    totalProcessed: vysledek.length
-                });
-            }
-    
             return vysledek;
     
         } catch (chyba) {
             if (this.logger) {
-                this.logger.error('Chyba při nastavování cenových indexů:', chyba, {
-                    inputLength: hoursToday?.length,
-                    firstItem: hoursToday?.[0]
-                });
+                this.logger.error('Chyba při nastavování cenových indexů:', chyba);
             }
             // V případě chyby vrátíme data s 'unknown' hodnotou
             return hoursToday.map(hodinoveData => ({ 

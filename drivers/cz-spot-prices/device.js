@@ -716,31 +716,10 @@ async checkAveragePrice() {
         });
         
         try {
-            // Aktualizace interních proměnných
-            if (changedKeys.includes('low_index_hours')) {
-                this.lowIndexHours = newSettings.low_index_hours;
-                this.logger.debug('Aktualizován lowIndexHours', {
-                    newValue: this.lowIndexHours,
-                    oldValue: oldSettings.low_index_hours
-                });
-            }
-            if (changedKeys.includes('high_index_hours')) {
-                this.highIndexHours = newSettings.high_index_hours;
-                this.logger.debug('Aktualizován highIndexHours', {
-                    newValue: this.highIndexHours,
-                    oldValue: oldSettings.high_index_hours
-                });
-            }
-            if (changedKeys.includes('price_in_kwh')) {
-                this.priceInKWh = newSettings.price_in_kwh;
-                this.logger.debug('Aktualizován priceInKWh', {
-                    newValue: this.priceInKWh,
-                    oldValue: oldSettings.price_in_kwh
-                });
-            }
-    
-            // Kontrola změn v tarifních nastaveních nebo jednotkách
+            // Kontrola změn v nastavení indexů nebo tarifu
             const needsRecalculation = changedKeys.some(key => 
+                key === 'low_index_hours' || 
+                key === 'high_index_hours' ||
                 key.startsWith('hour_') || 
                 key === 'high_tariff_price' || 
                 key === 'low_tariff_price' ||
@@ -748,8 +727,10 @@ async checkAveragePrice() {
             );
     
             if (needsRecalculation) {
-                this.logger.debug('Zahájení přepočtu cen s novými nastaveními', {
-                    changedTariffSettings: changedKeys.filter(key => 
+                this.logger.debug('Zahájení přepočtu cen a indexů', {
+                    changedSettings: changedKeys.filter(key => 
+                        key === 'low_index_hours' || 
+                        key === 'high_index_hours' ||
                         key.startsWith('hour_') || 
                         key === 'high_tariff_price' || 
                         key === 'low_tariff_price'
@@ -761,6 +742,29 @@ async checkAveragePrice() {
                 this.priceCalculator.clearCache();
                 this.logger.debug('Cache vyčištěna');
                 
+                // Aktualizace interních proměnných před přepočtem
+                if (changedKeys.includes('low_index_hours')) {
+                    this.lowIndexHours = newSettings.low_index_hours;
+                    this.logger.debug('Aktualizován lowIndexHours', {
+                        newValue: this.lowIndexHours,
+                        oldValue: oldSettings.low_index_hours
+                    });
+                }
+                if (changedKeys.includes('high_index_hours')) {
+                    this.highIndexHours = newSettings.high_index_hours;
+                    this.logger.debug('Aktualizován highIndexHours', {
+                        newValue: this.highIndexHours,
+                        oldValue: oldSettings.high_index_hours
+                    });
+                }
+                if (changedKeys.includes('price_in_kwh')) {
+                    this.priceInKWh = newSettings.price_in_kwh;
+                    this.logger.debug('Aktualizován priceInKWh', {
+                        newValue: this.priceInKWh,
+                        oldValue: oldSettings.price_in_kwh
+                    });
+                }
+                
                 // Získání aktuálních cen
                 const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
                 this.logger.debug('Získána nová denní data', {
@@ -769,7 +773,7 @@ async checkAveragePrice() {
                 
                 // Přepočet cen s novými nastaveními
                 const processedPrices = dailyPrices.map(priceData => ({
-                    ...priceData,
+                    hour: priceData.hour,
                     priceCZK: this.priceCalculator.addDistributionPrice(
                         priceData.priceCZK,
                         newSettings,
@@ -777,10 +781,34 @@ async checkAveragePrice() {
                     )
                 }));
     
-                // Aktualizace všech cen
-                await this.updateAllPrices(processedPrices);
-                this.logger.log('Přepočet cen dokončen', {
-                    processedPrices: processedPrices.length
+                // Přidání indexů podle nového nastavení
+                const pricesWithIndexes = this.priceCalculator.setPriceIndexes(
+                    processedPrices,
+                    newSettings.low_index_hours,
+                    newSettings.high_index_hours
+                );
+    
+                // Logování statistik indexů pro kontrolu
+                const indexStats = pricesWithIndexes.reduce((acc, curr) => {
+                    acc[curr.level] = (acc[curr.level] || 0) + 1;
+                    return acc;
+                }, {});
+    
+                this.logger.debug('Statistiky nově vypočtených indexů', {
+                    stats: indexStats,
+                    expected: {
+                        low: newSettings.low_index_hours,
+                        high: newSettings.high_index_hours,
+                        medium: 24 - newSettings.low_index_hours - newSettings.high_index_hours
+                    }
+                });
+    
+                // Aktualizace všech cen a indexů
+                await this.updateAllPrices(pricesWithIndexes);
+                
+                this.logger.log('Přepočet cen a indexů dokončen', {
+                    processedPrices: pricesWithIndexes.length,
+                    indexStats
                 });
             }
     
@@ -872,20 +900,27 @@ async checkAveragePrice() {
 */
 async updateAllPrices(processedPrices) {
     try {
-        // Ujistíme se, že máme inicializovaný PriceCalculator
         if (!this.priceCalculator) {
-            const errorMessage = 'PriceCalculator není inicializován';
-            if (this.logger) {
-                this.logger.error(errorMessage, new Error(errorMessage));
-            }
-            throw new Error(errorMessage);
+            throw new Error('PriceCalculator není inicializován');
         }
+
+        // Získání aktuálního nastavení pro indexy
+        const lowIndexHours = this.getSetting('low_index_hours') || 8;
+        const highIndexHours = this.getSetting('high_index_hours') || 8;
 
         const pricesWithIndexes = this.priceCalculator.setPriceIndexes(
             processedPrices,
-            this.getLowIndexHours(),
-            this.getHighIndexHours()
+            lowIndexHours,
+            highIndexHours
         );
+
+        if (this.logger) {
+            this.logger.debug('Ceny s přepočítanými indexy', {
+                low: pricesWithIndexes.filter(p => p.level === 'low').length,
+                medium: pricesWithIndexes.filter(p => p.level === 'medium').length,
+                high: pricesWithIndexes.filter(p => p.level === 'high').length
+            });
+        }
 
         // Paralelní aktualizace všech capabilities
         await Promise.all([
@@ -893,10 +928,6 @@ async updateAllPrices(processedPrices) {
             this._updateCurrentPrice(pricesWithIndexes),
             this._updateDailyAverage(pricesWithIndexes)
         ]);
-
-        if (this.logger) {
-            this.logger.log('All prices updated successfully');
-        }
 
         return true;
     } catch (error) {

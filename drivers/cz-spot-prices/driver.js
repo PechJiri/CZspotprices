@@ -80,58 +80,66 @@ class CZSpotPricesDriver extends Homey.Driver {
 
   async scheduleMidnightUpdate() {
     if (this.logger) {
-        this.logger.log('Scheduling midnight update');
+        this.logger.log('Plánování midnight update');
     }
 
     // Callback pro půlnoční aktualizaci
     const midnightCallback = async () => {
         try {
             const devices = this.getDevices();
-            const now = new Date();
-            const todayMidnight = new Date(now).setHours(0, 0, 0, 0);
+            const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+            
+            if (this.logger) {
+                this.logger.debug('Spouštím midnight callback', {
+                    hour: timeInfo.hour,
+                    date: timeInfo.date
+                });
+            }
 
+            // Spustíme update pro všechna zařízení
             for (const device of Object.values(devices)) {
-                const lastUpdate = await device.getStoreValue('lastMidnightUpdate');
+                await this.executeMidnightUpdate();
+                await device.setStoreValue('lastMidnightUpdate', Date.now());
 
-                if (!lastUpdate || new Date(lastUpdate).getTime() < todayMidnight) {
-                    await this.executeMidnightUpdate();
-                    await device.setStoreValue('lastMidnightUpdate', now.getTime());
-
-                    if (this.logger) {
-                        this.logger.log('Midnight update completed successfully', { deviceId: device.getData().id });
-                    }
-                } else if (this.logger) {
-                    this.logger.debug('Skipping midnight update - already done today', { deviceId: device.getData().id });
+                if (this.logger) {
+                    this.logger.log('Midnight update dokončen', { 
+                        deviceId: device.getData().id 
+                    });
                 }
             }
         } catch (error) {
             if (this.logger) {
-                this.logger.error('Error during midnight update', error);
+                this.logger.error('Chyba v midnight callback', error);
             }
         }
     };
 
-    // Výpočet času do půlnoci
-    const calculateDelayToMidnight = () => {
-        const now = new Date();
-        const tomorrow = new Date(now);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
-        return tomorrow.getTime() - now.getTime();
-    };
+    // Výpočet času do další půlnoci
+    const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+    const currentHour = timeInfo.hour;
+    
+    // Výpočet zpoždění do další půlnoci (v ms)
+    const hoursUntilMidnight = (24 - currentHour - 1);
+    const initialDelay = (hoursUntilMidnight * 60 * 60 * 1000) + (1000); // +1 sekunda po půlnoci
 
-    // Nastavení intervalu
-    const initialDelay = calculateDelayToMidnight();
-    const { hours, minutes, seconds } = this._formatDelay(initialDelay);
+    // Okamžité spuštění při startu aplikace
+    await midnightCallback();
 
     if (this.logger) {
-        this.logger.log(`Příští aktualizace z API naplánována za ${hours} h, ${minutes} m a ${seconds} s`);
+        const nextUpdate = new Date(Date.now() + initialDelay);
+        this.logger.log('Plánuji další midnight update', {
+            aktualniHodina: currentHour,
+            hodinDoPulnoci: hoursUntilMidnight,
+            pristi: nextUpdate.toISOString(),
+            zpozdeni: initialDelay
+        });
     }
 
+    // Nastavení pravidelného intervalu
     this.intervalManager.setScheduledInterval(
         'midnight',
         midnightCallback,
-        24 * 60 * 60 * 1000,
+        24 * 60 * 60 * 1000, // 24 hodin
         initialDelay
     );
 }
@@ -314,49 +322,49 @@ async _handleMaxRetriesReached(device) {
 }
 
 async tryUpdateDevice(device) {
-  try {
-      const dailyPrices = await this.spotPriceApi.getDailyPrices(device);
-
-      // Použijeme PriceCalculator z device instance
-      if (!device.priceCalculator) {
-          if (this.logger) {
-              this.logger.error('PriceCalculator není dostupný v device instanci', { deviceId: device.getData().id });
-          }
-          return false;
-      }
-
-      if (!device.priceCalculator.validatePriceData(dailyPrices)) {
-          const errorMessage = 'Neplatná data z API';
-          if (this.logger) {
-              this.logger.error(errorMessage, new Error(errorMessage), { deviceId: device.getData().id });
-          }
-          throw new Error(errorMessage);
-      }
-
-      const settings = device.getSettings();
-      const processedPrices = dailyPrices.map(priceData => ({
-          ...priceData,
-          priceCZK: device.priceCalculator.addDistributionPrice(
-              priceData.priceCZK,
-              settings,
-              priceData.hour
-          )
-      }));
-
-      await device.updateAllPrices(processedPrices);
-
-      if (this.logger) {
-          this.logger.log('Zařízení úspěšně aktualizováno', { deviceId: device.getData().id });
-      }
-
-      return true;
-  } catch (error) {
-      if (this.logger) {
-          this.logger.error('Chyba při aktualizaci dat', error, { deviceId: device.getData().id });
-      }
-      return false;
+    try {
+        const dailyPrices = await this.spotPriceApi.getDailyPrices(device);
+  
+        // Použijeme PriceCalculator z driveru místo z device
+        if (!this.priceCalculator) {
+            if (this.logger) {
+                this.logger.error('PriceCalculator není dostupný v driver instanci');
+            }
+            return false;
+        }
+  
+        if (!this.priceCalculator.validatePriceData(dailyPrices)) {
+            const errorMessage = 'Neplatná data z API';
+            if (this.logger) {
+                this.logger.error(errorMessage, new Error(errorMessage), { deviceId: device.getData().id });
+            }
+            throw new Error(errorMessage);
+        }
+  
+        const settings = device.getSettings();
+        const processedPrices = dailyPrices.map(priceData => ({
+            ...priceData,
+            priceCZK: this.priceCalculator.addDistributionPrice( // použijeme this.priceCalculator místo device.priceCalculator
+                priceData.priceCZK,
+                settings,
+                priceData.hour
+            )
+        }));
+  
+        await device.updateAllPrices(processedPrices);
+  
+        if (this.logger) {
+            this.logger.log('Zařízení úspěšně aktualizováno', { deviceId: device.getData().id });
+        }
+  
+        return true;
+    } catch (error) {
+        if (this.logger) {
+            this.logger.error('Chyba při aktualizaci dat', error, { deviceId: device.getData().id });
+        }
+        return false;
+    }
   }
-}
 
 async onPairListDevices() {
   try {
