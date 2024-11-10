@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.spotprice.cz",
-  "version": "2.0.23",
+  "version": "2.0.25",
   "compatibility": ">=12.1.0",
   "sdk": 3,
   "platforms": [
@@ -416,6 +416,51 @@
         ],
         "titleFormatted": {
           "en": "Average price for next [[hours]] hours is [[condition]] within this day"
+        }
+      },
+      {
+        "id": "remaining-day-price-condition",
+        "title": {
+          "en": "Average price for next X hours is [lowest/highest] within remaining day"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          },
+          {
+            "name": "hours",
+            "type": "number",
+            "title": {
+              "en": "Number of hours"
+            },
+            "value": 1
+          },
+          {
+            "name": "condition",
+            "type": "dropdown",
+            "title": {
+              "en": "lowest/highest"
+            },
+            "values": [
+              {
+                "id": "lowest",
+                "title": {
+                  "en": "Lowest"
+                }
+              },
+              {
+                "id": "highest",
+                "title": {
+                  "en": "Highest"
+                }
+              }
+            ]
+          }
+        ],
+        "titleFormatted": {
+          "en": "Average price for next [[hours]] hours is [[condition]] within remaining day"
         }
       },
       {

@@ -480,6 +480,19 @@ async _registerAveragePriceCondition() {
             const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
             const currentHour = timeInfo.hour;
 
+            // Kontrola, zda dokážeme spočítat celý interval ze zbývajících hodin
+            if (currentHour + hours > 24) {
+                if (this.logger) {
+                    this.logger.debug('Nedostatek hodin pro dokončení intervalu', {
+                        currentHour,
+                        požadovanéHodiny: hours,
+                        konecIntervalu: currentHour + hours,
+                        zbývajícíHodiny: 24 - currentHour
+                    });
+                }
+                return false;
+            }
+
             const combinations = await this.device.priceCalculator.calculateAveragePrices(
                 this.device, 
                 hours, 
@@ -488,7 +501,10 @@ async _registerAveragePriceCondition() {
             
             if (!combinations || combinations.length === 0) {
                 if (this.logger) {
-                    this.logger.error('Nenalezeny žádné kombinace pro výpočet průměru');
+                    this.logger.debug('Nenalezeny žádné kombinace pro výpočet průměru', {
+                        currentHour,
+                        požadovanéHodiny: hours
+                    });
                 }
                 return false;
             }
@@ -514,7 +530,8 @@ async _registerAveragePriceCondition() {
                     averagePrice: bestCombination.averagePrice,
                     hours,
                     condition,
-                    isInInterval
+                    isInInterval,
+                    počet_kombinací: combinations.length
                 });
             }
 
@@ -549,6 +566,20 @@ async _registerRemainingDayPriceCondition() {
             const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
             const currentHour = timeInfo.hour;
 
+            // Pokud jsme v intervalu, pro který už nemáme dost zbývajících hodin,
+            // rovnou vracíme false
+            if (currentHour + hours > 24) {
+                if (this.logger) {
+                    this.logger.debug('Nedostatek hodin pro dokončení intervalu', {
+                        currentHour,
+                        požadovanéHodiny: hours,
+                        konecIntervalu: currentHour + hours,
+                        zbývajícíHodiny: 24 - currentHour
+                    });
+                }
+                return false;
+            }
+
             // Získání kombinací pouze pro zbytek dne
             const combinations = await this.device.priceCalculator.calculateRemainingDayPrices(
                 this.device, 
@@ -558,7 +589,10 @@ async _registerRemainingDayPriceCondition() {
             
             if (!combinations || combinations.length === 0) {
                 if (this.logger) {
-                    this.logger.error('Nenalezeny žádné kombinace pro výpočet průměru zbývajícího dne');
+                    this.logger.debug('Žádné platné kombinace pro výpočet průměru zbývajícího dne', {
+                        currentHour,
+                        požadovanéHodiny: hours
+                    });
                 }
                 return false;
             }
@@ -572,7 +606,7 @@ async _registerRemainingDayPriceCondition() {
 
             const bestCombination = sortedByAverage[0];
 
-            // Podmínka je splněna, pokud jsme v intervalu nejlepší kombinace
+            // Stejné chování jako u average-price-condition - true po celou dobu intervalu
             const isInInterval = currentHour >= bestCombination.startHour && 
                                currentHour < (bestCombination.startHour + hours);
 
