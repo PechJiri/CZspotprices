@@ -317,6 +317,46 @@
       }
     },
     {
+      "id": "remaining-day-price-condition",
+      "title": {
+        "en": "Average price for next X hours is [lowest/highest] within remaining day"
+      },
+      "args": [
+        {
+          "name": "hours",
+          "type": "number",
+          "title": {
+            "en": "Number of hours"
+          },
+          "value": 1
+        },
+        {
+          "name": "condition",
+          "type": "dropdown",
+          "title": {
+            "en": "lowest/highest"
+          },
+          "values": [
+            {
+              "id": "lowest",
+              "title": {
+                "en": "Lowest"
+              }
+            },
+            {
+              "id": "highest",
+              "title": {
+                "en": "Highest"
+              }
+            }
+          ]
+        }
+      ],
+      "titleFormatted": {
+        "en": "Average price for next [[hours]] hours is [[condition]] within remaining day"
+      }
+    },
+    {
       "id": "distribution-tariff-is",
       "title": {
         "en": "Distribution tariff is"

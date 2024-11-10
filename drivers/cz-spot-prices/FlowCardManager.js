@@ -417,6 +417,7 @@ class FlowCardManager {
 
             // Registrace speciálních podmínek
             await this._registerAveragePriceCondition();
+            await this._registerRemainingDayPriceCondition();
             await this._registerTariffCondition();
 
         } catch (error) {
@@ -527,6 +528,77 @@ async _registerAveragePriceCondition() {
     });
 
     this._flowCards.conditions.set('average-price-condition', card);
+}
+
+/**
+     * Registrace průměrné ceny do konce dne condition
+     */
+async _registerRemainingDayPriceCondition() {
+    if (this._flowCards.conditions.has('remaining-day-price-condition')) {
+        if (this.logger) {
+            this.logger.debug('Remaining day price condition již je registrována');
+        }
+        return;
+    }
+
+    const card = this.homey.flow.getConditionCard('remaining-day-price-condition');
+    
+    card.registerRunListener(async (args, state) => {
+        try {
+            const { hours, condition } = args;
+            const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
+            const currentHour = timeInfo.hour;
+
+            // Získání kombinací pouze pro zbytek dne
+            const combinations = await this.device.priceCalculator.calculateRemainingDayPrices(
+                this.device, 
+                hours,
+                currentHour
+            );
+            
+            if (!combinations || combinations.length === 0) {
+                if (this.logger) {
+                    this.logger.error('Nenalezeny žádné kombinace pro výpočet průměru zbývajícího dne');
+                }
+                return false;
+            }
+
+            // Seřazení podle průměrné ceny
+            const sortedByAverage = combinations.sort((a, b) => 
+                condition === 'lowest' ? 
+                    a.averagePrice - b.averagePrice : 
+                    b.averagePrice - a.averagePrice
+            );
+
+            const bestCombination = sortedByAverage[0];
+
+            // Podmínka je splněna, pokud jsme v intervalu nejlepší kombinace
+            const isInInterval = currentHour >= bestCombination.startHour && 
+                               currentHour < (bestCombination.startHour + hours);
+
+            if (this.logger) {
+                this.logger.log('Remaining day price condition vyhodnocena:', {
+                    currentHour,
+                    startHour: bestCombination.startHour,
+                    endHour: bestCombination.startHour + hours,
+                    averagePrice: bestCombination.averagePrice,
+                    hours,
+                    condition,
+                    isInInterval,
+                    počet_kombinací: combinations.length
+                });
+            }
+
+            return isInInterval;
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Chyba v remaining day price condition:', error);
+            }
+            return false;
+        }
+    });
+
+    this._flowCards.conditions.set('remaining-day-price-condition', card);
 }
 
 /**

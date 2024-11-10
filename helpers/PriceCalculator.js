@@ -457,6 +457,90 @@ validatePriceData(data) {
         }
     }
 
+    async calculateRemainingDayPrices(device, hours, startFromHour = null) {
+        try {
+            // Pokud není specifikována počáteční hodina, použijeme aktuální
+            const currentHour = startFromHour !== null ? startFromHour : new Date().getHours();
+            const cacheKey = `remaining-${hours}-${currentHour}-${device.getPriceInKWh()}`;
+    
+            // Kontrola cache
+            if (this.averagePriceCache.has(cacheKey) && 
+                this.lastCalculationHour === currentHour) {
+                const cachedData = this.averagePriceCache.get(cacheKey);
+                if (Date.now() - cachedData.timestamp < this.AVERAGE_CACHE_TTL) {
+                    if (this.logger) {
+                        this.logger.debug('Použití dat z remaining day cache', { cacheKey });
+                    }
+                    return cachedData.data;
+                }
+            }
+    
+            const combinations = [];
+            
+            // Procházíme možné začátky intervalu od aktuální hodiny do konce dne
+            for (let startHour = currentHour; startHour <= 24 - hours; startHour++) {
+                let totalPrice = 0;
+                let hasAllPrices = true;
+                const intervalPrices = [];
+    
+                // Pro každý interval sbíráme ceny
+                for (let i = 0; i < hours; i++) {
+                    const hourNumber = (startHour + i) % 24;
+                    const price = await device.getCapabilityValue(`hour_price_CZK_${hourNumber}`);
+                    
+                    if (price === null || price === undefined) {
+                        hasAllPrices = false;
+                        if (this.logger) {
+                            this.logger.warn(`Chybí cena pro hodinu ${hourNumber}`);
+                        }
+                        break;
+                    }
+                    intervalPrices.push({
+                        hour: hourNumber,
+                        price: price
+                    });
+                    totalPrice += price;
+                }
+    
+                if (hasAllPrices) {
+                    combinations.push({
+                        startHour,
+                        averagePrice: totalPrice / hours,
+                        prices: intervalPrices,
+                        intervalLength: hours
+                    });
+                }
+            }
+    
+            if (this.logger) {
+                this.logger.debug('Vypočtené kombinace zbývajících průměrných cen', {
+                    počet: combinations.length,
+                    hodinVIntervalu: hours,
+                    odHodiny: currentHour,
+                    příklad: combinations[0] ? {
+                        začátek: combinations[0].startHour,
+                        průměr: combinations[0].averagePrice,
+                        početCen: combinations[0].prices.length
+                    } : 'žádné kombinace'
+                });
+            }
+    
+            // Uložení do cache
+            this.averagePriceCache.set(cacheKey, {
+                data: combinations,
+                timestamp: Date.now()
+            });
+            this.lastCalculationHour = currentHour;
+    
+            return combinations;
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Chyba při výpočtu zbývajících průměrných cen:', error);
+            }
+            return [];
+        }
+    }
+
     clearCache() {
         const beforeSize = {
             priceCache: this.priceCache.size,
