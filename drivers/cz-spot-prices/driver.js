@@ -79,109 +79,154 @@ class CZSpotPricesDriver extends Homey.Driver {
   }
 
   async scheduleMidnightUpdate() {
-    if (this.logger) {
-        this.logger.log('Plánování midnight update');
-    }
+    try {
+        if (this.logger) {
+            this.logger.log('Plánování midnight update');
+        }
 
-    // Callback pro půlnoční aktualizaci
-    const midnightCallback = async () => {
-        try {
-            const devices = this.getDevices();
-            const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+        // Callback pro půlnoční aktualizaci
+        const midnightCallback = async () => {
+            try {
+                const devices = this.getDevices();
+                const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+                
+                if (this.logger) {
+                    this.logger.debug('Spouštím midnight callback', {
+                        hour: timeInfo.hour,
+                        date: timeInfo.date,
+                        timezone: this.homey.clock.getTimezone(),
+                        currentTime: new Date().toISOString()
+                    });
+                }
+
+                // Spustíme update pro všechna zařízení
+                for (const device of Object.values(devices)) {
+                    try {
+                        const lastUpdate = await device.getStoreValue('lastMidnightUpdate');
+                        const now = Date.now();
+
+                        // Pokud už byl update v poslední hodině, přeskočíme
+                        if (lastUpdate && (now - lastUpdate < 60 * 60 * 1000)) {
+                            this.logger.debug('Přeskakuji update - již proběhl v poslední hodině', {
+                                deviceId: device.getData().id,
+                                lastUpdate: new Date(lastUpdate).toISOString(),
+                                timeSinceLastUpdate: Math.floor((now - lastUpdate) / 1000 / 60) + ' minut'
+                            });
+                            continue;
+                        }
+
+                        await this.executeMidnightUpdate();
+                        await device.setStoreValue('lastMidnightUpdate', now);
+
+                        if (this.logger) {
+                            this.logger.log('Midnight update dokončen', { 
+                                deviceId: device.getData().id,
+                                timestamp: new Date().toISOString()
+                            });
+                        }
+                    } catch (error) {
+                        this.logger.error('Chyba při midnight update zařízení', error, {
+                            deviceId: device.getData().id
+                        });
+                    }
+                }
+            } catch (error) {
+                if (this.logger) {
+                    this.logger.error('Chyba v midnight callback', error);
+                }
+            }
+        };
+
+        // Funkce pro výpočet času do příští půlnoci + 5 sekund v Praze
+        const getDelayToNextMidnight = () => {
+            const now = new Date();
             
+            // Výpočet ms do 23:00:05 systémového času (což je 00:00:05 local time)
+            const targetHour = 23;
+            const targetMinute = 0;
+            const targetSecond = 5;
+            
+            let delay = (targetHour - now.getHours()) * 60 * 60 * 1000 +    // hodiny do cíle
+                        (targetMinute - now.getMinutes()) * 60 * 1000 +      // minuty do cíle
+                        (targetSecond - now.getSeconds()) * 1000 -           // sekundy do cíle
+                        now.getMilliseconds();                               // odečtení ms
+            
+            // Pokud je delay záporný, přidáme 24 hodin
+            if (delay < 0) {
+                delay += 24 * 60 * 60 * 1000;
+            }
+        
             if (this.logger) {
-                this.logger.debug('Spouštím midnight callback', {
-                    hour: timeInfo.hour,
-                    date: timeInfo.date
+                const nextUpdate = new Date(now.getTime() + delay);
+                this.logger.debug('Vypočten čas do příštího update', {
+                    currentTime: {
+                        system: now.toISOString(),               // systémový čas (UTC)
+                        systemHour: now.getHours(),             // systémová hodina
+                        local: now.toLocaleString('cs-CZ', {    // lokální čas
+                            timeZone: 'Europe/Prague'
+                        })
+                    },
+                    targetTime: {
+                        systemHour: targetHour,                 // cílová systémová hodina (23)
+                        expectedLocal: '00:00:05'               // očekávaný lokální čas
+                    },
+                    delay: {
+                        ms: delay,
+                        hours: Math.floor(delay / (1000 * 60 * 60)),
+                        minutes: Math.floor((delay % (1000 * 60 * 60)) / (1000 * 60)),
+                        seconds: Math.floor((delay % (1000 * 60)) / 1000)
+                    },
+                    nextUpdateTime: nextUpdate.toISOString()    // pro kontrolu výsledného času
                 });
             }
+        
+            return delay;
+        };
 
-            // Spustíme update pro všechna zařízení
-            for (const device of Object.values(devices)) {
-                // Kontrola inicializace zařízení
-                const maxWaitTime = 30000; // 30 sekund
-                const startWait = Date.now();
+        // Výpočet počátečního zpoždění
+        const initialDelay = getDelayToNextMidnight();
 
-                while (!device.isInitialized && (Date.now() - startWait < maxWaitTime)) {
-                    if (this.logger) {
-                        this.logger.debug('Čekám na inicializaci zařízení', {
-                            deviceId: device.getData().id,
-                            waitTime: Date.now() - startWait
-                        });
-                    }
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-
-                if (!device.isInitialized) {
-                    this.logger.warn('Zařízení není inicializováno, přeskakuji update', {
-                        deviceId: device.getData().id
-                    });
-                    continue;
-                }
-
-                if (!device.priceCalculator || !device.spotPriceApi) {
-                    this.logger.warn('Chybí required dependencies, přeskakuji update', {
+        // Kontrola, zda je potřeba okamžitý update
+        const devices = this.getDevices();
+        for (const device of Object.values(devices)) {
+            const lastUpdate = await device.getStoreValue('lastMidnightUpdate');
+            const now = Date.now();
+            
+            // Okamžitý update pouze pokud poslední update byl před více než 6 hodinami
+            if (!lastUpdate || (now - lastUpdate > 6 * 60 * 60 * 1000)) {
+                if (this.logger) {
+                    this.logger.debug('Spouštím okamžitý update - dlouhá doba od posledního updatu', {
                         deviceId: device.getData().id,
-                        hasPriceCalculator: !!device.priceCalculator,
-                        hasSpotPriceApi: !!device.spotPriceApi
-                    });
-                    continue;
-                }
-
-                try {
-                    await this.executeMidnightUpdate();
-                    await device.setStoreValue('lastMidnightUpdate', Date.now());
-
-                    if (this.logger) {
-                        this.logger.log('Midnight update dokončen', { 
-                            deviceId: device.getData().id 
-                        });
-                    }
-                } catch (error) {
-                    this.logger.error('Chyba při midnight update zařízení', {
-                        deviceId: device.getData().id,
-                        error: error.message,
-                        stack: error.stack
+                        lastUpdate: lastUpdate ? new Date(lastUpdate).toISOString() : 'nikdy',
+                        hoursAgo: lastUpdate ? Math.floor((now - lastUpdate) / 1000 / 60 / 60) : 'N/A'
                     });
                 }
-            }
-        } catch (error) {
-            if (this.logger) {
-                this.logger.error('Chyba v midnight callback', error);
+                
+                setTimeout(async () => {
+                    await midnightCallback();
+                }, 5000);
+                break;
             }
         }
-    };
 
-    // Výpočet času do další půlnoci
-    const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-    const currentHour = timeInfo.hour;
-    
-    // Výpočet zpoždění do další půlnoci (v ms)
-    const hoursUntilMidnight = (24 - currentHour - 1);
-    const initialDelay = (hoursUntilMidnight * 60 * 60 * 1000) + (1000); // +1 sekunda po půlnoci
+        // Nastavení pravidelného intervalu
+        this.intervalManager.setScheduledInterval(
+            'midnight',
+            midnightCallback,
+            24 * 60 * 60 * 1000, // 24 hodin
+            initialDelay
+        );
 
-    // Okamžité spuštění při startu aplikace - s malým zpožděním pro inicializaci
-    setTimeout(async () => {
-        await midnightCallback();
-    }, 5000); // 5 sekund zpoždění pro inicializaci zařízení
-
-    if (this.logger) {
-        const nextUpdate = new Date(Date.now() + initialDelay);
-        this.logger.log('Plánuji další midnight update', {
-            aktualniHodina: currentHour,
-            hodinDoPulnoci: hoursUntilMidnight,
-            pristi: nextUpdate.toISOString(),
-            zpozdeni: initialDelay
+        this.logger.log('Midnight update naplánován', {
+            nextUpdateIn: Math.round(initialDelay / 60000),
+            nextUpdateTime: new Date(Date.now() + initialDelay).toISOString(),
+            timezone: this.homey.clock.getTimezone()
         });
-    }
 
-    // Nastavení pravidelného intervalu
-    this.intervalManager.setScheduledInterval(
-        'midnight',
-        midnightCallback,
-        24 * 60 * 60 * 1000, // 24 hodin
-        initialDelay
-    );
+    } catch (error) {
+        this.logger.error('Chyba při plánování midnight update', error);
+        throw error;
+    }
 }
 
 // Helper pro formátování času
