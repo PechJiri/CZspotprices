@@ -238,28 +238,48 @@ _formatDelay(delay) {
 }
 
 async executeMidnightUpdate(retryCount = 0) {
-  const MAX_RETRIES = 5;
-  const BASE_DELAY = 5 * 60 * 1000;
+    const MAX_RETRIES = 5;
+    const BASE_DELAY = 5 * 60 * 1000;
 
-  if (this.logger) {
-      this.logger.log(`Spouštím půlnoční aktualizaci (pokus: ${retryCount} z ${MAX_RETRIES})`);
-  }
+    if (this.logger) {
+        this.logger.log(`Spouštím půlnoční aktualizaci (pokus: ${retryCount} z ${MAX_RETRIES})`);
+    }
 
-  const device = this._getFirstDevice();
-  if (!device) {
-      if (this.logger) {
-          this.logger.error('Nenalezeno žádné zařízení pro aktualizaci');
-      }
-      return;
-  }
+    const device = this._getFirstDevice();
+    if (!device) {
+        if (this.logger) {
+            this.logger.error('Nenalezeno žádné zařízení pro aktualizaci');
+        }
+        return;
+    }
 
-  const success = await this._tryUpdatePrices(device);
+    const success = await this._tryUpdatePrices(device);
 
-  if (success) {
-      await this._handleUpdateSuccess(device, retryCount);
-  } else {
-      await this._handleUpdateFailure(device, retryCount, MAX_RETRIES, BASE_DELAY);
-  }
+    if (success) {
+        try {
+            // Použijeme PriceCalculator místo lokální metody
+            const processedPrices = [];
+            for (let hour = 0; hour < 24; hour++) {
+                const price = await device.getCapabilityValue(`hour_price_CZK_${hour}`);
+                if (price !== null && price !== undefined) {
+                    processedPrices.push({ hour, priceCZK: price });
+                }
+            }
+            
+            const { minPrice, maxPrice } = this.priceCalculator.calculateMinMaxPrices(processedPrices);
+            await Promise.all([
+                device.setCapabilityValue('measure_today_min_price', minPrice),
+                device.setCapabilityValue('measure_today_max_price', maxPrice)
+            ]);
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Chyba při aktualizaci min/max cen', error);
+            }
+        }
+        await this._handleUpdateSuccess(device, retryCount);
+    } else {
+        await this._handleUpdateFailure(device, retryCount, MAX_RETRIES, BASE_DELAY);
+    }
 }
 
   _getFirstDevice() {

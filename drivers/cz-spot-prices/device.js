@@ -352,12 +352,59 @@ class CZSpotPricesDevice extends Homey.Device {
         if (!firstInit || !lastUpdate || (now - lastUpdate > 15 * 60 * 1000)) {
             try {
                 await this.fetchAndUpdateSpotPrices();
+                
+                // Přidáme výpočet a nastavení min/max cen
+                const prices = [];
+                for (let hour = 0; hour < 24; hour++) {
+                    const price = await this.getCapabilityValue(`hour_price_CZK_${hour}`);
+                    if (price !== null && price !== undefined) {
+                        prices.push(price);
+                    }
+                }
+    
+                if (prices.length > 0) {
+                    const minPrice = Math.min(...prices);
+                    const maxPrice = Math.max(...prices);
+                    
+                    // Nastavení min/max cen
+                    await Promise.all([
+                        this.setCapabilityValue('measure_today_min_price', minPrice),
+                        this.setCapabilityValue('measure_today_max_price', maxPrice)
+                    ]);
+    
+                    if (this.logger) {
+                        this.logger.log('Min/max ceny inicializovány', {
+                            min: minPrice,
+                            max: maxPrice,
+                            počet_cen: prices.length
+                        });
+                    }
+                }
+    
+                // Nastavení next hour price
+                const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+                const currentHour = timeInfo.hour;
+                const nextHourPrice = currentHour === 23 ? 
+                    await this.getCapabilityValue(`hour_price_CZK_${currentHour}`) :
+                    await this.getCapabilityValue(`hour_price_CZK_${currentHour + 1}`);
+    
+                if (nextHourPrice !== null && nextHourPrice !== undefined) {
+                    await this.setCapabilityValue('measure_next_hour_price', nextHourPrice);
+                    
+                    if (this.logger) {
+                        this.logger.log('Next hour price inicializována', {
+                            currentHour,
+                            nextHourPrice
+                        });
+                    }
+                }
+    
                 await this.setStoreValue('lastDataUpdate', now);
                 await this.setStoreValue('firstInit', true);
                 await this.setAvailable();
     
                 if (this.logger) {
-                    this.logger.log('Initial data fetch completed');
+                    this.logger.log('Initial data fetch completed with new capabilities');
                 }
     
                 return true;
@@ -374,7 +421,7 @@ class CZSpotPricesDevice extends Homey.Device {
             }
             return true;
         }
-    }    
+    }   
   
     async setupScheduledTasks(runImmediately = false) {
         if (this.logger) {
@@ -589,10 +636,13 @@ class CZSpotPricesDevice extends Homey.Device {
                 });
             }
     
-            // Získání aktuální ceny a indexu
-            const [currentPrice, currentIndex] = await Promise.all([
+            // Získání aktuální ceny, indexu a next hour price
+            const [currentPrice, currentIndex, nextHourPrice] = await Promise.all([
                 this.getCapabilityValue(`hour_price_CZK_${currentHour}`),
-                this.getCapabilityValue(`hour_price_index_${currentHour}`)
+                this.getCapabilityValue(`hour_price_index_${currentHour}`),
+                currentHour === 23 ? 
+                    this.getCapabilityValue(`hour_price_CZK_${currentHour}`) : // Pro 23. hodinu použijeme aktuální cenu
+                    this.getCapabilityValue(`hour_price_CZK_${currentHour + 1}`) // Pro ostatní hodiny cenu následující hodiny
             ]);
     
             if (currentPrice === null || currentIndex === null) {
@@ -600,7 +650,8 @@ class CZSpotPricesDevice extends Homey.Device {
                     this.logger.error('Chybí data pro hodinu', {
                         hour: currentHour,
                         price: currentPrice,
-                        index: currentIndex
+                        index: currentIndex,
+                        nextPrice: nextHourPrice
                     });
                 }
                 return false;
@@ -611,10 +662,12 @@ class CZSpotPricesDevice extends Homey.Device {
                 // 1. Aktualizace capabilities a spuštění price change triggeru
                 Promise.all([
                     this.setCapabilityValue('measure_current_spot_price_CZK', currentPrice),
-                    this.setCapabilityValue('measure_current_spot_index', currentIndex)
+                    this.setCapabilityValue('measure_current_spot_index', currentIndex),
+                    this.setCapabilityValue('measure_next_hour_price', nextHourPrice)
                 ]).then(() => this.triggerCurrentPriceChanged({
                     price: currentPrice,
                     index: currentIndex,
+                    nextPrice: nextHourPrice,
                     hour: currentHour,
                     timestamp: new Date().toISOString()
                 })),
@@ -669,7 +722,8 @@ class CZSpotPricesDevice extends Homey.Device {
                 this.logger.log('Hodinová aktualizace dokončena', {
                     hour: currentHour,
                     price: currentPrice,
-                    index: currentIndex
+                    index: currentIndex,
+                    nextPrice: nextHourPrice
                 });
             }
     
@@ -817,6 +871,9 @@ async checkAveragePrice() {
     const capabilities = [
         'measure_current_spot_price_CZK',
         'measure_current_spot_index',
+        'measure_today_min_price',
+        'measure_today_max_price',
+        'measure_next_hour_price',
         'daily_average_price',
         'primary_api_fail',
         'spot_price_update_status',
@@ -1116,10 +1173,20 @@ async updateAllPrices(processedPrices) {
                 highIndexHours
             );
 
-            // Aktualizace capabilities s try/catch pro každou operaci
-            await this._updateHourlyCapabilities(pricesWithIndexes);
-            await this._updateCurrentPrice(pricesWithIndexes);
-            await this._updateDailyAverage(pricesWithIndexes);
+            // Výpočet min/max cen a next hour price
+            const { minPrice, maxPrice } = this.priceCalculator.calculateMinMaxPrices(processedPrices);
+            const currentHour = this.spotPriceApi.getCurrentTimeInfo().hour;
+            const nextHourPrice = this.priceCalculator.getNextHourPrice(processedPrices, currentHour);
+
+            // Paralelní aktualizace všech capabilities
+            await Promise.all([
+                this._updateHourlyCapabilities(pricesWithIndexes),
+                this._updateCurrentPrice(pricesWithIndexes),
+                this._updateDailyAverage(pricesWithIndexes),
+                this.setCapabilityValue('measure_today_min_price', minPrice),
+                this.setCapabilityValue('measure_today_max_price', maxPrice),
+                this.setCapabilityValue('measure_next_hour_price', nextHourPrice)
+            ]);
 
             if (this.logger) {
                 this.logger.log('Všechny ceny a indexy úspěšně aktualizovány', {
@@ -1128,6 +1195,12 @@ async updateAllPrices(processedPrices) {
                         low: pricesWithIndexes.filter(p => p.level === 'low').length,
                         medium: pricesWithIndexes.filter(p => p.level === 'medium').length,
                         high: pricesWithIndexes.filter(p => p.level === 'high').length
+                    },
+                    minMaxStats: {
+                        min: minPrice,
+                        max: maxPrice,
+                        nextHour: nextHourPrice,
+                        currentHour
                     }
                 });
             }

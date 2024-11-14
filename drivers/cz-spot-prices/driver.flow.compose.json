@@ -321,6 +321,9 @@
       "title": {
         "en": "Average price for next X hours is [lowest/highest] within remaining day"
       },
+      "hint": {
+        "en": "Condition is always true in last possible interval of day, so it is recommended to set time boundaries for flow use"
+      },
       "args": [
         {
           "name": "hours",

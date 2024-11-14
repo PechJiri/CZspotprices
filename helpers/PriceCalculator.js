@@ -562,6 +562,64 @@ validatePriceData(data) {
         }
     }
 
+    calculateMinMaxPrices(prices) {
+        try {
+            if (!Array.isArray(prices) || prices.length === 0) {
+                throw new Error('Neplatná data pro výpočet min/max cen');
+            }
+
+            const priceValues = prices.map(p => p.priceCZK);
+            const minPrice = Math.min(...priceValues);
+            const maxPrice = Math.max(...priceValues);
+
+            if (this.logger) {
+                this.logger.debug('Min/max ceny vypočteny', {
+                    min: minPrice,
+                    max: maxPrice,
+                    počet_cen: prices.length
+                });
+            }
+
+            return { minPrice, maxPrice };
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Chyba při výpočtu min/max cen', error);
+            }
+            throw error;
+        }
+    }
+
+    getNextHourPrice(prices, currentHour) {
+        try {
+            if (!Array.isArray(prices) || prices.length === 0) {
+                throw new Error('Neplatná data pro výpočet next hour price');
+            }
+
+            if (currentHour < 0 || currentHour >= 24) {
+                throw new Error('Neplatná hodina pro výpočet next hour price');
+            }
+
+            const nextHourPrice = currentHour === 23 ? 
+                prices[currentHour].priceCZK : 
+                prices[currentHour + 1].priceCZK;
+
+            if (this.logger) {
+                this.logger.debug('Next hour price vypočtena', {
+                    currentHour,
+                    nextHourPrice,
+                    is23Hour: currentHour === 23
+                });
+            }
+
+            return nextHourPrice;
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Chyba při výpočtu next hour price', error);
+            }
+            throw error;
+        }
+    }
+
     convertPrice(price, priceInKWh) {
         try {
             if (!priceInKWh) {

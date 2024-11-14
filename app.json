@@ -423,6 +423,9 @@
         "title": {
           "en": "Average price for next X hours is [lowest/highest] within remaining day"
         },
+        "hint": {
+          "en": "Condition is always true in last possible interval of day, so it is recommended to set time boundaries for flow use"
+        },
         "args": [
           {
             "type": "device",
@@ -2209,6 +2212,45 @@
       "getable": true,
       "setable": false,
       "icon": "/assets/images/Actual_icon.svg"
+    },
+    "measure_next_hour_price": {
+      "type": "number",
+      "title": {
+        "en": "Next Hour Price"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/Time_icon.svg"
+    },
+    "measure_today_max_price": {
+      "type": "number",
+      "title": {
+        "en": "Today's Maximum Price"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/high.svg"
+    },
+    "measure_today_min_price": {
+      "type": "number",
+      "title": {
+        "en": "Today's Minimum Price"
+      },
+      "units": "CZK",
+      "decimals": 2,
+      "insights": true,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/images/low.svg"
     },
     "primary_api_fail": {
       "id": "primary_api_fail",
