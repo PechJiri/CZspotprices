@@ -157,5 +157,8 @@
   },
   "2.0.26": {
     "en": "midnight update bugfix"
+  },
+  "2.0.27": {
+    "en": "New capabilites - daily min/max price, next hour price"
   }
 }
