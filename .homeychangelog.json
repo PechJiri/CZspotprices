@@ -160,5 +160,8 @@
   },
   "2.0.27": {
     "en": "New capabilites - daily min/max price, next hour price"
+  },
+  "2.1.0": {
+    "en": "Fixed new capabilities in kWh, updated today spot prices widget"
   }
 }
