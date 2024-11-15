@@ -352,52 +352,11 @@ class CZSpotPricesDevice extends Homey.Device {
         if (!firstInit || !lastUpdate || (now - lastUpdate > 15 * 60 * 1000)) {
             try {
                 await this.fetchAndUpdateSpotPrices();
-                
-                // Přidáme výpočet a nastavení min/max cen
-                const prices = [];
-                for (let hour = 0; hour < 24; hour++) {
-                    const price = await this.getCapabilityValue(`hour_price_CZK_${hour}`);
-                    if (price !== null && price !== undefined) {
-                        prices.push(price);
-                    }
-                }
     
-                if (prices.length > 0) {
-                    const minPrice = Math.min(...prices);
-                    const maxPrice = Math.max(...prices);
-                    
-                    // Nastavení min/max cen
-                    await Promise.all([
-                        this.setCapabilityValue('measure_today_min_price', minPrice),
-                        this.setCapabilityValue('measure_today_max_price', maxPrice)
-                    ]);
-    
-                    if (this.logger) {
-                        this.logger.log('Min/max ceny inicializovány', {
-                            min: minPrice,
-                            max: maxPrice,
-                            počet_cen: prices.length
-                        });
-                    }
-                }
-    
-                // Nastavení next hour price
-                const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-                const currentHour = timeInfo.hour;
-                const nextHourPrice = currentHour === 23 ? 
-                    await this.getCapabilityValue(`hour_price_CZK_${currentHour}`) :
-                    await this.getCapabilityValue(`hour_price_CZK_${currentHour + 1}`);
-    
-                if (nextHourPrice !== null && nextHourPrice !== undefined) {
-                    await this.setCapabilityValue('measure_next_hour_price', nextHourPrice);
-                    
-                    if (this.logger) {
-                        this.logger.log('Next hour price inicializována', {
-                            currentHour,
-                            nextHourPrice
-                        });
-                    }
-                }
+                await Promise.all([
+                    this._updateMinMaxPrices(processedPrices),
+                    this._updateCurrentAndNextHourPrices(processedPrices)
+                ]);
     
                 await this.setStoreValue('lastDataUpdate', now);
                 await this.setStoreValue('firstInit', true);
@@ -993,51 +952,56 @@ async checkAveragePrice() {
                     });
                 }
                 
-                // Získání aktuálních cen
-                const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
-                this.logger.debug('Získána nová denní data', {
-                    pricesCount: dailyPrices.length
-                });
-                
-                // Přepočet cen s novými nastaveními
-                const processedPrices = dailyPrices.map(priceData => ({
-                    hour: priceData.hour,
-                    priceCZK: this.priceCalculator.addDistributionPrice(
-                        priceData.priceCZK,
-                        newSettings,
-                        priceData.hour
-                    )
-                }));
+                try {
+                    // Získání aktuálních cen
+                    const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
+                    this.logger.debug('Získána nová denní data', {
+                        pricesCount: dailyPrices.length
+                    });
+                    
+                    // Přepočet cen s novými nastaveními
+                    const processedPrices = dailyPrices.map(priceData => ({
+                        hour: priceData.hour,
+                        priceCZK: this.priceCalculator.addDistributionPrice(
+                            priceData.priceCZK,
+                            newSettings,
+                            priceData.hour
+                        )
+                    }));
     
-                // Přidání indexů podle nového nastavení
-                const pricesWithIndexes = this.priceCalculator.setPriceIndexes(
-                    processedPrices,
-                    newSettings.low_index_hours,
-                    newSettings.high_index_hours
-                );
+                    // Přidání indexů podle nového nastavení
+                    const pricesWithIndexes = this.priceCalculator.setPriceIndexes(
+                        processedPrices,
+                        newSettings.low_index_hours,
+                        newSettings.high_index_hours
+                    );
     
-                // Logování statistik indexů pro kontrolu
-                const indexStats = pricesWithIndexes.reduce((acc, curr) => {
-                    acc[curr.level] = (acc[curr.level] || 0) + 1;
-                    return acc;
-                }, {});
+                    // Aktualizace všech hodnot pomocí nových helper metod
+                    await Promise.all([
+                        this._updateHourlyCapabilities(pricesWithIndexes),
+                        this._updateCurrentAndNextHourPrices(pricesWithIndexes),
+                        this._updateMinMaxPrices(pricesWithIndexes),
+                        this._updateDailyAverage(pricesWithIndexes)
+                    ]);
     
-                this.logger.debug('Statistiky nově vypočtených indexů', {
-                    stats: indexStats,
-                    expected: {
-                        low: newSettings.low_index_hours,
-                        high: newSettings.high_index_hours,
-                        medium: 24 - newSettings.low_index_hours - newSettings.high_index_hours
-                    }
-                });
+                    // Logování statistik
+                    const indexStats = pricesWithIndexes.reduce((acc, curr) => {
+                        acc[curr.level] = (acc[curr.level] || 0) + 1;
+                        return acc;
+                    }, {});
     
-                // Aktualizace všech cen a indexů
-                await this.updateAllPrices(pricesWithIndexes);
-                
-                this.logger.log('Přepočet cen a indexů dokončen', {
-                    processedPrices: pricesWithIndexes.length,
-                    indexStats
-                });
+                    this.logger.log('Přepočet cen a indexů dokončen', {
+                        processedPrices: pricesWithIndexes.length,
+                        indexStats,
+                        priceInKWh: this.priceInKWh
+                    });
+    
+                } catch (error) {
+                    this.logger.error('Chyba při přepočítávání cen', error, {
+                        deviceId: this.getData().id
+                    });
+                    throw error;
+                }
             }
     
             // Informujeme o změně nastavení
@@ -1160,6 +1124,7 @@ async updateAllPrices(processedPrices) {
             const settings = this.getSettings();
             const lowIndexHours = settings.low_index_hours || 8;
             const highIndexHours = settings.high_index_hours || 8;
+            const priceInKWh = settings.price_in_kwh || false;
 
             // Validace vstupních dat
             if (!Array.isArray(processedPrices) || processedPrices.length !== 24) {
@@ -1173,20 +1138,20 @@ async updateAllPrices(processedPrices) {
                 highIndexHours
             );
 
-            // Výpočet min/max cen a next hour price
-            const { minPrice, maxPrice } = this.priceCalculator.calculateMinMaxPrices(processedPrices);
-            const currentHour = this.spotPriceApi.getCurrentTimeInfo().hour;
-            const nextHourPrice = this.priceCalculator.getNextHourPrice(processedPrices, currentHour);
-
             // Paralelní aktualizace všech capabilities
-            await Promise.all([
-                this._updateHourlyCapabilities(pricesWithIndexes),
-                this._updateCurrentPrice(pricesWithIndexes),
+            const [
+                minMaxResult,
+                currentPricesResult,
+                averageResult
+            ] = await Promise.all([
+                this._updateMinMaxPrices(pricesWithIndexes),
+                this._updateCurrentAndNextHourPrices(pricesWithIndexes),
                 this._updateDailyAverage(pricesWithIndexes),
-                this.setCapabilityValue('measure_today_min_price', minPrice),
-                this.setCapabilityValue('measure_today_max_price', maxPrice),
-                this.setCapabilityValue('measure_next_hour_price', nextHourPrice)
+                this._updateHourlyCapabilities(pricesWithIndexes)
             ]);
+
+            const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+            const currentHour = timeInfo.hour === 24 ? 0 : timeInfo.hour;
 
             if (this.logger) {
                 this.logger.log('Všechny ceny a indexy úspěšně aktualizovány', {
@@ -1196,12 +1161,14 @@ async updateAllPrices(processedPrices) {
                         medium: pricesWithIndexes.filter(p => p.level === 'medium').length,
                         high: pricesWithIndexes.filter(p => p.level === 'high').length
                     },
-                    minMaxStats: {
-                        min: minPrice,
-                        max: maxPrice,
-                        nextHour: nextHourPrice,
-                        currentHour
-                    }
+                    priceStats: {
+                        minMax: minMaxResult,
+                        currentPrice: currentPricesResult,
+                        averagePrice: averageResult,
+                        currentHour: currentHour,
+                        priceInKWh: priceInKWh
+                    },
+                    deviceId: this.getData().id
                 });
             }
 
@@ -1221,8 +1188,10 @@ async updateAllPrices(processedPrices) {
         if (this.logger) {
             this.logger.error('Kritická chyba v updateAllPrices', {
                 operationId,
-                message: error.message,
-                stack: error.stack,
+                error: {
+                    message: error.message,
+                    stack: error.stack
+                },
                 deviceId: this.getData().id
             });
         }
@@ -1291,11 +1260,10 @@ async _updateHourlyCapabilities(pricesWithIndexes) {
     return Promise.all(updatePromises);
 }
 
-
 /**
-* Helper pro aktualizaci aktuální ceny
-*/
-async _updateCurrentPrice(pricesWithIndexes) {
+ * Helper pro aktualizaci current a next hour ceny
+ */
+async _updateCurrentAndNextHourPrices(pricesWithIndexes) {
     try {
         // Kontrola inicializace spotPriceApi
         if (!this.spotPriceApi) {
@@ -1304,38 +1272,47 @@ async _updateCurrentPrice(pricesWithIndexes) {
 
         // Získání aktuálního času s respektováním časové zóny
         const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+        const currentHour = timeInfo.hour;
+        const nextHour = (currentHour + 1) % 24;
 
         // Použití uložené hodnoty priceInKWh pro konzistenci
         const currentPriceInKWh = this.priceInKWh;
 
         if (this.logger) {
-            this.logger.debug('Začátek aktualizace current price', {
-                hour: timeInfo.hour,
+            this.logger.debug('Začátek aktualizace current a next hour price', {
+                currentHour,
+                nextHour,
                 priceInKWh: currentPriceInKWh
             });
         }
 
-        // Hledání dat pro aktuální hodinu
-        const currentHourData = pricesWithIndexes.find(price => price.hour === timeInfo.hour);
+        // Hledání dat pro aktuální a následující hodinu
+        const currentHourData = pricesWithIndexes.find(price => price.hour === currentHour);
+        const nextHourData = pricesWithIndexes.find(price => price.hour === nextHour);
+
         if (!currentHourData) {
             if (this.logger) {
                 this.logger.error('Nenalezena data pro aktuální hodinu', {
-                    hour: timeInfo.hour,
+                    hour: currentHour,
                     availableHours: pricesWithIndexes.map(p => p.hour).join(', ')
                 });
             }
             return;
         }
 
-        // Konverze ceny s použitím uložené hodnoty priceInKWh
-        const convertedPrice = this.priceCalculator.convertPrice(
+        // Konverze cen
+        const convertedCurrentPrice = this.priceCalculator.convertPrice(
             currentHourData.priceCZK,
             currentPriceInKWh
         );
 
+        const convertedNextPrice = nextHourData ? 
+            this.priceCalculator.convertPrice(nextHourData.priceCZK, currentPriceInKWh) : 
+            null;
+
         // Aktualizace capabilities s lepším error handlingem
         await Promise.all([
-            this.setCapabilityValue('measure_current_spot_price_CZK', convertedPrice)
+            this.setCapabilityValue('measure_current_spot_price_CZK', convertedCurrentPrice)
                 .catch(err => {
                     if (this.logger) {
                         this.logger.error('Chyba při aktualizaci current price capability', err);
@@ -1348,20 +1325,31 @@ async _updateCurrentPrice(pricesWithIndexes) {
                         this.logger.error('Chyba při aktualizaci current index capability', err);
                     }
                     throw err;
-                })
+                }),
+            ...(convertedNextPrice !== null ? [
+                this.setCapabilityValue('measure_next_hour_price', convertedNextPrice)
+                    .catch(err => {
+                        if (this.logger) {
+                            this.logger.error('Chyba při aktualizaci next hour price capability', err);
+                        }
+                        throw err;
+                    })
+            ] : [])
         ]);
 
         if (this.logger) {
-            this.logger.debug('Aktuální cena aktualizována', {
-                hour: timeInfo.hour,
-                price: convertedPrice,
-                index: currentHourData.level
+            this.logger.debug('Aktuální a následující ceny aktualizovány', {
+                currentHour,
+                currentPrice: convertedCurrentPrice,
+                currentIndex: currentHourData.level,
+                nextHour,
+                nextPrice: convertedNextPrice
             });
         }
 
     } catch (error) {
         if (this.logger) {
-            this.logger.error('Chyba při aktualizaci aktuální ceny', error);
+            this.logger.error('Chyba při aktualizaci aktuální a následující ceny', error);
         }
         throw error;
     }
@@ -1398,6 +1386,66 @@ async _updateDailyAverage(pricesWithIndexes) {
     } catch (error) {
         if (this.logger) {
             this.logger.error('Chyba při aktualizaci denního průměru', error);
+        }
+        throw error;
+    }
+}
+
+/**
+ * Helper pro aktualizaci min/max cen
+ */
+async _updateMinMaxPrices(pricesWithIndexes) {
+    try {
+        const currentPriceInKWh = this.priceInKWh;
+
+        if (this.logger) {
+            this.logger.debug('Začátek aktualizace min/max cen', {
+                priceInKWh: currentPriceInKWh,
+                počet_cen: pricesWithIndexes.length
+            });
+        }
+
+        // Získání min/max z nekonvertovaných cen
+        const prices = pricesWithIndexes.map(p => p.priceCZK);
+        const minRawPrice = Math.min(...prices);
+        const maxRawPrice = Math.max(...prices);
+
+        // Konverze cen podle aktuálního nastavení
+        const convertedMinPrice = this.priceCalculator.convertPrice(minRawPrice, currentPriceInKWh);
+        const convertedMaxPrice = this.priceCalculator.convertPrice(maxRawPrice, currentPriceInKWh);
+
+        // Aktualizace capabilities
+        await Promise.all([
+            this.setCapabilityValue('measure_today_min_price', convertedMinPrice)
+                .catch(err => {
+                    if (this.logger) {
+                        this.logger.error('Chyba při aktualizaci min price capability', err);
+                    }
+                    throw err;
+                }),
+            this.setCapabilityValue('measure_today_max_price', convertedMaxPrice)
+                .catch(err => {
+                    if (this.logger) {
+                        this.logger.error('Chyba při aktualizaci max price capability', err);
+                    }
+                    throw err;
+                })
+        ]);
+
+        if (this.logger) {
+            this.logger.debug('Min/max ceny aktualizovány', {
+                min: convertedMinPrice,
+                max: convertedMaxPrice,
+                rawMin: minRawPrice,
+                rawMax: maxRawPrice
+            });
+        }
+
+        return { minPrice: convertedMinPrice, maxPrice: convertedMaxPrice };
+
+    } catch (error) {
+        if (this.logger) {
+            this.logger.error('Chyba při aktualizaci min/max cen', error);
         }
         throw error;
     }

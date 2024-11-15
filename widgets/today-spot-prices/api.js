@@ -15,6 +15,7 @@ module.exports = {
 
       const device = devices[0];  // Use the first device
 
+      // Získání všech potřebných hodnot
       const hourlyPrices = [];
       const priceInKWh = device.getSetting('price_in_kwh') || false;
       
@@ -25,15 +26,22 @@ module.exports = {
         hourlyPrices.push({ hour: i, price, index, isHighTariff });
       }
 
-      const averagePrice = await device.getCapabilityValue('daily_average_price');
-      const currentPrice = await device.getCapabilityValue('measure_current_spot_price_CZK');
-      const currentIndex = await device.getCapabilityValue('measure_current_spot_index');
+      // Získání všech dodatečných hodnot včetně nových max/min
+      const [averagePrice, currentPrice, currentIndex, maxPrice, minPrice] = await Promise.all([
+        device.getCapabilityValue('daily_average_price'),
+        device.getCapabilityValue('measure_current_spot_price_CZK'),
+        device.getCapabilityValue('measure_current_spot_index'),
+        device.getCapabilityValue('measure_today_max_price'),
+        device.getCapabilityValue('measure_today_min_price')
+      ]);
 
       return {
         hourlyPrices,
         averagePrice,
         currentPrice,
         currentIndex,
+        maxPrice,     // Nová hodnota
+        minPrice,     // Nová hodnota
         priceInKWh
       };
     } catch (error) {
@@ -42,6 +50,7 @@ module.exports = {
     }
   },
 
+  // Zbytek kódu zůstává stejný
   async getSpotPrice({ homey }) {
     try {
       const driver = homey.drivers.getDriver('cz-spot-prices');

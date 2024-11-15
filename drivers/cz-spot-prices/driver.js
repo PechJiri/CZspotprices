@@ -266,11 +266,8 @@ async executeMidnightUpdate(retryCount = 0) {
                 }
             }
             
-            const { minPrice, maxPrice } = this.priceCalculator.calculateMinMaxPrices(processedPrices);
-            await Promise.all([
-                device.setCapabilityValue('measure_today_min_price', minPrice),
-                device.setCapabilityValue('measure_today_max_price', maxPrice)
-            ]);
+            await device._updateMinMaxPrices(processedPrices);
+
         } catch (error) {
             if (this.logger) {
                 this.logger.error('Chyba při aktualizaci min/max cen', error);
@@ -342,49 +339,95 @@ async _handleUpdateFailure(device, retryCount, maxRetries, baseDelay) {
 }
 
 async _scheduleRetry(device, retryCount, baseDelay) {
-  try {
-      const delay = baseDelay * Math.pow(2, retryCount);
+    try {
+        // Validace vstupních parametrů
+        if (!device || !baseDelay || typeof baseDelay !== 'number') {
+            throw new Error('Neplatné vstupní parametry pro _scheduleRetry');
+        }
 
-      if (this.logger) {
-          this.logger.warn(`Plánuji další pokus ${retryCount + 1} za ${delay / 60000} minut`, {
-              deviceId: device.getData().id,
-              retryCount,
-              delayMinutes: Math.round(delay / 60000)
-          });
-      }
+        // Výpočet delay s exponenciálním back-off
+        const delay = baseDelay * Math.pow(2, retryCount);
+        const intervalPeriod = 24 * 60 * 60 * 1000; // 24 hodin v ms
 
-      // Použijeme triggerAPIFailure z device instance
-      if (device && typeof device.triggerAPIFailure === 'function') {
-          await device.triggerAPIFailure({
-              primaryAPI: 'Aktualizace selhala',
-              backupAPI: 'Aktualizace selhala',
-              willRetry: true,
-              retryCount: retryCount + 1,
-              nextRetryIn: Math.round(delay / 60000)
-          });
-      } else if (this.logger) {
-          this.logger.error('Device instance není dostupná pro API failure trigger', { deviceId: device ? device.getData().id : null });
-      }
+        if (this.logger) {
+            this.logger.warn(`Plánuji další pokus ${retryCount + 1} za ${delay / 60000} minut`, {
+                deviceId: device.getData().id,
+                retryCount,
+                delayMinutes: Math.round(delay / 60000),
+                nextRetryTime: new Date(Date.now() + delay).toISOString()
+            });
+        }
 
-      // Naplánování dalšího pokusu
-      this.intervalManager.setScheduledInterval(
-          `retry_midnight_${retryCount}`,
-          () => this.executeMidnightUpdate(retryCount + 1),
-          null,
-          delay
-      );
+        // Trigger API failure
+        try {
+            if (device && typeof device.triggerAPIFailure === 'function') {
+                await device.triggerAPIFailure({
+                    primaryAPI: 'Aktualizace selhala',
+                    backupAPI: 'Aktualizace selhala',
+                    willRetry: true,
+                    retryCount: retryCount + 1,
+                    nextRetryIn: Math.round(delay / 60000),
+                    maxRetriesReached: false
+                });
+            } else {
+                if (this.logger) {
+                    this.logger.error('Device instance není dostupná pro API failure trigger', { 
+                        deviceId: device ? device.getData().id : null,
+                        retryCount 
+                    });
+                }
+            }
+        } catch (triggerError) {
+            if (this.logger) {
+                this.logger.error('Chyba při spouštění API failure triggeru', triggerError);
+            }
+        }
 
-      if (this.logger) {
-          this.logger.log(`Další pokus naplánován za ${Math.round(delay / 60000)} minut`, {
-              deviceId: device.getData().id,
-              nextRetry: delay / 60000
-          });
-      }
-  } catch (error) {
-      if (this.logger) {
-          this.logger.error('Chyba při plánování dalšího pokusu', error);
-      }
-  }
+        // Vyčištění existujícího intervalu pro tento retry pokus
+        const intervalKey = `retry_midnight_${retryCount}`;
+        if (this.intervalManager) {
+            this.intervalManager.clearScheduledInterval(intervalKey);
+        }
+
+        // Naplánování nového pokusu
+        this.intervalManager.setScheduledInterval(
+            intervalKey,
+            async () => {
+                try {
+                    await this.executeMidnightUpdate(retryCount + 1);
+                } catch (execError) {
+                    if (this.logger) {
+                        this.logger.error('Chyba při provádění midnight update', execError);
+                    }
+                }
+            },
+            intervalPeriod, // Perioda opakování
+            delay // Initial delay
+        );
+
+        if (this.logger) {
+            this.logger.log('Další pokus úspěšně naplánován', {
+                deviceId: device.getData().id,
+                retryCount,
+                nextRetryIn: `${Math.round(delay / 60000)} minut`,
+                nextRetryTime: new Date(Date.now() + delay).toISOString(),
+                intervalKey
+            });
+        }
+
+        return true;
+
+    } catch (error) {
+        if (this.logger) {
+            this.logger.error('Chyba při plánování dalšího pokusu', error, {
+                deviceId: device?.getData()?.id,
+                retryCount,
+                baseDelay
+            });
+        }
+        // Re-throw error pro správné zachycení nadřazeným handlerem
+        throw error;
+    }
 }
 
 async _handleMaxRetriesReached(device) {

@@ -29,6 +29,19 @@
             font-size: var(--homey-font-size-small);
             margin-bottom: var(--homey-su-1);
             color: var(--homey-text-color-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--homey-su-1);
+            padding: 0 var(--homey-su-2);
+        }
+        .price-row {
+            display: flex;
+            justify-content: center;
+            gap: var(--homey-su-2);
+        }
+        .price-row span, .unit-row {
+            white-space: nowrap;
         }
         #chart {
             flex-grow: 1;
@@ -66,6 +79,26 @@
             }
             
             return baseColor;
+        }
+
+        function formatPrice(price, priceInKWh) {
+            if (price === null || price === undefined) return 'N/A';
+            return priceInKWh ? price.toFixed(2) : price.toFixed(0);
+        }
+
+        function updatePriceInfo(result) {
+            const unit = result.priceInKWh ? 'CZK/kWh' : 'CZK/MWh';
+            const priceInfoDiv = document.getElementById('priceInfo');
+            
+            priceInfoDiv.innerHTML = `
+                <div class="price-row">
+                    <span>Now ${formatPrice(result.currentPrice, result.priceInKWh)}</span>
+                    <span>⌀ ${formatPrice(result.averagePrice, result.priceInKWh)}</span>
+                    <span>↑ ${formatPrice(result.maxPrice, result.priceInKWh)}</span>
+                    <span>↓ ${formatPrice(result.minPrice, result.priceInKWh)}</span>
+                </div>
+                <div class="unit-row">${unit}</div>
+            `;
         }
 
         function createChart(data) {
@@ -107,7 +140,7 @@
                             callbacks: {
                                 label: function(context) {
                                     const dataPoint = data[context.dataIndex];
-                                    return `${context.parsed.y.toFixed(priceInKWh ? 2 : 0)} CZK/${priceInKWh ? 'kWh' : 'MWh'} (${dataPoint.index})`;
+                                    return `${context.parsed.y.toFixed(priceInKWh ? 2 : 0)} ${priceInKWh ? 'CZK/kWh' : 'CZK/MWh'} (${dataPoint.index})`;
                                 }
                             }
                         }
@@ -185,13 +218,16 @@
                 .then(result => {
                     if (result && result.hourlyPrices && result.averagePrice !== undefined) {
                         const data = result.hourlyPrices;
-                        const averagePrice = result.averagePrice;
-                        const currentPrice = result.currentPrice;
                         priceInKWh = result.priceInKWh;
 
-                        const unit = priceInKWh ? 'kWh' : 'MWh';
-                        document.getElementById('priceInfo').textContent = 
-                            `Current ${currentPrice.toFixed(priceInKWh ? 2 : 0)} CZK/${unit} | ${averagePrice.toFixed(priceInKWh ? 2 : 0)} CZK/${unit} Average`;
+                        // Update price info with all values
+                        updatePriceInfo({
+                            currentPrice: result.currentPrice,
+                            averagePrice: result.averagePrice,
+                            maxPrice: result.maxPrice,
+                            minPrice: result.minPrice,
+                            priceInKWh: result.priceInKWh
+                        });
 
                         if (chart) {
                             chart.destroy();
