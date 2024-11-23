@@ -141,10 +141,10 @@ class CZSpotPricesDriver extends Homey.Driver {
         const getDelayToNextMidnight = () => {
             const now = new Date();
             
-            // Výpočet ms do 23:00:05 systémového času (což je 00:00:05 local time)
+            // Výpočet ms do 23:00:05 systémového času (což je 00:00:01 local time)
             const targetHour = 23;
             const targetMinute = 0;
-            const targetSecond = 5;
+            const targetSecond = 1;
             
             let delay = (targetHour - now.getHours()) * 60 * 60 * 1000 +    // hodiny do cíle
                         (targetMinute - now.getMinutes()) * 60 * 1000 +      // minuty do cíle

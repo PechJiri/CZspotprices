@@ -341,44 +341,94 @@ class CZSpotPricesDevice extends Homey.Device {
     
   
     async initialDataFetch() {
-        const lastUpdate = await this.getStoreValue('lastDataUpdate');
-        const now = Date.now();
-        const firstInit = await this.getStoreValue('firstInit');
+        try {
+            const lastUpdate = await this.getStoreValue('lastDataUpdate');
+            const now = Date.now();
+            const firstInit = await this.getStoreValue('firstInit');
     
-        if (this.logger) {
-            this.logger.debug('Kontrola potřeby počátečního načtení dat', { lastUpdate, now, firstInit });
-        }
-    
-        if (!firstInit || !lastUpdate || (now - lastUpdate > 15 * 60 * 1000)) {
-            try {
-                await this.fetchAndUpdateSpotPrices();
-    
-                await Promise.all([
-                    this._updateMinMaxPrices(processedPrices),
-                    this._updateCurrentAndNextHourPrices(processedPrices)
-                ]);
-    
-                await this.setStoreValue('lastDataUpdate', now);
-                await this.setStoreValue('firstInit', true);
-                await this.setAvailable();
-    
-                if (this.logger) {
-                    this.logger.log('Initial data fetch completed with new capabilities');
-                }
-    
-                return true;
-            } catch (error) {
-                if (this.logger) {
-                    this.logger.error('Initial data fetch failed', error);
-                }
-                await this.setUnavailable('Initial data fetch failed');
-                return false;
-            }
-        } else {
             if (this.logger) {
-                this.logger.log('Using cached data');
+                this.logger.debug('Kontrola potřeby počátečního načtení dat', { 
+                    lastUpdate: lastUpdate ? new Date(lastUpdate).toISOString() : 'nikdy',
+                    timeSinceLastUpdate: lastUpdate ? Math.floor((now - lastUpdate) / 1000 / 60) + ' minut' : 'N/A',
+                    firstInit,
+                    needsUpdate: !firstInit || !lastUpdate || (now - lastUpdate > 15 * 60 * 1000)
+                });
             }
-            return true;
+    
+            // Kontrola, zda potřebujeme aktualizovat data
+            if (!firstInit || !lastUpdate || (now - lastUpdate > 15 * 60 * 1000)) {
+                try {
+                    // Získání a aktualizace dat
+                    const success = await this.fetchAndUpdateSpotPrices();
+                    
+                    if (!success) {
+                        throw new Error('Fetch and update failed');
+                    }
+    
+                    // Získání aktuálních cen pro zpracování
+                    const dailyPrices = [];
+                    for (let hour = 0; hour < 24; hour++) {
+                        const price = await this.getCapabilityValue(`hour_price_CZK_${hour}`);
+                        if (price !== null && price !== undefined) {
+                            dailyPrices.push({ hour, priceCZK: price });
+                        }
+                    }
+    
+                    if (dailyPrices.length !== 24) {
+                        throw new Error(`Neplatný počet hodinových cen: ${dailyPrices.length}`);
+                    }
+    
+                    // Provedení aktualizací
+                    await Promise.all([
+                        this._updateMinMaxPrices(dailyPrices),
+                        this._updateCurrentAndNextHourPrices(dailyPrices)
+                    ]);
+    
+                    // Aktualizace store hodnot
+                    await Promise.all([
+                        this.setStoreValue('lastDataUpdate', now),
+                        this.setStoreValue('firstInit', true)
+                    ]);
+    
+                    await this.setAvailable();
+    
+                    if (this.logger) {
+                        this.logger.log('Počáteční načtení dat dokončeno', {
+                            timestamp: new Date(now).toISOString(),
+                            pricesLoaded: dailyPrices.length,
+                            firstPrice: dailyPrices[0],
+                            lastPrice: dailyPrices[23]
+                        });
+                    }
+    
+                    return true;
+    
+                } catch (error) {
+                    if (this.logger) {
+                        this.logger.error('Chyba při počátečním načtení dat', error, {
+                            errorType: error.name,
+                            errorMessage: error.message,
+                            stack: error.stack
+                        });
+                    }
+                    await this.setUnavailable(`Initial data fetch failed: ${error.message}`);
+                    return false;
+                }
+            } else {
+                if (this.logger) {
+                    this.logger.log('Použití cached dat', {
+                        lastUpdate: new Date(lastUpdate).toISOString(),
+                        age: Math.floor((now - lastUpdate) / 1000 / 60) + ' minut'
+                    });
+                }
+                return true;
+            }
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Kritická chyba v initialDataFetch', error);
+            }
+            await this.setUnavailable('Critical error in initial data fetch');
+            return false;
         }
     }   
   
@@ -1286,6 +1336,11 @@ async _updateCurrentAndNextHourPrices(pricesWithIndexes) {
             });
         }
 
+        // Validace vstupních dat
+        if (!Array.isArray(pricesWithIndexes)) {
+            throw new Error('Neplatná vstupní data - není pole');
+        }
+
         // Hledání dat pro aktuální a následující hodinu
         const currentHourData = pricesWithIndexes.find(price => price.hour === currentHour);
         const nextHourData = pricesWithIndexes.find(price => price.hour === nextHour);
@@ -1297,8 +1352,14 @@ async _updateCurrentAndNextHourPrices(pricesWithIndexes) {
                     availableHours: pricesWithIndexes.map(p => p.hour).join(', ')
                 });
             }
-            return;
+            throw new Error(`Nenalezena data pro aktuální hodinu ${currentHour}`);
         }
+
+        // Validace a normalizace indexu
+        const validIndexes = ['low', 'medium', 'high', 'unknown'];
+        const currentIndex = currentHourData.level && validIndexes.includes(currentHourData.level) 
+            ? currentHourData.level 
+            : 'unknown';
 
         // Konverze cen
         const convertedCurrentPrice = this.priceCalculator.convertPrice(
@@ -1310,8 +1371,20 @@ async _updateCurrentAndNextHourPrices(pricesWithIndexes) {
             this.priceCalculator.convertPrice(nextHourData.priceCZK, currentPriceInKWh) : 
             null;
 
-        // Aktualizace capabilities s lepším error handlingem
-        await Promise.all([
+        if (this.logger) {
+            this.logger.debug('Zpracování dat před aktualizací', {
+                currentHour,
+                currentPrice: convertedCurrentPrice,
+                rawLevel: currentHourData.level,
+                normalizedIndex: currentIndex,
+                nextHour,
+                nextPrice: convertedNextPrice,
+                priceInKWh: currentPriceInKWh
+            });
+        }
+
+        // Aktualizace capabilities
+        const updatePromises = [
             this.setCapabilityValue('measure_current_spot_price_CZK', convertedCurrentPrice)
                 .catch(err => {
                     if (this.logger) {
@@ -1319,14 +1392,18 @@ async _updateCurrentAndNextHourPrices(pricesWithIndexes) {
                     }
                     throw err;
                 }),
-            this.setCapabilityValue('measure_current_spot_index', currentHourData.level)
+            this.setCapabilityValue('measure_current_spot_index', currentIndex)
                 .catch(err => {
                     if (this.logger) {
                         this.logger.error('Chyba při aktualizaci current index capability', err);
                     }
                     throw err;
-                }),
-            ...(convertedNextPrice !== null ? [
+                })
+        ];
+
+        // Přidání aktualizace next hour price, pokud máme data
+        if (convertedNextPrice !== null) {
+            updatePromises.push(
                 this.setCapabilityValue('measure_next_hour_price', convertedNextPrice)
                     .catch(err => {
                         if (this.logger) {
@@ -1334,18 +1411,23 @@ async _updateCurrentAndNextHourPrices(pricesWithIndexes) {
                         }
                         throw err;
                     })
-            ] : [])
-        ]);
+            );
+        }
+
+        // Provedení všech aktualizací
+        await Promise.all(updatePromises);
 
         if (this.logger) {
             this.logger.debug('Aktuální a následující ceny aktualizovány', {
                 currentHour,
                 currentPrice: convertedCurrentPrice,
-                currentIndex: currentHourData.level,
+                currentIndex,
                 nextHour,
                 nextPrice: convertedNextPrice
             });
         }
+
+        return true;
 
     } catch (error) {
         if (this.logger) {

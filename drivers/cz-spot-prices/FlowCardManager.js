@@ -430,35 +430,88 @@ class FlowCardManager {
      * Registrace základní condition karty
      */
     async _registerBasicConditionCard(conditionConfig) {
-        if (this._flowCards.conditions.has(conditionConfig.id)) {
-            this.homey.log(`Condition karta ${conditionConfig.id} již je registrována`);
-            return;
-        }
-
-        const card = this.homey.flow.getConditionCard(conditionConfig.id);
-        
-        card.registerRunListener(async (args, state) => {
-            try {
-                const currentValue = await this.device.getCapabilityValue(conditionConfig.capability);
-                if (currentValue === null || currentValue === undefined) {
-                    throw new Error(`Hodnota není dostupná pro ${conditionConfig.capability}`);
+        try {
+            if (this._flowCards.conditions.has(conditionConfig.id)) {
+                if (this.logger) {
+                    this.logger.debug(`Condition karta ${conditionConfig.id} již je registrována`);
                 }
-
-                const result = conditionConfig.comparison(currentValue, args.value);
-                this.homey.log(`Condition ${conditionConfig.id} vyhodnocena:`, {
-                    current: currentValue,
-                    target: args.value,
-                    result
-                });
-
-                return result;
-            } catch (error) {
-                this.homey.error(`Chyba v condition kartě ${conditionConfig.id}:`, error);
-                return false;
+                return;
             }
-        });
-
-        this._flowCards.conditions.set(conditionConfig.id, card);
+    
+            const card = this.homey.flow.getConditionCard(conditionConfig.id);
+            
+            card.registerRunListener(async (args, state) => {
+                try {
+                    const currentValue = await this.device.getCapabilityValue(conditionConfig.capability);
+    
+                    // Validace a normalizace indexu pro price-index-is-condition
+                    let expectedValue;
+                    if (conditionConfig.id === 'price-index-is-condition') {
+                        const validIndexes = ['low', 'medium', 'high', 'unknown'];
+                        expectedValue = args.index;
+                        
+                        if (this.logger) {
+                            this.logger.debug('Vyhodnocení podmínky pro index', {
+                                currentValue,
+                                expectedIndex: expectedValue,
+                                validIndexes
+                            });
+                        }
+                    } else {
+                        expectedValue = args.value;
+                        
+                        if (this.logger) {
+                            this.logger.debug('Vyhodnocení podmínky pro hodnotu', {
+                                currentValue,
+                                expectedValue
+                            });
+                        }
+                    }
+    
+                    // Kontrola chybějících hodnot
+                    if (currentValue === null || currentValue === undefined) {
+                        throw new Error(`Hodnota není dostupná pro ${conditionConfig.capability}`);
+                    }
+    
+                    if (expectedValue === undefined) {
+                        throw new Error(`Chybí očekávaná hodnota pro ${conditionConfig.id}`);
+                    }
+    
+                    const result = conditionConfig.comparison(currentValue, expectedValue);
+    
+                    if (this.logger) {
+                        this.logger.debug(`Condition ${conditionConfig.id} vyhodnocena:`, {
+                            current: currentValue,
+                            expected: expectedValue,
+                            result
+                        });
+                    }
+    
+                    return result;
+    
+                } catch (error) {
+                    if (this.logger) {
+                        this.logger.error(`Chyba v condition kartě ${conditionConfig.id}:`, error);
+                    }
+                    return false;
+                }
+            });
+    
+            this._flowCards.conditions.set(conditionConfig.id, card);
+    
+            if (this.logger) {
+                this.logger.log(`Condition karta ${conditionConfig.id} úspěšně registrována`);
+            }
+    
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Kritická chyba při registraci condition karty', {
+                    cardId: conditionConfig.id,
+                    error: error.message
+                });
+            }
+            throw error;
+        }
     }
 
 /**
