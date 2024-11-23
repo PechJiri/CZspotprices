@@ -163,5 +163,8 @@
   },
   "2.1.0": {
     "en": "Fixed new capabilities in kWh, updated today spot prices widget"
+  },
+  "2.1.1": {
+    "en": "Bugfix"
   }
 }
