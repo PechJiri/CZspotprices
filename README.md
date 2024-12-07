@@ -1,3 +1,3 @@
 # CZ spot prices
 
-Get your spot prices with distribution fees
+Get your CZ spot prices with distribution fees

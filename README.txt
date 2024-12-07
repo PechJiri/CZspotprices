@@ -1,7 +1,18 @@
-The application allows you to receive daily updates on the current spot electricity prices for the CZ market. Additionally, it enables you to add distribution costs to these prices for each hour and define the hours during which you utilize the lower tariff.
+The application allows you to receive daily updates on the current spot electricity prices for the CZ market. It enables you to add distribution costs to these prices for each hour and define the hours during which you utilize the lower tariff. Based on the current price or price index, you can control your flows and monitor prices through interactive widgets.
 
-Based on the current price or price index, you can further control your flows.
+For proper functionality:
+1. Add the device to Homey
+2. Set the distribution costs for both high and low tariffs
+3. Specify the hours during which the lower tariff is available
+4. Optionally enable debug logging for troubleshooting
 
-For proper functionality, add the device to Homey, set the distribution costs, and specify the hours during which the lower tariff is available. The distribution costs will then be included in the prices during the next update.
+The app features:
+- Real-time price monitoring through two widgets:
+  - Current Hour Price Widget showing current, next hour, and average prices
+  - Interactive Daily Price Graph with color-coded tariffs and price levels
+- Automatic switching to backup data source if the primary API is unavailable
+- Price display in either MWh or kWh
+- Comprehensive flow support for automation based on prices and tariffs
+- Advanced calculation of optimal price periods
 
-Credits for the data available via API - spotovaelektrina.cz
+The distribution costs will be automatically included in the prices during the next update. The app uses two data sources: primary data from spotovaelektrina.cz and backup data from OTE-CR when needed.
