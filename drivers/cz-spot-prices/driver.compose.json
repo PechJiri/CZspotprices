@@ -1,11 +1,26 @@
 {
   "id": "cz_spot_prices_device",
   "name": {
-    "en": "CZ spot prices"
+    "en": "CZ spot prices",
+    "nl": "CZ spotprijzen",
+    "da": "CZ spotpriser",
+    "de": "CZ Spotpreise",
+    "es": "Precios spot CZ",
+    "fr": "Prix spot CZ",
+    "it": "Prezzi spot CZ",
+    "no": "CZ spotpriser",
+    "sv": "CZ spotpriser",
+    "pl": "Ceny spot CZ",
+    "ru": "CZ спотовые цены",
+    "ko": "CZ 스팟 가격"
   },
   "class": "sensor",
-  "platforms": ["local"],
-  "connectivity": ["cloud"],
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [
+    "cloud"
+  ],
   "icon": "/drivers/assets/icon.svg",
   "capabilities": [
     "measure_current_spot_price_CZK",

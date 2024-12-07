@@ -1,14 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Hour 2 Price (CZK)"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/Price_icon.svg"
-  }
-  
+  "type": "number",
+  "title": {
+    "en": "Hour 2 Price (CZK)",
+    "nl": "Uur 2 Prijs (CZK)",
+    "da": "Time 2 Pris (CZK)",
+    "de": "Stunde 2 Preis (CZK)",
+    "es": "Precio de la Hora 2 (CZK)",
+    "fr": "Prix de l'Heure 2 (CZK)",
+    "it": "Prezzo Ora 2 (CZK)",
+    "no": "Pris for Time 2 (CZK)",
+    "sv": "Timme 2 Pris (CZK)",
+    "pl": "Cena za Godzinę 2 (CZK)",
+    "ru": "Цена за 2 Час (CZK)",
+    "ko": "2시간 가격 (CZK)"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/Price_icon.svg"
+}

@@ -1,14 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Daily average price (CZK)"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/Price_icon.svg"
-  }
-  
+  "type": "number",
+  "title": {
+    "en": "Daily average price (CZK)",
+    "nl": "Dagelijkse gemiddelde prijs (CZK)",
+    "da": "Daglig gennemsnitspris (CZK)",
+    "de": "Täglicher Durchschnittspreis (CZK)",
+    "es": "Precio medio diario (CZK)",
+    "fr": "Prix moyen quotidien (CZK)",
+    "it": "Prezzo medio giornaliero (CZK)",
+    "no": "Daglig gjennomsnittspris (CZK)",
+    "sv": "Dagligt genomsnittspris (CZK)",
+    "pl": "Średnia cena dzienna (CZK)",
+    "ru": "Средняя дневная цена (CZK)",
+    "ko": "일일 평균 가격 (CZK)"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/Price_icon.svg"
+}

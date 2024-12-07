@@ -1,13 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Today's Maximum Price"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/high.svg"
-  }
+  "type": "number",
+  "title": {
+    "en": "Today's Maximum Price",
+    "nl": "Maximumprijs van vandaag",
+    "da": "Dagens maksimale pris",
+    "de": "Heutiger Höchstpreis",
+    "es": "Precio máximo de hoy",
+    "fr": "Prix maximum d'aujourd'hui",
+    "it": "Prezzo massimo di oggi",
+    "no": "Dagens makspris",
+    "sv": "Dagens maxpris",
+    "pl": "Dzisiejsza cena maksymalna",
+    "ru": "Максимальная цена на сегодня",
+    "ko": "오늘의 최대 가격"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/high.svg"
+}

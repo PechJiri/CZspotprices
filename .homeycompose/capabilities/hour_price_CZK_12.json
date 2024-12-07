@@ -1,14 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Hour 12 Price (CZK)"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/Price_icon.svg"
-  }
-  
+  "type": "number",
+  "title": {
+    "en": "Hour 12 Price (CZK)",
+    "nl": "Uur 12 Prijs (CZK)",
+    "da": "Time 12 Pris (CZK)",
+    "de": "Stunde 12 Preis (CZK)",
+    "es": "Precio Hora 12 (CZK)",
+    "fr": "Prix Heure 12 (CZK)",
+    "it": "Prezzo Ora 12 (CZK)",
+    "no": "Time 12 Pris (CZK)",
+    "sv": "Timme 12 Pris (CZK)",
+    "pl": "Cena Godziny 12 (CZK)",
+    "ru": "Цена за 12 Часов (CZK)",
+    "ko": "12 시간 가격 (CZK)"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/Price_icon.svg"
+}

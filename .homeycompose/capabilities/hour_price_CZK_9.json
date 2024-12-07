@@ -1,14 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Hour 9 Price (CZK)"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/Price_icon.svg"
-  }
-  
+  "type": "number",
+  "title": {
+    "en": "Hour 9 Price (CZK)",
+    "nl": "Prijs uur 9 (CZK)",
+    "da": "Time 9 Pris (CZK)",
+    "de": "Stunde 9 Preis (CZK)",
+    "es": "Precio hora 9 (CZK)",
+    "fr": "Prix heure 9 (CZK)",
+    "it": "Prezzo ora 9 (CZK)",
+    "no": "Time 9 Pris (CZK)",
+    "sv": "Pris timme 9 (CZK)",
+    "pl": "Cena godzina 9 (CZK)",
+    "ru": "Цена за 9 час (CZK)",
+    "ko": "9시 가격 (CZK)"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/Price_icon.svg"
+}

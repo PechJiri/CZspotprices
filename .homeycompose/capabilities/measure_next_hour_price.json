@@ -1,13 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Next Hour Price"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/Time_icon.svg"
-  }
+  "type": "number",
+  "title": {
+    "en": "Next Hour Price",
+    "nl": "Volgende Uurprijs",
+    "da": "Næste Times Pris",
+    "de": "Preis der nächsten Stunde",
+    "es": "Precio de la Próxima Hora",
+    "fr": "Prix de la Prochaine Heure",
+    "it": "Prezzo della Prossima Ora",
+    "no": "Pris for Neste Time",
+    "sv": "Nästa Timpris",
+    "pl": "Cena Następnej Godziny",
+    "ru": "Цена на следующий час",
+    "ko": "다음 시간 가격"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/Time_icon.svg"
+}

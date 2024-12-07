@@ -1,7 +1,18 @@
 {
   "type": "enum",
   "title": {
-    "en": "Current Spot Price Index"
+    "en": "Current Spot Price Index",
+    "nl": "Huidige Spotprijsindex",
+    "da": "Aktuel Spotprisindeks",
+    "de": "Aktueller Spotpreisindex",
+    "es": "Índice de Precio Spot Actual",
+    "fr": "Indice des Prix du Marché Actuel",
+    "it": "Indice del Prezzo Spot Corrente",
+    "no": "Gjeldende Spotprisindeks",
+    "sv": "Aktuellt Spotprisindex",
+    "pl": "Aktualny Indeks Cen Spotowych",
+    "ru": "Текущий Индекс Спот-Цены",
+    "ko": "현재 스팟 가격 지수"
   },
   "getable": true,
   "setable": false,
@@ -12,25 +23,69 @@
     {
       "id": "low",
       "title": {
-        "en": "Low"
+        "en": "Low",
+        "nl": "Laag",
+        "da": "Lav",
+        "de": "Niedrig",
+        "es": "Bajo",
+        "fr": "Bas",
+        "it": "Basso",
+        "no": "Lav",
+        "sv": "Låg",
+        "pl": "Niski",
+        "ru": "Низкий",
+        "ko": "낮음"
       }
     },
     {
       "id": "medium",
       "title": {
-        "en": "Medium"
+        "en": "Medium",
+        "nl": "Gemiddeld",
+        "da": "Mellem",
+        "de": "Mittel",
+        "es": "Medio",
+        "fr": "Moyen",
+        "it": "Medio",
+        "no": "Middels",
+        "sv": "Medium",
+        "pl": "Średni",
+        "ru": "Средний",
+        "ko": "보통"
       }
     },
     {
       "id": "high",
       "title": {
-        "en": "High"
+        "en": "High",
+        "nl": "Hoog",
+        "da": "Høj",
+        "de": "Hoch",
+        "es": "Alto",
+        "fr": "Élevé",
+        "it": "Alto",
+        "no": "Høy",
+        "sv": "Hög",
+        "pl": "Wysoki",
+        "ru": "Высокий",
+        "ko": "높음"
       }
     },
     {
       "id": "unknown",
       "title": {
-        "en": "Unknown"
+        "en": "Unknown",
+        "nl": "Onbekend",
+        "da": "Ukendt",
+        "de": "Unbekannt",
+        "es": "Desconocido",
+        "fr": "Inconnu",
+        "it": "Sconosciuto",
+        "no": "Ukjent",
+        "sv": "Okänd",
+        "pl": "Nieznany",
+        "ru": "Неизвестно",
+        "ko": "알 수 없음"
       }
     }
   ]

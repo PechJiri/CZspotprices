@@ -1,7 +1,18 @@
 {
   "type": "number",
   "title": {
-    "en": "Current Spot Price (CZK)"
+    "en": "Current Spot Price (CZK)",
+    "nl": "Huidige Spotprijs (CZK)",
+    "da": "Nuværende Spotpris (CZK)",
+    "de": "Aktueller Spotpreis (CZK)",
+    "es": "Precio Spot Actual (CZK)",
+    "fr": "Prix Spot Actuel (CZK)",
+    "it": "Prezzo Spot Attuale (CZK)",
+    "no": "Gjeldende Spotpris (CZK)",
+    "sv": "Nuvarande Spotpris (CZK)",
+    "pl": "Aktualna Cena Spotowa (CZK)",
+    "ru": "Текущая Спотовая Цена (CZK)",
+    "ko": "현재 현물 가격 (CZK)"
   },
   "units": "CZK",
   "decimals": 2,

@@ -3,29 +3,84 @@
     "id": "enable_logging",
     "type": "checkbox",
     "label": {
-        "en": "Enable debug logging"
+      "en": "Enable debug logging",
+      "nl": "Inschakelen logboekregistratie voor debugging",
+      "da": "Aktivér fejllogning",
+      "de": "Debug-Logging aktivieren",
+      "es": "Habilitar registro de depuración",
+      "fr": "Activer la journalisation de débogage",
+      "it": "Abilita registrazione di debug",
+      "no": "Aktiver feillogging",
+      "sv": "Aktivera felsökningsloggning",
+      "pl": "Włączniej logowanie debugowania",
+      "ru": "Включить ведение журнала отладки",
+      "ko": "디버그 로깅 활성화"
     },
     "value": true,
     "hint": {
-        "en": "Enable detailed logging for debugging purposes"
+      "en": "Enable detailed logging for debugging purposes",
+      "nl": "Inschakelen van gedetailleerde logboekaantekeningen voor debuggingdoeleinden",
+      "da": "Aktivér detaljeret logføring til fejlsøgning",
+      "de": "Ausführliches Logging für Debugging-Zwecke aktivieren",
+      "es": "Habilitar registros detallados para propósitos de depuración",
+      "fr": "Activer la journalisation détaillée pour le débogage",
+      "it": "Abilita registrazione dettagliata per il debugging",
+      "no": "Aktiver detaljert logg for feilsøking",
+      "sv": "Aktivera detaljerad loggning för felsökning",
+      "pl": "Włączniej szczegółowe logi do celów debugowania",
+      "ru": "Включить подробное ведение журнала для отладки",
+      "ko": "디버깅 목적의 상세 로깅 활성화"
     }
   },
   {
     "id": "price_in_kwh",
     "type": "checkbox",
     "label": {
-      "en": "Price in kWh"
+      "en": "Price in kWh",
+      "nl": "Prijs in kWh",
+      "da": "Pris i kWh",
+      "de": "Preis in kWh",
+      "es": "Precio en kWh",
+      "fr": "Prix en kWh",
+      "it": "Prezzo in kWh",
+      "no": "Pris i kWh",
+      "sv": "Pris i kWh",
+      "pl": "Cena w kWh",
+      "ru": "Цена в кВтч",
+      "ko": "kWh 단위 가격"
     },
     "value": false,
     "hint": {
-      "en": "Convert prices from MWh to kWh"
+      "en": "Convert prices from MWh to kWh",
+      "nl": "Prijzen omrekenen van MWh naar kWh",
+      "da": "Konverter priser fra MWh til kWh",
+      "de": "Preise von MWh zu kWh umrechnen",
+      "es": "Convertir precios de MWh a kWh",
+      "fr": "Convertir les prix de MWh en kWh",
+      "it": "Converti prezzi da MWh a kWh",
+      "no": "Konverter priser fra MWh til kWh",
+      "sv": "Omvandla priser från MWh till kWh",
+      "pl": "Konwersja cen z MWh na kWh",
+      "ru": "Конвертировать цены с МВтч в кВтч",
+      "ko": "가격을 MWh에서 kWh로 변환"
     }
   },
   {
     "id": "low_index_hours",
     "type": "number",
     "label": {
-      "en": "Number of hours for Low index"
+      "en": "Number of hours for Low index",
+      "nl": "Aantal uren voor lage index",
+      "da": "Antal timer for lav indeksering",
+      "de": "Anzahl der Stunden für niedrigen Index",
+      "es": "Número de horas para índice bajo",
+      "fr": "Nombre d'heures pour indice bas",
+      "it": "Numero di ore per indice basso",
+      "no": "Antall timer for lav indeks",
+      "sv": "Antal timmar för låg index",
+      "pl": "Liczba godzin dla niskiego wskaźnika",
+      "ru": "Количество часов для низкого индекса",
+      "ko": "낮은 지수 용 시간 수"
     },
     "value": 8,
     "min": 0,
@@ -35,7 +90,18 @@
     "id": "high_index_hours",
     "type": "number",
     "label": {
-      "en": "Number of hours for High index"
+      "en": "Number of hours for High index",
+      "nl": "Aantal uren voor hoge index",
+      "da": "Antal timer for høj indeksering",
+      "de": "Anzahl der Stunden für hohen Index",
+      "es": "Número de horas para índice alto",
+      "fr": "Nombre d'heures pour indice élevé",
+      "it": "Numero di ore per indice alto",
+      "no": "Antall timer for høy indeks",
+      "sv": "Antal timmar för hög index",
+      "pl": "Liczba godzin dla wysokiego wskaźnika",
+      "ru": "Количество часов для высокого индекса",
+      "ko": "높은 지수 용 시간 수"
     },
     "value": 8,
     "min": 0,
@@ -45,10 +111,32 @@
     "id": "high_tariff_price",
     "type": "number",
     "label": {
-      "en": "Distribution price for high tariff without VAT (CZK)"
+      "en": "Distribution price for high tariff without VAT (CZK)",
+      "nl": "Distributieprijs voor hoog tarief zonder BTW (CZK)",
+      "da": "Distributionspris for høj takst uden moms (CZK)",
+      "de": "Verteilungspreis für hohen Tarif ohne MwSt. (CZK)",
+      "es": "Precio de distribución para tarifa alta sin IVA (CZK)",
+      "fr": "Prix de distribution pour tarif élevé sans TVA (CZK)",
+      "it": "Prezzo di distribuzione per tariffa alta senza IVA (CZK)",
+      "no": "Distribusjonspris for høy tariff uten MVA (CZK)",
+      "sv": "Distributionspris för hög tariff utan moms (CZK)",
+      "pl": "Cena dystrybucyjna dla wysokiej taryfy bez VAT (CZK)",
+      "ru": "Цена распределения для высокого тарифа без НДС (CZK)",
+      "ko": "부가가치세 없는 높은 요금의 배급 가격 (CZK)"
     },
     "hint": {
-      "en": "Enter the distribution price without VAT during high tariff hours."
+      "en": "Enter the distribution price without VAT during high tariff hours.",
+      "nl": "Voer de distributieprijs zonder BTW in tijdens uren van hoog tarief.",
+      "da": "Indtast distributionsprisen uden moms i høje taksttimer.",
+      "de": "Geben Sie den Verteilungspreis ohne MwSt. während der Stunden mit hohem Tarif ein.",
+      "es": "Introduzca el precio de distribución sin IVA durante las horas de tarifa alta.",
+      "fr": "Entrez le prix de distribution sans TVA pendant les heures de tarif élevé.",
+      "it": "Inserire il prezzo di distribuzione senza IVA durante le ore di tariffa alta.",
+      "no": "Skriv inn distribusjonsprisen uten MVA i høye tarifftimer.",
+      "sv": "Ange distributionspriset utan moms under högtarifftimmar.",
+      "pl": "Wprowadź cenę dystrybucyjną bez VAT podczas godzin wysokiej taryfy.",
+      "ru": "Ввести стоимость распределения без НДС в период высокого тарифа.",
+      "ko": "높은 요금 시간 동안 부가가치세 없는 배급 가격을 입력하세요."
     },
     "value": 0,
     "min": 0
@@ -57,10 +145,32 @@
     "id": "low_tariff_price",
     "type": "number",
     "label": {
-      "en": "Distribution price for low tariff without VAT (CZK)"
+      "en": "Distribution price for low tariff without VAT (CZK)",
+      "nl": "Distributieprijs voor laag tarief zonder BTW (CZK)",
+      "da": "Distributionspris for lav takst uden moms (CZK)",
+      "de": "Verteilungspreis für niedrigen Tarif ohne MwSt. (CZK)",
+      "es": "Precio de distribución para tarifa baja sin IVA (CZK)",
+      "fr": "Prix de distribution pour tarif bas sans TVA (CZK)",
+      "it": "Prezzo di distribuzione per tariffa bassa senza IVA (CZK)",
+      "no": "Distribusjonspris for lav tariff uten MVA (CZK)",
+      "sv": "Distributionspris för låg tariff utan moms (CZK)",
+      "pl": "Cena dystrybucyjna dla niskiej taryfy bez VAT (CZK)",
+      "ru": "Цена распределения для низкого тарифа без НДС (CZK)",
+      "ko": "부가가치세 없는 낮은 요금의 배급 가격 (CZK)"
     },
     "hint": {
-      "en": "Enter the distribution price without VAT during low tariff hours."
+      "en": "Enter the distribution price without VAT during low tariff hours.",
+      "nl": "Voer de distributieprijs zonder BTW in tijdens uren van laag tarief.",
+      "da": "Indtast distributionsprisen uden moms i lave taksttimer.",
+      "de": "Geben Sie den Verteilungspreis ohne MwSt. während der Stunden mit niedrigem Tarif ein.",
+      "es": "Introduzca el precio de distribución sin IVA durante las horas de tarifa baja.",
+      "fr": "Entrez le prix de distribution sans TVA pendant les heures de tarif bas.",
+      "it": "Inserire il prezzo di distribuzione senza IVA durante le ore di tariffa bassa.",
+      "no": "Skriv inn distribusjonsprisen uten MVA i lavtarifftimer.",
+      "sv": "Ange distributionspriset utan moms under lågtarifftimmar.",
+      "pl": "Wprowadź cenę dystrybucyjną bez VAT podczas godzin niskiej taryfy.",
+      "ru": "Ввести стоимость распределения без НДС в период низкого тарифа.",
+      "ko": "낮은 요금 시간 동안 부가가치세 없는 배급 가격을 입력하세요."
     },
     "value": 0,
     "min": 0
@@ -69,14 +179,36 @@
     "id": "tariff_hours",
     "type": "group",
     "label": {
-      "en": "Low Tariff Hours"
+      "en": "Low Tariff Hours",
+      "nl": "Lage Tarieftijden",
+      "da": "Lave taksttimer",
+      "de": "Niedrigtarifstunden",
+      "es": "Horas de tarifa baja",
+      "fr": "Heures de tarif bas",
+      "it": "Ore a tariffa bassa",
+      "no": "Lave tarifftimer",
+      "sv": "Låg tarifttimmar",
+      "pl": "Godziny niskiej taryfy",
+      "ru": "Часы низкого тарифа",
+      "ko": "낮은 요금 시간"
     },
     "children": [
       {
         "id": "hour_0",
         "type": "checkbox",
         "label": {
-          "en": "00:00 - 00:59"
+          "en": "00:00 - 00:59",
+          "nl": "00:00 - 00:59",
+          "da": "00:00 - 00:59",
+          "de": "00:00 - 00:59",
+          "es": "00:00 - 00:59",
+          "fr": "00:00 - 00:59",
+          "it": "00:00 - 00:59",
+          "no": "00:00 - 00:59",
+          "sv": "00:00 - 00:59",
+          "pl": "00:00 - 00:59",
+          "ru": "00:00 - 00:59",
+          "ko": "00:00 - 00:59"
         },
         "value": false
       },
@@ -84,7 +216,18 @@
         "id": "hour_1",
         "type": "checkbox",
         "label": {
-          "en": "01:00 - 01:59"
+          "en": "01:00 - 01:59",
+          "nl": "01:00 - 01:59",
+          "da": "01:00 - 01:59",
+          "de": "01:00 - 01:59",
+          "es": "01:00 - 01:59",
+          "fr": "01:00 - 01:59",
+          "it": "01:00 - 01:59",
+          "no": "01:00 - 01:59",
+          "sv": "01:00 - 01:59",
+          "pl": "01:00 - 01:59",
+          "ru": "01:00 - 01:59",
+          "ko": "01:00 - 01:59"
         },
         "value": false
       },
@@ -92,7 +235,18 @@
         "id": "hour_2",
         "type": "checkbox",
         "label": {
-          "en": "02:00 - 02:59"
+          "en": "02:00 - 02:59",
+          "nl": "02:00 - 02:59",
+          "da": "02:00 - 02:59",
+          "de": "02:00 - 02:59",
+          "es": "02:00 - 02:59",
+          "fr": "02:00 - 02:59",
+          "it": "02:00 - 02:59",
+          "no": "02:00 - 02:59",
+          "sv": "02:00 - 02:59",
+          "pl": "02:00 - 02:59",
+          "ru": "02:00 - 02:59",
+          "ko": "02:00 - 02:59"
         },
         "value": false
       },
@@ -100,7 +254,18 @@
         "id": "hour_3",
         "type": "checkbox",
         "label": {
-          "en": "03:00 - 03:59"
+          "en": "03:00 - 03:59",
+          "nl": "03:00 - 03:59",
+          "da": "03:00 - 03:59",
+          "de": "03:00 - 03:59",
+          "es": "03:00 - 03:59",
+          "fr": "03:00 - 03:59",
+          "it": "03:00 - 03:59",
+          "no": "03:00 - 03:59",
+          "sv": "03:00 - 03:59",
+          "pl": "03:00 - 03:59",
+          "ru": "03:00 - 03:59",
+          "ko": "03:00 - 03:59"
         },
         "value": false
       },
@@ -108,7 +273,18 @@
         "id": "hour_4",
         "type": "checkbox",
         "label": {
-          "en": "04:00 - 04:59"
+          "en": "04:00 - 04:59",
+          "nl": "04:00 - 04:59",
+          "da": "04:00 - 04:59",
+          "de": "04:00 - 04:59",
+          "es": "04:00 - 04:59",
+          "fr": "04:00 - 04:59",
+          "it": "04:00 - 04:59",
+          "no": "04:00 - 04:59",
+          "sv": "04:00 - 04:59",
+          "pl": "04:00 - 04:59",
+          "ru": "04:00 - 04:59",
+          "ko": "04:00 - 04:59"
         },
         "value": false
       },
@@ -116,7 +292,18 @@
         "id": "hour_5",
         "type": "checkbox",
         "label": {
-          "en": "05:00 - 05:59"
+          "en": "05:00 - 05:59",
+          "nl": "05:00 - 05:59",
+          "da": "05:00 - 05:59",
+          "de": "05:00 - 05:59",
+          "es": "05:00 - 05:59",
+          "fr": "05:00 - 05:59",
+          "it": "05:00 - 05:59",
+          "no": "05:00 - 05:59",
+          "sv": "05:00 - 05:59",
+          "pl": "05:00 - 05:59",
+          "ru": "05:00 - 05:59",
+          "ko": "05:00 - 05:59"
         },
         "value": false
       },
@@ -124,7 +311,18 @@
         "id": "hour_6",
         "type": "checkbox",
         "label": {
-          "en": "06:00 - 06:59"
+          "en": "06:00 - 06:59",
+          "nl": "06:00 - 06:59",
+          "da": "06:00 - 06:59",
+          "de": "06:00 - 06:59",
+          "es": "06:00 - 06:59",
+          "fr": "06:00 - 06:59",
+          "it": "06:00 - 06:59",
+          "no": "06:00 - 06:59",
+          "sv": "06:00 - 06:59",
+          "pl": "06:00 - 06:59",
+          "ru": "06:00 - 06:59",
+          "ko": "06:00 - 06:59"
         },
         "value": false
       },
@@ -132,7 +330,18 @@
         "id": "hour_7",
         "type": "checkbox",
         "label": {
-          "en": "07:00 - 07:59"
+          "en": "07:00 - 07:59",
+          "nl": "07:00 - 07:59",
+          "da": "07:00 - 07:59",
+          "de": "07:00 - 07:59",
+          "es": "07:00 - 07:59",
+          "fr": "07:00 - 07:59",
+          "it": "07:00 - 07:59",
+          "no": "07:00 - 07:59",
+          "sv": "07:00 - 07:59",
+          "pl": "07:00 - 07:59",
+          "ru": "07:00 - 07:59",
+          "ko": "07:00 - 07:59"
         },
         "value": false
       },
@@ -140,7 +349,18 @@
         "id": "hour_8",
         "type": "checkbox",
         "label": {
-          "en": "08:00 - 08:59"
+          "en": "08:00 - 08:59",
+          "nl": "08:00 - 08:59",
+          "da": "08:00 - 08:59",
+          "de": "08:00 - 08:59",
+          "es": "08:00 - 08:59",
+          "fr": "08:00 - 08:59",
+          "it": "08:00 - 08:59",
+          "no": "08:00 - 08:59",
+          "sv": "08:00 - 08:59",
+          "pl": "08:00 - 08:59",
+          "ru": "08:00 - 08:59",
+          "ko": "08:00 - 08:59"
         },
         "value": false
       },
@@ -148,7 +368,18 @@
         "id": "hour_9",
         "type": "checkbox",
         "label": {
-          "en": "09:00 - 09:59"
+          "en": "09:00 - 09:59",
+          "nl": "09:00 - 09:59",
+          "da": "09:00 - 09:59",
+          "de": "09:00 - 09:59",
+          "es": "09:00 - 09:59",
+          "fr": "09:00 - 09:59",
+          "it": "09:00 - 09:59",
+          "no": "09:00 - 09:59",
+          "sv": "09:00 - 09:59",
+          "pl": "09:00 - 09:59",
+          "ru": "09:00 - 09:59",
+          "ko": "09:00 - 09:59"
         },
         "value": false
       },
@@ -156,7 +387,18 @@
         "id": "hour_10",
         "type": "checkbox",
         "label": {
-          "en": "10:00 - 10:59"
+          "en": "10:00 - 10:59",
+          "nl": "10:00 - 10:59",
+          "da": "10:00 - 10:59",
+          "de": "10:00 - 10:59",
+          "es": "10:00 - 10:59",
+          "fr": "10:00 - 10:59",
+          "it": "10:00 - 10:59",
+          "no": "10:00 - 10:59",
+          "sv": "10:00 - 10:59",
+          "pl": "10:00 - 10:59",
+          "ru": "10:00 - 10:59",
+          "ko": "10:00 - 10:59"
         },
         "value": false
       },
@@ -164,7 +406,18 @@
         "id": "hour_11",
         "type": "checkbox",
         "label": {
-          "en": "11:00 - 11:59"
+          "en": "11:00 - 11:59",
+          "nl": "11:00 - 11:59",
+          "da": "11:00 - 11:59",
+          "de": "11:00 - 11:59",
+          "es": "11:00 - 11:59",
+          "fr": "11:00 - 11:59",
+          "it": "11:00 - 11:59",
+          "no": "11:00 - 11:59",
+          "sv": "11:00 - 11:59",
+          "pl": "11:00 - 11:59",
+          "ru": "11:00 - 11:59",
+          "ko": "11:00 - 11:59"
         },
         "value": false
       },
@@ -172,7 +425,18 @@
         "id": "hour_12",
         "type": "checkbox",
         "label": {
-          "en": "12:00 - 12:59"
+          "en": "12:00 - 12:59",
+          "nl": "12:00 - 12:59",
+          "da": "12:00 - 12:59",
+          "de": "12:00 - 12:59",
+          "es": "12:00 - 12:59",
+          "fr": "12:00 - 12:59",
+          "it": "12:00 - 12:59",
+          "no": "12:00 - 12:59",
+          "sv": "12:00 - 12:59",
+          "pl": "12:00 - 12:59",
+          "ru": "12:00 - 12:59",
+          "ko": "12:00 - 12:59"
         },
         "value": false
       },
@@ -180,7 +444,18 @@
         "id": "hour_13",
         "type": "checkbox",
         "label": {
-          "en": "13:00 - 13:59"
+          "en": "13:00 - 13:59",
+          "nl": "13:00 - 13:59",
+          "da": "13:00 - 13:59",
+          "de": "13:00 - 13:59",
+          "es": "13:00 - 13:59",
+          "fr": "13:00 - 13:59",
+          "it": "13:00 - 13:59",
+          "no": "13:00 - 13:59",
+          "sv": "13:00 - 13:59",
+          "pl": "13:00 - 13:59",
+          "ru": "13:00 - 13:59",
+          "ko": "13:00 - 13:59"
         },
         "value": false
       },
@@ -188,7 +463,18 @@
         "id": "hour_14",
         "type": "checkbox",
         "label": {
-          "en": "14:00 - 14:59"
+          "en": "14:00 - 14:59",
+          "nl": "14:00 - 14:59",
+          "da": "14:00 - 14:59",
+          "de": "14:00 - 14:59",
+          "es": "14:00 - 14:59",
+          "fr": "14:00 - 14:59",
+          "it": "14:00 - 14:59",
+          "no": "14:00 - 14:59",
+          "sv": "14:00 - 14:59",
+          "pl": "14:00 - 14:59",
+          "ru": "14:00 - 14:59",
+          "ko": "14:00 - 14:59"
         },
         "value": false
       },
@@ -196,7 +482,18 @@
         "id": "hour_15",
         "type": "checkbox",
         "label": {
-          "en": "15:00 - 15:59"
+          "en": "15:00 - 15:59",
+          "nl": "15:00 - 15:59",
+          "da": "15:00 - 15:59",
+          "de": "15:00 - 15:59",
+          "es": "15:00 - 15:59",
+          "fr": "15:00 - 15:59",
+          "it": "15:00 - 15:59",
+          "no": "15:00 - 15:59",
+          "sv": "15:00 - 15:59",
+          "pl": "15:00 - 15:59",
+          "ru": "15:00 - 15:59",
+          "ko": "15:00 - 15:59"
         },
         "value": false
       },
@@ -204,7 +501,18 @@
         "id": "hour_16",
         "type": "checkbox",
         "label": {
-          "en": "16:00 - 16:59"
+          "en": "16:00 - 16:59",
+          "nl": "16:00 - 16:59",
+          "da": "16:00 - 16:59",
+          "de": "16:00 - 16:59",
+          "es": "16:00 - 16:59",
+          "fr": "16:00 - 16:59",
+          "it": "16:00 - 16:59",
+          "no": "16:00 - 16:59",
+          "sv": "16:00 - 16:59",
+          "pl": "16:00 - 16:59",
+          "ru": "16:00 - 16:59",
+          "ko": "16:00 - 16:59"
         },
         "value": false
       },
@@ -212,7 +520,18 @@
         "id": "hour_17",
         "type": "checkbox",
         "label": {
-          "en": "17:00 - 17:59"
+          "en": "17:00 - 17:59",
+          "nl": "17:00 - 17:59",
+          "da": "17:00 - 17:59",
+          "de": "17:00 - 17:59",
+          "es": "17:00 - 17:59",
+          "fr": "17:00 - 17:59",
+          "it": "17:00 - 17:59",
+          "no": "17:00 - 17:59",
+          "sv": "17:00 - 17:59",
+          "pl": "17:00 - 17:59",
+          "ru": "17:00 - 17:59",
+          "ko": "17:00 - 17:59"
         },
         "value": false
       },
@@ -220,7 +539,18 @@
         "id": "hour_18",
         "type": "checkbox",
         "label": {
-          "en": "18:00 - 18:59"
+          "en": "18:00 - 18:59",
+          "nl": "18:00 - 18:59",
+          "da": "18:00 - 18:59",
+          "de": "18:00 - 18:59",
+          "es": "18:00 - 18:59",
+          "fr": "18:00 - 18:59",
+          "it": "18:00 - 18:59",
+          "no": "18:00 - 18:59",
+          "sv": "18:00 - 18:59",
+          "pl": "18:00 - 18:59",
+          "ru": "18:00 - 18:59",
+          "ko": "18:00 - 18:59"
         },
         "value": false
       },
@@ -228,7 +558,18 @@
         "id": "hour_19",
         "type": "checkbox",
         "label": {
-          "en": "19:00 - 19:59"
+          "en": "19:00 - 19:59",
+          "nl": "19:00 - 19:59",
+          "da": "19:00 - 19:59",
+          "de": "19:00 - 19:59",
+          "es": "19:00 - 19:59",
+          "fr": "19:00 - 19:59",
+          "it": "19:00 - 19:59",
+          "no": "19:00 - 19:59",
+          "sv": "19:00 - 19:59",
+          "pl": "19:00 - 19:59",
+          "ru": "19:00 - 19:59",
+          "ko": "19:00 - 19:59"
         },
         "value": false
       },
@@ -236,7 +577,18 @@
         "id": "hour_20",
         "type": "checkbox",
         "label": {
-          "en": "20:00 - 20:59"
+          "en": "20:00 - 20:59",
+          "nl": "20:00 - 20:59",
+          "da": "20:00 - 20:59",
+          "de": "20:00 - 20:59",
+          "es": "20:00 - 20:59",
+          "fr": "20:00 - 20:59",
+          "it": "20:00 - 20:59",
+          "no": "20:00 - 20:59",
+          "sv": "20:00 - 20:59",
+          "pl": "20:00 - 20:59",
+          "ru": "20:00 - 20:59",
+          "ko": "20:00 - 20:59"
         },
         "value": false
       },
@@ -244,7 +596,18 @@
         "id": "hour_21",
         "type": "checkbox",
         "label": {
-          "en": "21:00 - 21:59"
+          "en": "21:00 - 21:59",
+          "nl": "21:00 - 21:59",
+          "da": "21:00 - 21:59",
+          "de": "21:00 - 21:59",
+          "es": "21:00 - 21:59",
+          "fr": "21:00 - 21:59",
+          "it": "21:00 - 21:59",
+          "no": "21:00 - 21:59",
+          "sv": "21:00 - 21:59",
+          "pl": "21:00 - 21:59",
+          "ru": "21:00 - 21:59",
+          "ko": "21:00 - 21:59"
         },
         "value": false
       },
@@ -252,7 +615,18 @@
         "id": "hour_22",
         "type": "checkbox",
         "label": {
-          "en": "22:00 - 22:59"
+          "en": "22:00 - 22:59",
+          "nl": "22:00 - 22:59",
+          "da": "22:00 - 22:59",
+          "de": "22:00 - 22:59",
+          "es": "22:00 - 22:59",
+          "fr": "22:00 - 22:59",
+          "it": "22:00 - 22:59",
+          "no": "22:00 - 22:59",
+          "sv": "22:00 - 22:59",
+          "pl": "22:00 - 22:59",
+          "ru": "22:00 - 22:59",
+          "ko": "22:00 - 22:59"
         },
         "value": false
       },
@@ -260,7 +634,18 @@
         "id": "hour_23",
         "type": "checkbox",
         "label": {
-          "en": "23:00 - 23:59"
+          "en": "23:00 - 23:59",
+          "nl": "23:00 - 23:59",
+          "da": "23:00 - 23:59",
+          "de": "23:00 - 23:59",
+          "es": "23:00 - 23:59",
+          "fr": "23:00 - 23:59",
+          "it": "23:00 - 23:59",
+          "no": "23:00 - 23:59",
+          "sv": "23:00 - 23:59",
+          "pl": "23:00 - 23:59",
+          "ru": "23:00 - 23:59",
+          "ko": "23:00 - 23:59"
         },
         "value": false
       }

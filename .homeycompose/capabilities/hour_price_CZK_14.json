@@ -1,14 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Hour 14 Price (CZK)"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/Price_icon.svg"
-  }
-  
+  "type": "number",
+  "title": {
+    "en": "Hour 14 Price (CZK)",
+    "nl": "Uur 14 Prijs (CZK)",
+    "da": "Time 14 Pris (CZK)",
+    "de": "Stunde 14 Preis (CZK)",
+    "es": "Precio de la hora 14 (CZK)",
+    "fr": "Prix de l'heure 14 (CZK)",
+    "it": "Prezzo ora 14 (CZK)",
+    "no": "Time 14 Pris (CZK)",
+    "sv": "Timme 14 Pris (CZK)",
+    "pl": "Cena za godzinę 14 (CZK)",
+    "ru": "Цена за 14 час (CZK)",
+    "ko": "14시간 가격 (CZK)"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/Price_icon.svg"
+}

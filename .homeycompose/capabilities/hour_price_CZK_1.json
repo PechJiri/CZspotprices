@@ -1,14 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Hour 1 Price (CZK)"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/Price_icon.svg"
-  }
-  
+  "type": "number",
+  "title": {
+    "en": "Hour 1 Price (CZK)",
+    "nl": "Prijs uur 1 (CZK)",
+    "da": "Pris time 1 (CZK)",
+    "de": "Stunde 1 Preis (CZK)",
+    "es": "Precio hora 1 (CZK)",
+    "fr": "Prix heure 1 (CZK)",
+    "it": "Prezzo ora 1 (CZK)",
+    "no": "Pris time 1 (CZK)",
+    "sv": "Pris timme 1 (CZK)",
+    "pl": "Cena za godzinę 1 (CZK)",
+    "ru": "Цена за 1 час (CZK)",
+    "ko": "1시간 가격 (CZK)"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/Price_icon.svg"
+}

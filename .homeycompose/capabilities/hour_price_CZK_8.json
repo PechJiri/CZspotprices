@@ -1,14 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Hour 8 Price (CZK)"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/Price_icon.svg"
-  }
-  
+  "type": "number",
+  "title": {
+    "en": "Hour 8 Price (CZK)",
+    "nl": "Uur 8 Prijs (CZK)",
+    "da": "Time 8 Pris (CZK)",
+    "de": "Stunde 8 Preis (CZK)",
+    "es": "Precio Hora 8 (CZK)",
+    "fr": "Prix de l'Heure 8 (CZK)",
+    "it": "Prezzo Ora 8 (CZK)",
+    "no": "Time 8 Pris (CZK)",
+    "sv": "Timme 8 Pris (CZK)",
+    "pl": "Cena za godzinę 8 (CZK)",
+    "ru": "Цена за 8 Час (CZK)",
+    "ko": "8시간 가격 (CZK)"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/Price_icon.svg"
+}

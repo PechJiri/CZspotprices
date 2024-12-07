@@ -7,10 +7,32 @@
     "local"
   ],
   "name": {
-    "en": "CZ spot prices"
+    "en": "CZ spot prices",
+    "nl": "CZ spotprijzen",
+    "da": "CZ spotpriser",
+    "de": "CZ-Spotpreise",
+    "es": "Precios spot de CZ",
+    "fr": "Prix spot CZ",
+    "it": "Prezzi spot CZ",
+    "no": "CZ spotpriser",
+    "sv": "CZ spotpriser",
+    "pl": "Ceny spotowe CZ",
+    "ru": "СЗ спотовые цены",
+    "ko": "CZ 현물 가격"
   },
   "description": {
-    "en": "Get your CZ spot prices with distribution fees"
+    "en": "Get your CZ spot prices with distribution fees",
+    "nl": "Krijg uw CZ spotprijzen met distributiekosten",
+    "da": "Få dine CZ spotpriser med distributionsgebyrer",
+    "de": "Erhalten Sie Ihre CZ-Spotpreise mit Verteilungsgebühren",
+    "es": "Obtén tus precios spot de CZ con tarifas de distribución",
+    "fr": "Obtenez vos prix spot CZ avec les frais de distribution",
+    "it": "Ottieni i tuoi prezzi spot CZ con tariffe di distribuzione",
+    "no": "Få dine CZ spotpriser med distribusjonsgebyrer",
+    "sv": "Få dina CZ spotpriser med distributionsavgifter",
+    "pl": "Uzyskaj ceny spotowe CZ z opłatami dystrybucyjnymi",
+    "ru": "Получите СЗ спотовые цены с учетом сборов за распределение",
+    "ko": "CZ 현물 가격에 배포 수수료 포함"
   },
   "category": [
     "energy"
@@ -42,7 +64,18 @@
     {
       "id": "cz-spot-prices",
       "name": {
-        "en": "CZ spot prices"
+        "en": "CZ spot prices",
+        "nl": "CZ spotprijzen",
+        "da": "CZ spotpriser",
+        "de": "CZ-Spotpreise",
+        "es": "Precios spot de CZ",
+        "fr": "Prix spot CZ",
+        "it": "Prezzi spot CZ",
+        "no": "CZ spotpriser",
+        "sv": "CZ spotpriser",
+        "pl": "Ceny spotowe CZ",
+        "ru": "СЗ спотовые цены",
+        "ko": "CZ 현물 가격"
       },
       "class": "sensor",
       "connectivity": [

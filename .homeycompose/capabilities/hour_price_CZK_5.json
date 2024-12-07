@@ -1,14 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Hour 5 Price (CZK)"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/Price_icon.svg"
-  }
-  
+  "type": "number",
+  "title": {
+    "en": "Hour 5 Price (CZK)",
+    "nl": "Uur 5 Prijs (CZK)",
+    "da": "Time 5 Pris (CZK)",
+    "de": "Stunde 5 Preis (CZK)",
+    "es": "Precio de la Hora 5 (CZK)",
+    "fr": "Prix Heure 5 (CZK)",
+    "it": "Prezzo Ora 5 (CZK)",
+    "no": "Time 5 Pris (CZK)",
+    "sv": "Timme 5 Pris (CZK)",
+    "pl": "Cena za godzinę 5 (CZK)",
+    "ru": "Цена за 5-й час (CZK)",
+    "ko": "5시간 가격 (CZK)"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/Price_icon.svg"
+}

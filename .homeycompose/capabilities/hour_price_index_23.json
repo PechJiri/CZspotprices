@@ -1,37 +1,91 @@
 {
-    "type": "enum",
-    "title": {
-      "en": "Hour 23 Price Index"
-    },
-    "values": [
-      {
-        "id": "low",
-        "title": {
-          "en": "Low"
-        }
-      },
-      {
-        "id": "medium",
-        "title": {
-          "en": "Medium"
-        }
-      },
-      {
-        "id": "high",
-        "title": {
-          "en": "High"
-        }
-      },
-      {
-        "id": "unknown",
-        "title": {
-          "en": "Unknown"
-        }
+  "type": "enum",
+  "title": {
+    "en": "Hour 23 Price Index",
+    "nl": "Uur 23 Prijsindex",
+    "da": "Time 23 Prisindeks",
+    "de": "Stunde 23 Preisindex",
+    "es": "Índice de precios de la hora 23",
+    "fr": "Indice des prix de l'heure 23",
+    "it": "Indice dei prezzi ora 23",
+    "no": "Time 23 Priseindeks",
+    "sv": "Timme 23 Prisindex",
+    "pl": "Indeks cen godziny 23",
+    "ru": "Ценовой индекс 23-го часа",
+    "ko": "23시 가격 지수"
+  },
+  "values": [
+    {
+      "id": "low",
+      "title": {
+        "en": "Low",
+        "nl": "Laag",
+        "da": "Lav",
+        "de": "Niedrig",
+        "es": "Bajo",
+        "fr": "Bas",
+        "it": "Basso",
+        "no": "Lav",
+        "sv": "Låg",
+        "pl": "Niski",
+        "ru": "Низкий",
+        "ko": "낮음"
       }
-    ],
-    "getable": true,
-    "setable": false,
-    "uiComponent": null,
-    "icon": "/assets/images/Index_icon.svg"
-  }
-  
+    },
+    {
+      "id": "medium",
+      "title": {
+        "en": "Medium",
+        "nl": "Middel",
+        "da": "Middel",
+        "de": "Mittel",
+        "es": "Medio",
+        "fr": "Moyen",
+        "it": "Medio",
+        "no": "Middels",
+        "sv": "Medium",
+        "pl": "Średni",
+        "ru": "Средний",
+        "ko": "보통"
+      }
+    },
+    {
+      "id": "high",
+      "title": {
+        "en": "High",
+        "nl": "Hoog",
+        "da": "Høj",
+        "de": "Hoch",
+        "es": "Alto",
+        "fr": "Élevé",
+        "it": "Alto",
+        "no": "Høy",
+        "sv": "Hög",
+        "pl": "Wysoki",
+        "ru": "Высокий",
+        "ko": "높음"
+      }
+    },
+    {
+      "id": "unknown",
+      "title": {
+        "en": "Unknown",
+        "nl": "Onbekend",
+        "da": "Ukendt",
+        "de": "Unbekannt",
+        "es": "Desconocido",
+        "fr": "Inconnu",
+        "it": "Sconosciuto",
+        "no": "Ukjent",
+        "sv": "Okänd",
+        "pl": "Nieznany",
+        "ru": "Неизвестно",
+        "ko": "알 수 없음"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": false,
+  "uiComponent": null,
+  "icon": "/assets/images/Index_icon.svg"
+}

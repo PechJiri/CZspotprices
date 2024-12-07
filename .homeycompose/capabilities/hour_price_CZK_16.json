@@ -1,14 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Hour 16 Price (CZK)"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/Price_icon.svg"
-  }
-  
+  "type": "number",
+  "title": {
+    "en": "Hour 16 Price (CZK)",
+    "nl": "Uur 16 Prijs (CZK)",
+    "da": "Time 16 Pris (CZK)",
+    "de": "Stunde 16 Preis (CZK)",
+    "es": "Precio de la Hora 16 (CZK)",
+    "fr": "Prix de l'Heure 16 (CZK)",
+    "it": "Prezzo dell'Ora 16 (CZK)",
+    "no": "Time 16 Pris (CZK)",
+    "sv": "Timme 16 Pris (CZK)",
+    "pl": "Cena godziny 16 (CZK)",
+    "ru": "Цена за Час 16 (CZK)",
+    "ko": "16시간 가격 (CZK)"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/Price_icon.svg"
+}

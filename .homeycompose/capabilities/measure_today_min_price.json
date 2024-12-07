@@ -1,13 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Today's Minimum Price"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/low.svg"
-  }
+  "type": "number",
+  "title": {
+    "en": "Today's Minimum Price",
+    "nl": "Minimumprijs van vandaag",
+    "da": "Dagens minimumpris",
+    "de": "Heutiger Mindestpreis",
+    "es": "Precio mínimo de hoy",
+    "fr": "Prix minimum d'aujourd'hui",
+    "it": "Prezzo minimo di oggi",
+    "no": "Dagens minimumspris",
+    "sv": "Dagens lägsta pris",
+    "pl": "Dzisiejsza cena minimalna",
+    "ru": "Сегодняшняя минимальная цена",
+    "ko": "오늘의 최저 가격"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/low.svg"
+}

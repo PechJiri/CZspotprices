@@ -3,104 +3,280 @@
     {
       "id": "current-price-lower-than-trigger",
       "title": {
-        "en": "Current price is lower than"
+        "en": "Current price is lower than",
+        "nl": "Huidige prijs is lager dan",
+        "da": "Aktuel pris er lavere end",
+        "de": "Aktueller Preis ist niedriger als",
+        "es": "El precio actual es menor que",
+        "fr": "Le prix actuel est inférieur à",
+        "it": "Il prezzo attuale è inferiore a",
+        "no": "Nåværende pris er lavere enn",
+        "sv": "Nuvarande pris är lägre än",
+        "pl": "Aktualna cena jest niższa niż",
+        "ru": "Текущая цена ниже, чем",
+        "ko": "현재 가격이 다음보다 낮습니다"
       },
       "args": [
         {
           "name": "price",
           "type": "number",
           "title": {
-            "en": "Price"
+            "en": "Price",
+            "nl": "Prijs",
+            "da": "Pris",
+            "de": "Preis",
+            "es": "Precio",
+            "fr": "Prix",
+            "it": "Prezzo",
+            "no": "Pris",
+            "sv": "Pris",
+            "pl": "Cena",
+            "ru": "Цена",
+            "ko": "가격"
           }
         }
       ],
       "titleFormatted": {
-        "en": "Current price is lower than [[price]] CZK"
+        "en": "Current price is lower than [[price]] CZK",
+        "nl": "Huidige prijs is lager dan [[price]] CZK",
+        "da": "Aktuel pris er lavere end [[price]] CZK",
+        "de": "Aktueller Preis ist niedriger als [[price]] CZK",
+        "es": "El precio actual es menor que [[price]] CZK",
+        "fr": "Le prix actuel est inférieur à [[price]] CZK",
+        "it": "Il prezzo attuale è inferiore a [[price]] CZK",
+        "no": "Nåværende pris er lavere enn [[price]] CZK",
+        "sv": "Nuvarande pris är lägre än [[price]] CZK",
+        "pl": "Aktualna cena jest niższa niż [[price]] CZK",
+        "ru": "Текущая цена ниже, чем [[price]] CZK",
+        "ko": "현재 가격이 [[price]] CZK 보다 낮습니다"
       }
     },
     {
       "id": "current-price-higher-than-trigger",
       "title": {
-        "en": "Current price is higher than"
+        "en": "Current price is higher than",
+        "nl": "Huidige prijs is hoger dan",
+        "da": "Aktuel pris er højere end",
+        "de": "Aktueller Preis ist höher als",
+        "es": "El precio actual es mayor que",
+        "fr": "Le prix actuel est supérieur à",
+        "it": "Il prezzo attuale è superiore a",
+        "no": "Nåværende pris er høyere enn",
+        "sv": "Nuvarande pris är högre än",
+        "pl": "Aktualna cena jest wyższa niż",
+        "ru": "Текущая цена выше, чем",
+        "ko": "현재 가격이 다음보다 높습니다"
       },
       "args": [
         {
           "name": "price",
           "type": "number",
           "title": {
-            "en": "Price"
+            "en": "Price",
+            "nl": "Prijs",
+            "da": "Pris",
+            "de": "Preis",
+            "es": "Precio",
+            "fr": "Prix",
+            "it": "Prezzo",
+            "no": "Pris",
+            "sv": "Pris",
+            "pl": "Cena",
+            "ru": "Цена",
+            "ko": "가격"
           }
         }
       ],
       "titleFormatted": {
-        "en": "Current price is higher than [[price]] CZK"
+        "en": "Current price is higher than [[price]] CZK",
+        "nl": "Huidige prijs is hoger dan [[price]] CZK",
+        "da": "Aktuel pris er højere end [[price]] CZK",
+        "de": "Aktueller Preis ist höher als [[price]] CZK",
+        "es": "El precio actual es mayor que [[price]] CZK",
+        "fr": "Le prix actuel est supérieur à [[price]] CZK",
+        "it": "Il prezzo attuale è superiore a [[price]] CZK",
+        "no": "Nåværende pris er høyere enn [[price]] CZK",
+        "sv": "Nuvarande pris är högre än [[price]] CZK",
+        "pl": "Aktualna cena jest wyższa niż [[price]] CZK",
+        "ru": "Текущая цена выше, чем [[price]] CZK",
+        "ko": "현재 가격이 [[price]] CZK 보다 높습니다"
       }
     },
     {
       "id": "current-price-index-trigger",
       "title": {
-        "en": "Current price index is"
+        "en": "Current price index is",
+        "nl": "Huidige prijsindex is",
+        "da": "Aktuel prisindeks er",
+        "de": "Aktueller Preisindex ist",
+        "es": "El índice de precios actual es",
+        "fr": "L'indice des prix actuel est",
+        "it": "L'indice dei prezzi corrente è",
+        "no": "Nåværende prisindeks er",
+        "sv": "Nuvarande prisindex är",
+        "pl": "Aktualny indeks cenowy to",
+        "ru": "Текущий ценовой индекс",
+        "ko": "현재 가격 지수는 다음과 같습니다:"
       },
       "args": [
         {
           "name": "index",
           "type": "dropdown",
           "title": {
-            "en": "Price Index"
+            "en": "Price Index",
+            "nl": "Prijsindex",
+            "da": "Prisindeks",
+            "de": "Preisindex",
+            "es": "Índice de Precios",
+            "fr": "Indice des Prix",
+            "it": "Indice dei Prezzi",
+            "no": "Prisindeks",
+            "sv": "Prisindex",
+            "pl": "Indeks Cenowy",
+            "ru": "Ценовой Индекс",
+            "ko": "가격 지수"
           },
           "values": [
             {
               "id": "low",
               "title": {
-                "en": "Low"
+                "en": "Low",
+                "nl": "Laag",
+                "da": "Lav",
+                "de": "Niedrig",
+                "es": "Bajo",
+                "fr": "Bas",
+                "it": "Basso",
+                "no": "Lav",
+                "sv": "Låg",
+                "pl": "Niski",
+                "ru": "Низкий",
+                "ko": "낮은"
               }
             },
             {
               "id": "medium",
               "title": {
-                "en": "Medium"
+                "en": "Medium",
+                "nl": "Middel",
+                "da": "Mellem",
+                "de": "Mittel",
+                "es": "Medio",
+                "fr": "Moyen",
+                "it": "Medio",
+                "no": "Medium",
+                "sv": "Medium",
+                "pl": "Średni",
+                "ru": "Средний",
+                "ko": "중간"
               }
             },
             {
               "id": "high",
               "title": {
-                "en": "High"
+                "en": "High",
+                "nl": "Hoog",
+                "da": "Høj",
+                "de": "Hoch",
+                "es": "Alto",
+                "fr": "Élevé",
+                "it": "Alto",
+                "no": "Høy",
+                "sv": "Hög",
+                "pl": "Wysoki",
+                "ru": "Высокий",
+                "ko": "높은"
               }
             },
             {
               "id": "unknown",
               "title": {
-                "en": "Unknown"
+                "en": "Unknown",
+                "nl": "Onbekend",
+                "da": "Ukendt",
+                "de": "Unbekannt",
+                "es": "Desconocido",
+                "fr": "Inconnu",
+                "it": "Sconosciuto",
+                "no": "Ukjent",
+                "sv": "Okänd",
+                "pl": "Nieznany",
+                "ru": "Неизвестно",
+                "ko": "알 수 없음"
               }
             }
           ]
         }
       ],
       "titleFormatted": {
-        "en": "Current price index is [[index]]"
+        "en": "Current price index is [[index]]",
+        "nl": "Huidige prijsindex is [[index]]",
+        "da": "Aktuel prisindeks er [[index]]",
+        "de": "Aktueller Preisindex ist [[index]]",
+        "es": "El índice de precios actual es [[index]]",
+        "fr": "L'indice des prix actuel est [[index]]",
+        "it": "L'indice dei prezzi corrente è [[index]]",
+        "no": "Nåværende prisindeks er [[index]]",
+        "sv": "Nuvarande prisindex är [[index]]",
+        "pl": "Aktualny indeks cenowy to [[index]]",
+        "ru": "Текущий ценовой индекс [[index]]",
+        "ko": "현재 가격 지수는 [[index]] 입니다"
       }
     },
     {
       "id": "average-price-trigger",
       "title": {
-        "en": "Average price for next X hours is [lowest/highest] within this day"
+        "en": "Average price for next X hours is [lowest/highest] within this day",
+        "nl": "Gemiddelde prijs voor de komende X uur is [laagst/hoogst] binnen deze dag",
+        "da": "Gennemsnitspris for de næste X timer er [lavest/højest] indenfor denne dag",
+        "de": "Der Durchschnittspreis für die nächsten X Stunden ist [niedrigster/höchster] innerhalb dieses Tages",
+        "es": "El precio promedio para las próximas X horas es [más bajo/más alto] dentro de este día",
+        "fr": "Le prix moyen pour les prochaines X heures est [le plus bas/le plus élevé] dans cette journée",
+        "it": "Il prezzo medio per le prossime X ore è [più basso/più alto] entro oggi",
+        "no": "Gjennomsnittlig pris for de neste X timene er [lavest/høyest] i løpet av denne dagen",
+        "sv": "Genomsnittspriset för de kommande X timmarna är [lägsta/högsta] inom denna dag",
+        "pl": "Średnia cena na następne X godzin to [najniższa/najwyższa] w ciągu tego dnia",
+        "ru": "Средняя цена за следующие X часов [самая низкая/самая высокая] в течение этого дня",
+        "ko": "다음 X 시간 동안 평균 가격은 오늘 내 [가장 낮음/높음] 입니다"
       },
       "tokens": [
-    {
-      "name": "average_price",
-      "type": "number",
-      "title": {
-        "en": "Average Price for defined period in CZK"
-      },
-      "example": 2.5
-    }
-  ],
+        {
+          "name": "average_price",
+          "type": "number",
+          "title": {
+            "en": "Average Price for defined period in CZK",
+            "nl": "Gemiddelde prijs voor gedefinieerde periode in CZK",
+            "da": "Gennemsnitspris for defineret periode i CZK",
+            "de": "Durchschnittspreis für definierten Zeitraum in CZK",
+            "es": "Precio promedio para el período definido en CZK",
+            "fr": "Prix moyen pour la période définie en CZK",
+            "it": "Prezzo medio per il periodo definito in CZK",
+            "no": "Gjennomsnittspris for definert periode i CZK",
+            "sv": "Genomsnittspris för definierad period i CZK",
+            "pl": "Średnia cena za określony okres w CZK",
+            "ru": "Средняя цена за определенный период в CZK",
+            "ko": "CZK로 정의된 기간의 평균 가격"
+          },
+          "example": 2.5
+        }
+      ],
       "args": [
         {
           "name": "hours",
           "type": "number",
           "title": {
-            "en": "Number of hours"
+            "en": "Number of hours",
+            "nl": "Aantal uren",
+            "da": "Antal timer",
+            "de": "Anzahl der Stunden",
+            "es": "Número de horas",
+            "fr": "Nombre d'heures",
+            "it": "Numero di ore",
+            "no": "Antall timer",
+            "sv": "Antal timmar",
+            "pl": "Liczba godzin",
+            "ru": "Количество часов",
+            "ko": "시간 수"
           },
           "value": 1
         },
@@ -108,90 +284,255 @@
           "name": "condition",
           "type": "dropdown",
           "title": {
-            "en": "lowest/highest"
+            "en": "lowest/highest",
+            "nl": "laagst/hoogst",
+            "da": "lavest/højest",
+            "de": "niedrigster/höchster",
+            "es": "más bajo/más alto",
+            "fr": "le plus bas/le plus élevé",
+            "it": "più basso/più alto",
+            "no": "lavest/høyest",
+            "sv": "lägsta/högsta",
+            "pl": "najniższa/najwyższa",
+            "ru": "самая низкая/самая высокая",
+            "ko": "가장 낮음/높음"
           },
           "values": [
             {
               "id": "lowest",
               "title": {
-                "en": "Lowest"
+                "en": "Lowest",
+                "nl": "Laagst",
+                "da": "Lavest",
+                "de": "Niedrigster",
+                "es": "Más bajo",
+                "fr": "Le plus bas",
+                "it": "Più basso",
+                "no": "Lavest",
+                "sv": "Lägsta",
+                "pl": "Najniższa",
+                "ru": "Самая низкая",
+                "ko": "가장 낮은"
               }
             },
             {
               "id": "highest",
               "title": {
-                "en": "Highest"
+                "en": "Highest",
+                "nl": "Hoogst",
+                "da": "Højeste",
+                "de": "Höchster",
+                "es": "Más alto",
+                "fr": "Le plus élevé",
+                "it": "Più alto",
+                "no": "Høyest",
+                "sv": "Högsta",
+                "pl": "Najwyższa",
+                "ru": "Самая высокая",
+                "ko": "가장 높은"
               }
             }
           ]
         }
       ],
       "titleFormatted": {
-        "en": "Average price for next [[hours]] hours is [[condition]] within this day"
+        "en": "Average price for next [[hours]] hours is [[condition]] within this day",
+        "nl": "Gemiddelde prijs voor de komende [[hours]] uur is [[condition]] binnen deze dag",
+        "da": "Gennemsnitspris for de næste [[hours]] timer er [[condition]] indenfor denne dag",
+        "de": "Der Durchschnittspreis für die nächsten [[hours]] Stunden ist [[condition]] innerhalb dieses Tages",
+        "es": "El precio promedio para las próximas [[hours]] horas es [[condition]] dentro de este día",
+        "fr": "Le prix moyen pour les prochaines [[hours]] heures est [[condition]] dans cette journée",
+        "it": "Il prezzo medio per le prossime [[hours]] ore è [[condition]] entro oggi",
+        "no": "Gjennomsnittlig pris for de neste [[hours]] timene er [[condition]] i løpet av denne dagen",
+        "sv": "Genomsnittspriset för de kommande [[hours]] timmarna är [[condition]] inom denna dag",
+        "pl": "Średnia cena na następne [[hours]] godzin to [[condition]] w ciągu tego dnia",
+        "ru": "Средняя цена за следующие [[hours]] часов [[condition]] в течение этого дня",
+        "ko": "다음 [[hours]] 시간 동안 평균 가격은 오늘 내 [[condition]] 입니다"
       }
     },
     {
       "id": "when-api-call-fails-trigger",
       "title": {
-        "en": "API call fails"
+        "en": "API call fails",
+        "nl": "API-oproep mislukt",
+        "da": "API-opkald mislykkes",
+        "de": "API-Aufruf schlägt fehl",
+        "es": "La llamada API falla",
+        "fr": "L'appel API échoue",
+        "it": "La chiamata API fallisce",
+        "no": "API-anrop mislykkes",
+        "sv": "API-anrop misslyckas",
+        "pl": "Wywołanie API nie powiodło się",
+        "ru": "Вызов API завершился неудачей",
+        "ko": "API 호출 실패"
       },
       "tokens": [
         {
           "name": "error_message",
           "type": "string",
           "title": {
-            "en": "Error Message"
+            "en": "Error Message",
+            "nl": "Foutmelding",
+            "da": "Fejlmeddelelse",
+            "de": "Fehlermeldung",
+            "es": "Mensaje de error",
+            "fr": "Message d'erreur",
+            "it": "Messaggio di errore",
+            "no": "Feilmelding",
+            "sv": "Felmeddelande",
+            "pl": "Komunikat o błędzie",
+            "ru": "Сообщение об ошибке",
+            "ko": "오류 메시지"
           }
         },
         {
           "name": "will_retry",
           "type": "boolean",
           "title": {
-            "en": "Will Retry"
+            "en": "Will Retry",
+            "nl": "Zal opnieuw proberen",
+            "da": "Vil prøve igen",
+            "de": "Wird erneut versuchen",
+            "es": "Reintentará",
+            "fr": "Réessayera",
+            "it": "Riproverà",
+            "no": "Vil prøve igjen",
+            "sv": "Kommer försöka igen",
+            "pl": "Spróbuje ponownie",
+            "ru": "Попробует снова",
+            "ko": "다시 시도할 것입니다"
           }
         },
         {
           "name": "retry_count",
           "type": "number",
           "title": {
-            "en": "Retry Attempt"
+            "en": "Retry Attempt",
+            "nl": "Opnieuw proberen",
+            "da": "Forsøg igen",
+            "de": "Wiederholungsversuch",
+            "es": "Intento de reintento",
+            "fr": "Tentative de réessai",
+            "it": "Tentativo di ripetizione",
+            "no": "Prøv igjen",
+            "sv": "Försök igen",
+            "pl": "Próba ponowienia",
+            "ru": "Попытка повторения",
+            "ko": "재시도 횟수"
           }
         },
         {
           "name": "next_retry",
           "type": "string",
           "title": {
-            "en": "Next Retry In"
+            "en": "Next Retry In",
+            "nl": "Volgende poging in",
+            "da": "Næste forsøg om",
+            "de": "Nächster Versuch in",
+            "es": "Próximo reintento en",
+            "fr": "Nouvel essai dans",
+            "it": "Prossimo tentativo tra",
+            "no": "Neste forsøk om",
+            "sv": "Nästa försök om",
+            "pl": "Następna próba za",
+            "ru": "Следующая попытка через",
+            "ko": "다음 재시도 시간"
           }
         },
         {
           "name": "max_retries_reached",
           "type": "boolean",
           "title": {
-            "en": "Max Retries Reached"
+            "en": "Max Retries Reached",
+            "nl": "Max pogingen bereikt",
+            "da": "Maksimum forsøg nået",
+            "de": "Maximale Wiederholungen erreicht",
+            "es": "Se alcanzaron los máximos intentos",
+            "fr": "Nombre maximal de tentatives atteint",
+            "it": "Raggiunto il numero massimo di tentativi",
+            "no": "Maks antall forsøk nådd",
+            "sv": "Max antal försök nått",
+            "pl": "Osiągnięto maksymalną liczbę prób",
+            "ru": "Достигнуто максимальное количество попыток",
+            "ko": "최대 재시도 횟수 도달"
           }
         }
       ],
       "titleFormatted": {
-        "en": "API call failed"
+        "en": "API call failed",
+        "nl": "API-oproep mislukt",
+        "da": "API-opkald mislykkedes",
+        "de": "API-Aufruf fehlgeschlagen",
+        "es": "La llamada API falló",
+        "fr": "L'appel API a échoué",
+        "it": "La chiamata API non è riuscita",
+        "no": "API-anrop mislyktes",
+        "sv": "API-anrop misslyckades",
+        "pl": "Wywołanie API nie powiodło się",
+        "ru": "Вызов API не удался",
+        "ko": "API 호출 실패"
       }
     },
     {
       "id": "when-current-price-changes",
       "title": {
-        "en": "Current price changes"
+        "en": "Current price changes",
+        "nl": "Huidige prijs verandert",
+        "da": "Nuværende prisændringer",
+        "de": "Aktuelle Preisänderungen",
+        "es": "Cambios de precio actual",
+        "fr": "Changements de prix actuels",
+        "it": "Cambiamenti di prezzo attuali",
+        "no": "Nåværende prisendringer",
+        "sv": "Nuvarande prisändringar",
+        "pl": "Zmiany obecnej ceny",
+        "ru": "Текущие изменения цен",
+        "ko": "현재 가격 변경"
       },
       "titleFormatted": {
-        "en": "Current price changes"
+        "en": "Current price changes",
+        "nl": "Huidige prijs verandert",
+        "da": "Nuværende prisændringer",
+        "de": "Aktuelle Preisänderungen",
+        "es": "Cambios de precio actual",
+        "fr": "Changements de prix actuels",
+        "it": "Cambiamenti di prezzo attuali",
+        "no": "Nåværende prisendringer",
+        "sv": "Nuvarande prisändringar",
+        "pl": "Zmiany obecnej ceny",
+        "ru": "Текущие изменения цен",
+        "ko": "현재 가격 변경"
       }
     },
     {
       "id": "when-distribution-tariff-changes",
       "title": {
-        "en": "Distribution tariff changes"
+        "en": "Distribution tariff changes",
+        "nl": "Distributietarief verandert",
+        "da": "Ændringer i distributionstariffen",
+        "de": "Änderungen des Verteilungstarifs",
+        "es": "Cambios en la tarifa de distribución",
+        "fr": "Changements de tarif de distribution",
+        "it": "Cambiamenti nella tariffa di distribuzione",
+        "no": "Endringer i distribusjonstariffen",
+        "sv": "Ändringar i distributionstariffen",
+        "pl": "Zmiany w taryfie dystrybucyjnej",
+        "ru": "Изменения распределительного тарифа",
+        "ko": "분포 관세 변경"
       },
       "titleFormatted": {
-        "en": "Distribution tariff changes"
+        "en": "Distribution tariff changes",
+        "nl": "Distributietarief verandert",
+        "da": "Ændringer i distributionstariffen",
+        "de": "Änderungen des Verteilungstarifs",
+        "es": "Cambios en la tarifa de distribución",
+        "fr": "Changements de tarif de distribution",
+        "it": "Cambiamenti nella tariffa di distribuzione",
+        "no": "Endringer i distribusjonstariffen",
+        "sv": "Ändringar i distributionstariffen",
+        "pl": "Zmiany w taryfie dystrybucyjnej",
+        "ru": "Изменения распределительного тарифа",
+        "ko": "분포 관세 변경"
       }
     }
   ],
@@ -199,94 +540,259 @@
     {
       "id": "price-lower-than-condition",
       "title": {
-        "en": "Price is lower than"
+        "en": "Price is lower than",
+        "nl": "Prijs is lager dan",
+        "da": "Prisen er lavere end",
+        "de": "Der Preis ist niedriger als",
+        "es": "El precio es menor que",
+        "fr": "Le prix est inférieur à",
+        "it": "Il prezzo è inferiore a",
+        "no": "Prisen er lavere enn",
+        "sv": "Priset är lägre än",
+        "pl": "Cena jest niższa niż",
+        "ru": "Цена ниже чем",
+        "ko": "가격이 다음보다 낮습니다"
       },
       "args": [
         {
           "name": "price",
           "type": "number",
           "title": {
-            "en": "Price"
+            "en": "Price",
+            "nl": "Prijs",
+            "da": "Pris",
+            "de": "Preis",
+            "es": "Precio",
+            "fr": "Prix",
+            "it": "Prezzo",
+            "no": "Pris",
+            "sv": "Pris",
+            "pl": "Cena",
+            "ru": "Цена",
+            "ko": "가격"
           }
         }
       ],
       "titleFormatted": {
-        "en": "Price is lower than [[price]] CZK"
+        "en": "Price is lower than [[price]] CZK",
+        "nl": "Prijs is lager dan [[price]] CZK",
+        "da": "Prisen er lavere end [[price]] CZK",
+        "de": "Der Preis ist niedriger als [[price]] CZK",
+        "es": "El precio es menor que [[price]] CZK",
+        "fr": "Le prix est inférieur à [[price]] CZK",
+        "it": "Il prezzo è inferiore a [[price]] CZK",
+        "no": "Prisen er lavere enn [[price]] CZK",
+        "sv": "Priset är lägre än [[price]] CZK",
+        "pl": "Cena jest niższa niż [[price]] CZK",
+        "ru": "Цена ниже чем [[price]] CZK",
+        "ko": "가격이 [[price]] CZK 보다 낮습니다"
       }
     },
     {
       "id": "price-higher-than-condition",
       "title": {
-        "en": "Price is higher than"
+        "en": "Price is higher than",
+        "nl": "Prijs is hoger dan",
+        "da": "Prisen er højere end",
+        "de": "Der Preis ist höher als",
+        "es": "El precio es mayor que",
+        "fr": "Le prix est supérieur à",
+        "it": "Il prezzo è superiore a",
+        "no": "Prisen er høyere enn",
+        "sv": "Priset är högre än",
+        "pl": "Cena jest wyższa niż",
+        "ru": "Цена выше чем",
+        "ko": "가격이 다음보다 높습니다"
       },
       "args": [
         {
           "name": "price",
           "type": "number",
           "title": {
-            "en": "Price"
+            "en": "Price",
+            "nl": "Prijs",
+            "da": "Pris",
+            "de": "Preis",
+            "es": "Precio",
+            "fr": "Prix",
+            "it": "Prezzo",
+            "no": "Pris",
+            "sv": "Pris",
+            "pl": "Cena",
+            "ru": "Цена",
+            "ko": "가격"
           }
         }
       ],
       "titleFormatted": {
-        "en": "Price is higher than [[price]] CZK"
+        "en": "Price is higher than [[price]] CZK",
+        "nl": "Prijs is hoger dan [[price]] CZK",
+        "da": "Prisen er højere end [[price]] CZK",
+        "de": "Der Preis ist höher als [[price]] CZK",
+        "es": "El precio es mayor que [[price]] CZK",
+        "fr": "Le prix est supérieur à [[price]] CZK",
+        "it": "Il prezzo è superiore a [[price]] CZK",
+        "no": "Prisen er høyere enn [[price]] CZK",
+        "sv": "Priset är högre än [[price]] CZK",
+        "pl": "Cena jest wyższa niż [[price]] CZK",
+        "ru": "Цена выше чем [[price]] CZK",
+        "ko": "가격이 [[price]] CZK 보다 높습니다"
       }
     },
     {
       "id": "price-index-is-condition",
       "title": {
-        "en": "Price index is"
+        "en": "Price index is",
+        "nl": "Prijsindex is",
+        "da": "Prisindeks er",
+        "de": "Preisindex ist",
+        "es": "El índice de precios es",
+        "fr": "L'indice des prix est",
+        "it": "L'indice dei prezzi è",
+        "no": "Prisindeks er",
+        "sv": "Prisindex är",
+        "pl": "Indeks cenowy to",
+        "ru": "Ценовой индекс",
+        "ko": "가격 지수는 다음과 같습니다:"
       },
       "args": [
         {
           "name": "index",
           "type": "dropdown",
           "title": {
-            "en": "Price Index"
+            "en": "Price Index",
+            "nl": "Prijsindex",
+            "da": "Prisindeks",
+            "de": "Preisindex",
+            "es": "Índice de Precios",
+            "fr": "Indice des Prix",
+            "it": "Indice dei Prezzi",
+            "no": "Prisindeks",
+            "sv": "Prisindex",
+            "pl": "Indeks Cenowy",
+            "ru": "Ценовой Индекс",
+            "ko": "가격 지수"
           },
           "values": [
             {
               "id": "low",
               "title": {
-                "en": "Low"
+                "en": "Low",
+                "nl": "Laag",
+                "da": "Lav",
+                "de": "Niedrig",
+                "es": "Bajo",
+                "fr": "Bas",
+                "it": "Basso",
+                "no": "Lav",
+                "sv": "Låg",
+                "pl": "Niski",
+                "ru": "Низкий",
+                "ko": "낮은"
               }
             },
             {
               "id": "medium",
               "title": {
-                "en": "Medium"
+                "en": "Medium",
+                "nl": "Middel",
+                "da": "Mellem",
+                "de": "Mittel",
+                "es": "Medio",
+                "fr": "Moyen",
+                "it": "Medio",
+                "no": "Medium",
+                "sv": "Medium",
+                "pl": "Średni",
+                "ru": "Средний",
+                "ko": "중간"
               }
             },
             {
               "id": "high",
               "title": {
-                "en": "High"
+                "en": "High",
+                "nl": "Hoog",
+                "da": "Høj",
+                "de": "Hoch",
+                "es": "Alto",
+                "fr": "Élevé",
+                "it": "Alto",
+                "no": "Høy",
+                "sv": "Hög",
+                "pl": "Wysoki",
+                "ru": "Высокий",
+                "ko": "높은"
               }
             },
             {
               "id": "unknown",
               "title": {
-                "en": "Unknown"
+                "en": "Unknown",
+                "nl": "Onbekend",
+                "da": "Ukendt",
+                "de": "Unbekannt",
+                "es": "Desconocido",
+                "fr": "Inconnu",
+                "it": "Sconosciuto",
+                "no": "Ukjent",
+                "sv": "Okänd",
+                "pl": "Nieznany",
+                "ru": "Неизвестно",
+                "ko": "알 수 없음"
               }
             }
           ]
         }
       ],
       "titleFormatted": {
-        "en": "Price index is [[index]]"
+        "en": "Price index is [[index]]",
+        "nl": "Prijsindex is [[index]]",
+        "da": "Prisindeks er [[index]]",
+        "de": "Preisindex ist [[index]]",
+        "es": "El índice de precios es [[index]]",
+        "fr": "L'indice des prix est [[index]]",
+        "it": "L'indice dei prezzi è [[index]]",
+        "no": "Prisindeks er [[index]]",
+        "sv": "Prisindex är [[index]]",
+        "pl": "Indeks cenowy to [[index]]",
+        "ru": "Ценовой индекс [[index]]",
+        "ko": "가격 지수는 [[index]] 입니다"
       }
     },
     {
       "id": "average-price-condition",
       "title": {
-        "en": "Average price for next X hours is [lowest/highest] within this day"
+        "en": "Average price for next X hours is [lowest/highest] within this day",
+        "nl": "Gemiddelde prijs voor de komende X uur is [laagst/hoogst] binnen deze dag",
+        "da": "Gennemsnitspris for de næste X timer er [lavest/højest] indenfor denne dag",
+        "de": "Der Durchschnittspreis für die nächsten X Stunden ist [niedrigster/höchster] innerhalb dieses Tages",
+        "es": "El precio promedio para las próximas X horas es [más bajo/más alto] dentro de este día",
+        "fr": "Le prix moyen pour les prochaines X heures est [le plus bas/le plus élevé] dans cette journée",
+        "it": "Il prezzo medio per le prossime X ore è [più basso/più alto] entro oggi",
+        "no": "Gjennomsnittlig pris for de neste X timene er [lavest/høyest] i løpet av denne dagen",
+        "sv": "Genomsnittspriset för de kommande X timmarna är [lägsta/högsta] inom denna dag",
+        "pl": "Średnia cena na następne X godzin to [najniższa/najwyższa] w ciągu tego dnia",
+        "ru": "Средняя цена за следующие X часов [самая низкая/самая высокая] в течение этого дня",
+        "ko": "다음 X 시간 동안 평균 가격은 오늘 내 [가장 낮음/높음] 입니다"
       },
       "args": [
         {
           "name": "hours",
           "type": "number",
           "title": {
-            "en": "Number of hours"
+            "en": "Number of hours",
+            "nl": "Aantal uren",
+            "da": "Antal timer",
+            "de": "Anzahl der Stunden",
+            "es": "Número de horas",
+            "fr": "Nombre d'heures",
+            "it": "Numero di ore",
+            "no": "Antall timer",
+            "sv": "Antal timmar",
+            "pl": "Liczba godzin",
+            "ru": "Количество часов",
+            "ko": "시간 수"
           },
           "value": 1
         },
@@ -294,42 +800,119 @@
           "name": "condition",
           "type": "dropdown",
           "title": {
-            "en": "lowest/highest"
+            "en": "lowest/highest",
+            "nl": "laagst/hoogst",
+            "da": "lavest/højest",
+            "de": "niedrigster/höchster",
+            "es": "más bajo/más alto",
+            "fr": "le plus bas/le plus élevé",
+            "it": "più basso/più alto",
+            "no": "lavest/høyest",
+            "sv": "lägsta/högsta",
+            "pl": "najniższa/najwyższa",
+            "ru": "самая низкая/самая высокая",
+            "ko": "가장 낮음/높음"
           },
           "values": [
             {
               "id": "lowest",
               "title": {
-                "en": "Lowest"
+                "en": "Lowest",
+                "nl": "Laagst",
+                "da": "Lavest",
+                "de": "Niedrigster",
+                "es": "Más bajo",
+                "fr": "Le plus bas",
+                "it": "Più basso",
+                "no": "Lavest",
+                "sv": "Lägsta",
+                "pl": "Najniższa",
+                "ru": "Самая низкая",
+                "ko": "가장 낮은"
               }
             },
             {
               "id": "highest",
               "title": {
-                "en": "Highest"
+                "en": "Highest",
+                "nl": "Hoogst",
+                "da": "Højeste",
+                "de": "Höchster",
+                "es": "Más alto",
+                "fr": "Le plus élevé",
+                "it": "Più alto",
+                "no": "Høyest",
+                "sv": "Högsta",
+                "pl": "Najwyższa",
+                "ru": "Самая высокая",
+                "ko": "가장 높은"
               }
             }
           ]
         }
       ],
       "titleFormatted": {
-        "en": "Average price for next [[hours]] hours is [[condition]] within this day"
+        "en": "Average price for next [[hours]] hours is [[condition]] within this day",
+        "nl": "Gemiddelde prijs voor de komende [[hours]] uur is [[condition]] binnen deze dag",
+        "da": "Gennemsnitspris for de næste [[hours]] timer er [[condition]] indenfor denne dag",
+        "de": "Der Durchschnittspreis für die nächsten [[hours]] Stunden ist [[condition]] innerhalb dieses Tages",
+        "es": "El precio promedio para las próximas [[hours]] horas es [[condition]] dentro de este día",
+        "fr": "Le prix moyen pour les prochaines [[hours]] heures est [[condition]] dans cette journée",
+        "it": "Il prezzo medio per le prossime [[hours]] ore è [[condition]] entro oggi",
+        "no": "Gjennomsnittlig pris for de neste [[hours]] timene er [[condition]] i løpet av denne dagen",
+        "sv": "Genomsnittspriset för de kommande [[hours]] timmarna är [[condition]] inom denna dag",
+        "pl": "Średnia cena na następne [[hours]] godzin to [[condition]] w ciągu tego dnia",
+        "ru": "Средняя цена за следующие [[hours]] часов [[condition]] в течение этого дня",
+        "ko": "다음 [[hours]] 시간 동안 평균 가격은 오늘 내 [[condition]] 입니다"
       }
     },
     {
       "id": "remaining-day-price-condition",
       "title": {
-        "en": "Average price for next X hours is [lowest/highest] within remaining day"
+        "en": "Average price for next X hours is [lowest/highest] within remaining day",
+        "nl": "Gemiddelde prijs voor de komende X uur is [laagst/hoogst] binnen de resterende dag",
+        "da": "Gennemsnitspris for de næste X timer er [lavest/højest] indenfor den resterende dag",
+        "de": "Der Durchschnittspreis für die nächsten X Stunden ist [niedrigster/höchster] innerhalb des verbleibenden Tages",
+        "es": "El precio promedio para las próximas X horas es [más bajo/más alto] dentro del día restante",
+        "fr": "Le prix moyen pour les prochaines X heures est [le plus bas/le plus élevé] dans le reste de la journée",
+        "it": "Il prezzo medio per le prossime X ore è [più basso/più alto] nel resto della giornata",
+        "no": "Gjennomsnittlig pris for de neste X timene er [lavest/høyest] i løpet av den gjenværende dagen",
+        "sv": "Genomsnittspriset för de kommande X timmarna är [lägsta/högsta] inom återstående dag",
+        "pl": "Średnia cena na następne X godzin to [najniższa/najwyższa] w ciągu pozostałej części dnia",
+        "ru": "Средняя цена за следующие X часов [самая низкая/самая высокая] в оставшееся время дня",
+        "ko": "다음 X 시간 동안 평균 가격은 남은 날 내 [가장 낮음/높음] 입니다"
       },
       "hint": {
-        "en": "Condition is always true in last possible interval of day, so it is recommended to set time boundaries for flow use"
+        "en": "Condition is always true in last possible interval of day, so it is recommended to set time boundaries for flow use",
+        "nl": "Voorwaarde is altijd waar in het laatste mogelijke interval van de dag, dus het is aanbevolen om tijdsgrenzen voor stroomgebruik in te stellen",
+        "da": "Betingelsen er altid sand i sidste mulige interval af dagen, så det anbefales at sætte tidsgrænser for flowbrug",
+        "de": "Bedingung ist immer wahr im letzten möglichen Intervall des Tages, daher wird empfohlen, Zeitgrenzen für die Nutzung des Durchflusses festzulegen",
+        "es": "La condición siempre es cierta en el último intervalo posible del día, por lo que se recomienda establecer límites de tiempo para uso del flujo",
+        "fr": "La condition est toujours vraie dans le dernier intervalle possible de la journée, il est donc recommandé de définir des limites de temps pour l'utilisation du flux",
+        "it": "La condizione è sempre vera nell'ultimo intervallo possibile del giorno, quindi si consiglia di impostare limiti di tempo per l'uso del flusso",
+        "no": "Betingelsen er alltid sann i det siste mulige intervallet av dagen, så det anbefales å sette tidsbegrensninger for bruk av flyt",
+        "sv": "Villkoret är alltid sant under det sista möjliga intervallet av dagen, så det rekommenderas att ställa in tidsgränser för flödesanvändning",
+        "pl": "Warunek jest zawsze prawdziwy w ostatnim możliwym przedziale dnia, więc zaleca się ustawić granice czasowe dla korzystania z przepływu",
+        "ru": "Условие всегда истинно в последнем возможном интервале дня, поэтому рекомендуется установить временные границы для использования потока",
+        "ko": "조건은 하루의 마지막 가능한 간격에서 항상 참이므로 흐름 사용에 대한 시간 경계를 설정하는 것이 좋습니다"
       },
       "args": [
         {
           "name": "hours",
           "type": "number",
           "title": {
-            "en": "Number of hours"
+            "en": "Number of hours",
+            "nl": "Aantal uren",
+            "da": "Antal timer",
+            "de": "Anzahl der Stunden",
+            "es": "Número de horas",
+            "fr": "Nombre d'heures",
+            "it": "Numero di ore",
+            "no": "Antall timer",
+            "sv": "Antal timmar",
+            "pl": "Liczba godzin",
+            "ru": "Количество часов",
+            "ko": "시간 수"
           },
           "value": 1
         },
@@ -337,32 +920,87 @@
           "name": "condition",
           "type": "dropdown",
           "title": {
-            "en": "lowest/highest"
+            "en": "lowest/highest",
+            "nl": "laagst/hoogst",
+            "da": "lavest/højest",
+            "de": "niedrigster/höchster",
+            "es": "más bajo/más alto",
+            "fr": "le plus bas/le plus élevé",
+            "it": "più basso/più alto",
+            "no": "lavest/høyest",
+            "sv": "lägsta/högsta",
+            "pl": "najniższa/najwyższa",
+            "ru": "самая низкая/самая высокая",
+            "ko": "가장 낮음/높음"
           },
           "values": [
             {
               "id": "lowest",
               "title": {
-                "en": "Lowest"
+                "en": "Lowest",
+                "nl": "Laagst",
+                "da": "Lavest",
+                "de": "Niedrigster",
+                "es": "Más bajo",
+                "fr": "Le plus bas",
+                "it": "Più basso",
+                "no": "Lavest",
+                "sv": "Lägsta",
+                "pl": "Najniższa",
+                "ru": "Самая низкая",
+                "ko": "가장 낮은"
               }
             },
             {
               "id": "highest",
               "title": {
-                "en": "Highest"
+                "en": "Highest",
+                "nl": "Hoogst",
+                "da": "Højeste",
+                "de": "Höchster",
+                "es": "Más alto",
+                "fr": "Le plus élevé",
+                "it": "Più alto",
+                "no": "Høyest",
+                "sv": "Högsta",
+                "pl": "Najwyższa",
+                "ru": "Самая высокая",
+                "ko": "가장 높은"
               }
             }
           ]
         }
       ],
       "titleFormatted": {
-        "en": "Average price for next [[hours]] hours is [[condition]] within remaining day"
+        "en": "Average price for next [[hours]] hours is [[condition]] within remaining day",
+        "nl": "Gemiddelde prijs voor de komende [[hours]] uur is [[condition]] binnen de resterende dag",
+        "da": "Gennemsnitspris for de næste [[hours]] timer er [[condition]] indenfor den resterende dag",
+        "de": "Der Durchschnittspreis für die nächsten [[hours]] Stunden ist [[condition]] innerhalb des verbleibenden Tages",
+        "es": "El precio promedio para las próximas [[hours]] horas es [[condition]] dentro del día restante",
+        "fr": "Le prix moyen pour les prochaines [[hours]] heures est [[condition]] dans le reste de la journée",
+        "it": "Il prezzo medio per le prossime [[hours]] ore è [[condition]] nel resto della giornata",
+        "no": "Gjennomsnittlig pris for de neste [[hours]] timene er [[condition]] i løpet av den gjenværende dagen",
+        "sv": "Genomsnittspriset för de kommande [[hours]] timmarna är [[condition]] inom återstående dag",
+        "pl": "Średnia cena na następne [[hours]] godzin to [[condition]] w ciągu pozostałej części dnia",
+        "ru": "Средняя цена за следующие [[hours]] часов [[condition]] в оставшееся время дня",
+        "ko": "다음 [[hours]] 시간 동안 평균 가격은 남은 날 내 [[condition]] 입니다"
       }
     },
     {
       "id": "distribution-tariff-is",
       "title": {
-        "en": "Distribution tariff is"
+        "en": "Distribution tariff is",
+        "nl": "Distributietarief is",
+        "da": "Distributionstakst er",
+        "de": "Verteilungstarif ist",
+        "es": "La tarifa de distribución es",
+        "fr": "Le tarif de distribution est",
+        "it": "La tariffa di distribuzione è",
+        "no": "Distribusjonstariffen er",
+        "sv": "Distributionstariffen är",
+        "pl": "Taryfa dystrybucyjna to",
+        "ru": "Распределительный тариф",
+        "ko": "분배 요금은 다음과 같습니다:"
       },
       "args": [
         {
@@ -372,20 +1010,53 @@
             {
               "id": "high",
               "title": {
-                "en": "High"
+                "en": "High",
+                "nl": "Hoog",
+                "da": "Høj",
+                "de": "Hoch",
+                "es": "Alto",
+                "fr": "Élevé",
+                "it": "Alto",
+                "no": "Høy",
+                "sv": "Hög",
+                "pl": "Wysoki",
+                "ru": "Высокий",
+                "ko": "높은"
               }
             },
             {
               "id": "low",
               "title": {
-                "en": "Low"
+                "en": "Low",
+                "nl": "Laag",
+                "da": "Lav",
+                "de": "Niedrig",
+                "es": "Bajo",
+                "fr": "Bas",
+                "it": "Basso",
+                "no": "Lav",
+                "sv": "Låg",
+                "pl": "Niski",
+                "ru": "Низкий",
+                "ko": "낮은"
               }
             }
           ]
         }
       ],
       "titleFormatted": {
-        "en": "Distribution tariff is [[tariff]]"
+        "en": "Distribution tariff is [[tariff]]",
+        "nl": "Distributietarief is [[tariff]]",
+        "da": "Distributionstakst er [[tariff]]",
+        "de": "Verteilungstarif ist [[tariff]]",
+        "es": "La tarifa de distribución es [[tariff]]",
+        "fr": "Le tarif de distribution est [[tariff]]",
+        "it": "La tariffa di distribuzione è [[tariff]]",
+        "no": "Distribusjonstariffen er [[tariff]]",
+        "sv": "Distributionstariffen är [[tariff]]",
+        "pl": "Taryfa dystrybucyjna to [[tariff]]",
+        "ru": "Распределительный тариф [[tariff]]",
+        "ko": "분배 요금은 [[tariff]] 입니다"
       }
     }
   ],
@@ -393,10 +1064,32 @@
     {
       "id": "update_data_via_api",
       "title": {
-        "en": "Update hourly data via API"
+        "en": "Update hourly data via API",
+        "nl": "Uurgegevens bijwerken via API",
+        "da": "Opdater timebaserede data via API",
+        "de": "Stündliche Daten über API aktualisieren",
+        "es": "Actualizar datos por hora a través de la API",
+        "fr": "Mettre à jour les données horaires via l'API",
+        "it": "Aggiorna i dati orari tramite API",
+        "no": "Oppdater timebaserte data via API",
+        "sv": "Uppdatera timdata via API",
+        "pl": "Aktualizuj dane godzinowe przez API",
+        "ru": "Обновить почасовые данные через API",
+        "ko": "API를 통해 시간별 데이터 업데이트"
       },
       "titleFormatted": {
-        "en": "Update hourly data via API"
+        "en": "Update hourly data via API",
+        "nl": "Uurgegevens bijwerken via API",
+        "da": "Opdater timebaserede data via API",
+        "de": "Stündliche Daten über API aktualisieren",
+        "es": "Actualizar datos por hora a través de la API",
+        "fr": "Mettre à jour les données horaires via l'API",
+        "it": "Aggiorna i dati orari tramite API",
+        "no": "Oppdater timebaserte data via API",
+        "sv": "Uppdatera timdata via API",
+        "pl": "Aktualizuj dane godzinowe przez API",
+        "ru": "Обновить почасовые данные через API",
+        "ko": "API를 통해 시간별 데이터 업데이트"
       }
     }
   ]

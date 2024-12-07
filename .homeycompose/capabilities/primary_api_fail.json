@@ -1,17 +1,50 @@
 {
-    "id": "primary_api_fail",
-    "type": "boolean",
-    "title": {
-      "en": "Fail of primary api"
-    },
-    "getable": true,
-    "setable": false,
-    "uiComponent": null,
-    "insights": true,
-    "insightsTitleTrue": {
-        "en": "Getting prices from primary API"
-      },
-    "insightsTitleFalse": {
-        "en": "Primary API failed, trying backup API"
-      }
+  "id": "primary_api_fail",
+  "type": "boolean",
+  "title": {
+    "en": "Fail of primary api",
+    "nl": "Fout van primaire api",
+    "da": "Fejl i primær API",
+    "de": "Fehler der primären API",
+    "es": "Fallo de la API principal",
+    "fr": "Échec de l'API principale",
+    "it": "Errore dell'API principale",
+    "no": "Feil på primær API",
+    "sv": "Fel på primär API",
+    "pl": "Awaria głównego API",
+    "ru": "Сбой основной API",
+    "ko": "기본 API 실패"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": null,
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Getting prices from primary API",
+    "nl": "Prijzen ophalen van primaire API",
+    "da": "Henter priser fra primær API",
+    "de": "Preise von der primären API abrufen",
+    "es": "Obteniendo precios de la API principal",
+    "fr": "Récupération des prix depuis l'API principale",
+    "it": "Recupero prezzi dall'API principale",
+    "no": "Henter priser fra primær API",
+    "sv": "Hämtar priser från primär API",
+    "pl": "Pobieranie cen z głównego API",
+    "ru": "Получение цен от основной API",
+    "ko": "기본 API에서 가격 가져오기"
+  },
+  "insightsTitleFalse": {
+    "en": "Primary API failed, trying backup API",
+    "nl": "Primair API mislukt, back-up API proberen",
+    "da": "Primær API mislykkedes, prøver backup-API",
+    "de": "Primäre API fehlgeschlagen, versuche Backup-API",
+    "es": "La API principal falló, intentando con la API de respaldo",
+    "fr": "L'API principale a échoué, essai de l'API de secours",
+    "it": "API principale fallita, tentativo con API di backup",
+    "no": "Primær API feilet, prøver backup API",
+    "sv": "Primär API misslyckades, försöker med backup API",
+    "pl": "Awaria głównego API, próba z zapasowym API",
+    "ru": "Сбой основной API, пробую резервную API",
+    "ko": "기본 API 실패, 백업 API 시도 중"
+  }
 }

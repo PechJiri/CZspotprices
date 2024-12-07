@@ -1,17 +1,50 @@
 {
-    "id": "spot_price_update_status",
-    "type": "boolean",
-    "title": {
-      "en": "Spot Price Update Status"
-    },
-    "getable": true,
-    "setable": true,
-    "uiComponent": null,
-    "insights": true,
-    "insightsTitleTrue": {
-        "en": "Spot prices updated"
-      },
-    "insightsTitleFalse": {
-        "en": "Calling API to update prices"
-      }
+  "id": "spot_price_update_status",
+  "type": "boolean",
+  "title": {
+    "en": "Spot Price Update Status",
+    "nl": "Spotprijs Update Status",
+    "da": "Spotpris Opdateringsstatus",
+    "de": "Spotpreis Aktualisierungsstatus",
+    "es": "Estado de Actualización de Precio Spot",
+    "fr": "Statut de Mise à Jour du Prix Spot",
+    "it": "Stato di Aggiornamento Prezzo Spot",
+    "no": "Spotpris Oppdateringsstatus",
+    "sv": "Spotpris Uppdateringsstatus",
+    "pl": "Status Aktualizacji Ceny Spot",
+    "ru": "Статус Обновления Спотовой Цены",
+    "ko": "스팟 가격 업데이트 상태"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": null,
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Spot prices updated",
+    "nl": "Spotprijzen bijgewerkt",
+    "da": "Spotpriser opdateret",
+    "de": "Spotpreise aktualisiert",
+    "es": "Precios spot actualizados",
+    "fr": "Prix spot mis à jour",
+    "it": "Prezzi spot aggiornati",
+    "no": "Spotpriser oppdatert",
+    "sv": "Spotpriser uppdaterade",
+    "pl": "Ceny spot zaktualizowane",
+    "ru": "Спотовые цены обновлены",
+    "ko": "스팟 가격 업데이트 완료"
+  },
+  "insightsTitleFalse": {
+    "en": "Calling API to update prices",
+    "nl": "API oproepen om prijzen bij te werken",
+    "da": "Ringer API for at opdatere priser",
+    "de": "API wird aufgerufen, um Preise zu aktualisieren",
+    "es": "Llamando a la API para actualizar precios",
+    "fr": "Appel de l'API pour mettre à jour les prix",
+    "it": "Chiamata all'API per aggiornare i prezzi",
+    "no": "Ringer API for å oppdatere priser",
+    "sv": "Ringer API för att uppdatera priser",
+    "pl": "Wywoływanie API w celu zaktualizowania cen",
+    "ru": "Вызов API для обновления цен",
+    "ko": "가격 업데이트를 위해 API 호출 중"
+  }
 }

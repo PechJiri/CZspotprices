@@ -1,14 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Hour 3 Price (CZK)"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/Price_icon.svg"
-  }
-  
+  "type": "number",
+  "title": {
+    "en": "Hour 3 Price (CZK)",
+    "nl": "Uur 3 Prijs (CZK)",
+    "da": "Time 3 Pris (CZK)",
+    "de": "Stunde 3 Preis (CZK)",
+    "es": "Precio Hora 3 (CZK)",
+    "fr": "Prix Heure 3 (CZK)",
+    "it": "Prezzo Ora 3 (CZK)",
+    "no": "Time 3 Pris (CZK)",
+    "sv": "Timme 3 Pris (CZK)",
+    "pl": "Cena Godzina 3 (CZK)",
+    "ru": "Цена за 3-й Час (CZK)",
+    "ko": "시간 3 가격 (CZK)"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/Price_icon.svg"
+}

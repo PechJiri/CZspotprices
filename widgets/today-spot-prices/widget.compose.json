@@ -1,6 +1,17 @@
 {
   "name": {
-    "en": "Today Spot Price Graph"
+    "en": "Today Spot Price Graph",
+    "nl": "Vandaag Spotprijs Grafiek",
+    "da": "Dagens Spotpris Graf",
+    "de": "Heutiger Spotpreisdiagramm",
+    "es": "Gráfico del Precio Spot de Hoy",
+    "fr": "Graphique du Prix Spot d'Aujourd'hui",
+    "it": "Grafico del Prezzo Spot di Oggi",
+    "no": "Dagens Spotpris Graf",
+    "sv": "Dagens Spotpris Graf",
+    "pl": "Dzisiejszy Wykres Cen Spot",
+    "ru": "График Спотовой Цены Сегодня",
+    "ko": "오늘의 스팟 가격 그래프"
   },
   "settings": [],
   "height": 250,

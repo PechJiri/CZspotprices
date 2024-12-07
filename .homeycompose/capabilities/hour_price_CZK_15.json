@@ -1,14 +1,24 @@
 {
-    "type": "number",
-    "title": {
-      "en": "Hour 15 Price (CZK)"
-    },
-    "units": "CZK",
-    "decimals": 2,
-    "insights": true,
-    "getable": true,
-    "setable": false,
-    "uiComponent": "sensor",
-    "icon": "/assets/images/Price_icon.svg"
-  }
-  
+  "type": "number",
+  "title": {
+    "en": "Hour 15 Price (CZK)",
+    "nl": "Uur 15 Prijs (CZK)",
+    "da": "Time 15 Pris (CZK)",
+    "de": "Stunde 15 Preis (CZK)",
+    "es": "Precio de la hora 15 (CZK)",
+    "fr": "Prix de l'heure 15 (CZK)",
+    "it": "Prezzo ora 15 (CZK)",
+    "no": "Time 15 Pris (CZK)",
+    "sv": "Timme 15 Pris (CZK)",
+    "pl": "Cena godziny 15 (CZK)",
+    "ru": "Цена за 15 час (CZK)",
+    "ko": "15시간 요금 (CZK)"
+  },
+  "units": "CZK",
+  "decimals": 2,
+  "insights": true,
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/images/Price_icon.svg"
+}

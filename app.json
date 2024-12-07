@@ -8,10 +8,32 @@
     "local"
   ],
   "name": {
-    "en": "CZ spot prices"
+    "en": "CZ spot prices",
+    "nl": "CZ spotprijzen",
+    "da": "CZ spotpriser",
+    "de": "CZ-Spotpreise",
+    "es": "Precios spot de CZ",
+    "fr": "Prix spot CZ",
+    "it": "Prezzi spot CZ",
+    "no": "CZ spotpriser",
+    "sv": "CZ spotpriser",
+    "pl": "Ceny spotowe CZ",
+    "ru": "СЗ спотовые цены",
+    "ko": "CZ 현물 가격"
   },
   "description": {
-    "en": "Get your CZ spot prices with distribution fees"
+    "en": "Get your CZ spot prices with distribution fees",
+    "nl": "Krijg uw CZ spotprijzen met distributiekosten",
+    "da": "Få dine CZ spotpriser med distributionsgebyrer",
+    "de": "Erhalten Sie Ihre CZ-Spotpreise mit Verteilungsgebühren",
+    "es": "Obtén tus precios spot de CZ con tarifas de distribución",
+    "fr": "Obtenez vos prix spot CZ avec les frais de distribution",
+    "it": "Ottieni i tuoi prezzi spot CZ con tariffe di distribuzione",
+    "no": "Få dine CZ spotpriser med distribusjonsgebyrer",
+    "sv": "Få dina CZ spotpriser med distributionsavgifter",
+    "pl": "Uzyskaj ceny spotowe CZ z opłatami dystrybucyjnymi",
+    "ru": "Получите СЗ спотовые цены с учетом сборов за распределение",
+    "ko": "CZ 현물 가격에 배포 수수료 포함"
   },
   "category": [
     "energy"
@@ -44,7 +66,18 @@
       {
         "id": "current-price-lower-than-trigger",
         "title": {
-          "en": "Current price is lower than"
+          "en": "Current price is lower than",
+          "nl": "Huidige prijs is lager dan",
+          "da": "Aktuel pris er lavere end",
+          "de": "Aktueller Preis ist niedriger als",
+          "es": "El precio actual es menor que",
+          "fr": "Le prix actuel est inférieur à",
+          "it": "Il prezzo attuale è inferiore a",
+          "no": "Nåværende pris er lavere enn",
+          "sv": "Nuvarande pris är lägre än",
+          "pl": "Aktualna cena jest niższa niż",
+          "ru": "Текущая цена ниже, чем",
+          "ko": "현재 가격이 다음보다 낮습니다"
         },
         "args": [
           {
@@ -56,18 +89,51 @@
             "name": "price",
             "type": "number",
             "title": {
-              "en": "Price"
+              "en": "Price",
+              "nl": "Prijs",
+              "da": "Pris",
+              "de": "Preis",
+              "es": "Precio",
+              "fr": "Prix",
+              "it": "Prezzo",
+              "no": "Pris",
+              "sv": "Pris",
+              "pl": "Cena",
+              "ru": "Цена",
+              "ko": "가격"
             }
           }
         ],
         "titleFormatted": {
-          "en": "Current price is lower than [[price]] CZK"
+          "en": "Current price is lower than [[price]] CZK",
+          "nl": "Huidige prijs is lager dan [[price]] CZK",
+          "da": "Aktuel pris er lavere end [[price]] CZK",
+          "de": "Aktueller Preis ist niedriger als [[price]] CZK",
+          "es": "El precio actual es menor que [[price]] CZK",
+          "fr": "Le prix actuel est inférieur à [[price]] CZK",
+          "it": "Il prezzo attuale è inferiore a [[price]] CZK",
+          "no": "Nåværende pris er lavere enn [[price]] CZK",
+          "sv": "Nuvarande pris är lägre än [[price]] CZK",
+          "pl": "Aktualna cena jest niższa niż [[price]] CZK",
+          "ru": "Текущая цена ниже, чем [[price]] CZK",
+          "ko": "현재 가격이 [[price]] CZK 보다 낮습니다"
         }
       },
       {
         "id": "current-price-higher-than-trigger",
         "title": {
-          "en": "Current price is higher than"
+          "en": "Current price is higher than",
+          "nl": "Huidige prijs is hoger dan",
+          "da": "Aktuel pris er højere end",
+          "de": "Aktueller Preis ist höher als",
+          "es": "El precio actual es mayor que",
+          "fr": "Le prix actuel est supérieur à",
+          "it": "Il prezzo attuale è superiore a",
+          "no": "Nåværende pris er høyere enn",
+          "sv": "Nuvarande pris är högre än",
+          "pl": "Aktualna cena jest wyższa niż",
+          "ru": "Текущая цена выше, чем",
+          "ko": "현재 가격이 다음보다 높습니다"
         },
         "args": [
           {
@@ -79,18 +145,51 @@
             "name": "price",
             "type": "number",
             "title": {
-              "en": "Price"
+              "en": "Price",
+              "nl": "Prijs",
+              "da": "Pris",
+              "de": "Preis",
+              "es": "Precio",
+              "fr": "Prix",
+              "it": "Prezzo",
+              "no": "Pris",
+              "sv": "Pris",
+              "pl": "Cena",
+              "ru": "Цена",
+              "ko": "가격"
             }
           }
         ],
         "titleFormatted": {
-          "en": "Current price is higher than [[price]] CZK"
+          "en": "Current price is higher than [[price]] CZK",
+          "nl": "Huidige prijs is hoger dan [[price]] CZK",
+          "da": "Aktuel pris er højere end [[price]] CZK",
+          "de": "Aktueller Preis ist höher als [[price]] CZK",
+          "es": "El precio actual es mayor que [[price]] CZK",
+          "fr": "Le prix actuel est supérieur à [[price]] CZK",
+          "it": "Il prezzo attuale è superiore a [[price]] CZK",
+          "no": "Nåværende pris er høyere enn [[price]] CZK",
+          "sv": "Nuvarande pris är högre än [[price]] CZK",
+          "pl": "Aktualna cena jest wyższa niż [[price]] CZK",
+          "ru": "Текущая цена выше, чем [[price]] CZK",
+          "ko": "현재 가격이 [[price]] CZK 보다 높습니다"
         }
       },
       {
         "id": "current-price-index-trigger",
         "title": {
-          "en": "Current price index is"
+          "en": "Current price index is",
+          "nl": "Huidige prijsindex is",
+          "da": "Aktuel prisindeks er",
+          "de": "Aktueller Preisindex ist",
+          "es": "El índice de precios actual es",
+          "fr": "L'indice des prix actuel est",
+          "it": "L'indice dei prezzi corrente è",
+          "no": "Nåværende prisindeks er",
+          "sv": "Nuvarande prisindex är",
+          "pl": "Aktualny indeks cenowy to",
+          "ru": "Текущий ценовой индекс",
+          "ko": "현재 가격 지수는 다음과 같습니다:"
         },
         "args": [
           {
@@ -102,51 +201,139 @@
             "name": "index",
             "type": "dropdown",
             "title": {
-              "en": "Price Index"
+              "en": "Price Index",
+              "nl": "Prijsindex",
+              "da": "Prisindeks",
+              "de": "Preisindex",
+              "es": "Índice de Precios",
+              "fr": "Indice des Prix",
+              "it": "Indice dei Prezzi",
+              "no": "Prisindeks",
+              "sv": "Prisindex",
+              "pl": "Indeks Cenowy",
+              "ru": "Ценовой Индекс",
+              "ko": "가격 지수"
             },
             "values": [
               {
                 "id": "low",
                 "title": {
-                  "en": "Low"
+                  "en": "Low",
+                  "nl": "Laag",
+                  "da": "Lav",
+                  "de": "Niedrig",
+                  "es": "Bajo",
+                  "fr": "Bas",
+                  "it": "Basso",
+                  "no": "Lav",
+                  "sv": "Låg",
+                  "pl": "Niski",
+                  "ru": "Низкий",
+                  "ko": "낮은"
                 }
               },
               {
                 "id": "medium",
                 "title": {
-                  "en": "Medium"
+                  "en": "Medium",
+                  "nl": "Middel",
+                  "da": "Mellem",
+                  "de": "Mittel",
+                  "es": "Medio",
+                  "fr": "Moyen",
+                  "it": "Medio",
+                  "no": "Medium",
+                  "sv": "Medium",
+                  "pl": "Średni",
+                  "ru": "Средний",
+                  "ko": "중간"
                 }
               },
               {
                 "id": "high",
                 "title": {
-                  "en": "High"
+                  "en": "High",
+                  "nl": "Hoog",
+                  "da": "Høj",
+                  "de": "Hoch",
+                  "es": "Alto",
+                  "fr": "Élevé",
+                  "it": "Alto",
+                  "no": "Høy",
+                  "sv": "Hög",
+                  "pl": "Wysoki",
+                  "ru": "Высокий",
+                  "ko": "높은"
                 }
               },
               {
                 "id": "unknown",
                 "title": {
-                  "en": "Unknown"
+                  "en": "Unknown",
+                  "nl": "Onbekend",
+                  "da": "Ukendt",
+                  "de": "Unbekannt",
+                  "es": "Desconocido",
+                  "fr": "Inconnu",
+                  "it": "Sconosciuto",
+                  "no": "Ukjent",
+                  "sv": "Okänd",
+                  "pl": "Nieznany",
+                  "ru": "Неизвестно",
+                  "ko": "알 수 없음"
                 }
               }
             ]
           }
         ],
         "titleFormatted": {
-          "en": "Current price index is [[index]]"
+          "en": "Current price index is [[index]]",
+          "nl": "Huidige prijsindex is [[index]]",
+          "da": "Aktuel prisindeks er [[index]]",
+          "de": "Aktueller Preisindex ist [[index]]",
+          "es": "El índice de precios actual es [[index]]",
+          "fr": "L'indice des prix actuel est [[index]]",
+          "it": "L'indice dei prezzi corrente è [[index]]",
+          "no": "Nåværende prisindeks er [[index]]",
+          "sv": "Nuvarande prisindex är [[index]]",
+          "pl": "Aktualny indeks cenowy to [[index]]",
+          "ru": "Текущий ценовой индекс [[index]]",
+          "ko": "현재 가격 지수는 [[index]] 입니다"
         }
       },
       {
         "id": "average-price-trigger",
         "title": {
-          "en": "Average price for next X hours is [lowest/highest] within this day"
+          "en": "Average price for next X hours is [lowest/highest] within this day",
+          "nl": "Gemiddelde prijs voor de komende X uur is [laagst/hoogst] binnen deze dag",
+          "da": "Gennemsnitspris for de næste X timer er [lavest/højest] indenfor denne dag",
+          "de": "Der Durchschnittspreis für die nächsten X Stunden ist [niedrigster/höchster] innerhalb dieses Tages",
+          "es": "El precio promedio para las próximas X horas es [más bajo/más alto] dentro de este día",
+          "fr": "Le prix moyen pour les prochaines X heures est [le plus bas/le plus élevé] dans cette journée",
+          "it": "Il prezzo medio per le prossime X ore è [più basso/più alto] entro oggi",
+          "no": "Gjennomsnittlig pris for de neste X timene er [lavest/høyest] i løpet av denne dagen",
+          "sv": "Genomsnittspriset för de kommande X timmarna är [lägsta/högsta] inom denna dag",
+          "pl": "Średnia cena na następne X godzin to [najniższa/najwyższa] w ciągu tego dnia",
+          "ru": "Средняя цена за следующие X часов [самая низкая/самая высокая] в течение этого дня",
+          "ko": "다음 X 시간 동안 평균 가격은 오늘 내 [가장 낮음/높음] 입니다"
         },
         "tokens": [
           {
             "name": "average_price",
             "type": "number",
             "title": {
-              "en": "Average Price for defined period in CZK"
+              "en": "Average Price for defined period in CZK",
+              "nl": "Gemiddelde prijs voor gedefinieerde periode in CZK",
+              "da": "Gennemsnitspris for defineret periode i CZK",
+              "de": "Durchschnittspreis für definierten Zeitraum in CZK",
+              "es": "Precio promedio para el período definido en CZK",
+              "fr": "Prix moyen pour la période définie en CZK",
+              "it": "Prezzo medio per il periodo definito in CZK",
+              "no": "Gjennomsnittspris for definert periode i CZK",
+              "sv": "Genomsnittspris för definierad period i CZK",
+              "pl": "Średnia cena za określony okres w CZK",
+              "ru": "Средняя цена за определенный период в CZK",
+              "ko": "CZK로 정의된 기간의 평균 가격"
             },
             "example": 2.5
           }
@@ -161,7 +348,18 @@
             "name": "hours",
             "type": "number",
             "title": {
-              "en": "Number of hours"
+              "en": "Number of hours",
+              "nl": "Aantal uren",
+              "da": "Antal timer",
+              "de": "Anzahl der Stunden",
+              "es": "Número de horas",
+              "fr": "Nombre d'heures",
+              "it": "Numero di ore",
+              "no": "Antall timer",
+              "sv": "Antal timmar",
+              "pl": "Liczba godzin",
+              "ru": "Количество часов",
+              "ko": "시간 수"
             },
             "value": 1
           },
@@ -169,72 +367,193 @@
             "name": "condition",
             "type": "dropdown",
             "title": {
-              "en": "lowest/highest"
+              "en": "lowest/highest",
+              "nl": "laagst/hoogst",
+              "da": "lavest/højest",
+              "de": "niedrigster/höchster",
+              "es": "más bajo/más alto",
+              "fr": "le plus bas/le plus élevé",
+              "it": "più basso/più alto",
+              "no": "lavest/høyest",
+              "sv": "lägsta/högsta",
+              "pl": "najniższa/najwyższa",
+              "ru": "самая низкая/самая высокая",
+              "ko": "가장 낮음/높음"
             },
             "values": [
               {
                 "id": "lowest",
                 "title": {
-                  "en": "Lowest"
+                  "en": "Lowest",
+                  "nl": "Laagst",
+                  "da": "Lavest",
+                  "de": "Niedrigster",
+                  "es": "Más bajo",
+                  "fr": "Le plus bas",
+                  "it": "Più basso",
+                  "no": "Lavest",
+                  "sv": "Lägsta",
+                  "pl": "Najniższa",
+                  "ru": "Самая низкая",
+                  "ko": "가장 낮은"
                 }
               },
               {
                 "id": "highest",
                 "title": {
-                  "en": "Highest"
+                  "en": "Highest",
+                  "nl": "Hoogst",
+                  "da": "Højeste",
+                  "de": "Höchster",
+                  "es": "Más alto",
+                  "fr": "Le plus élevé",
+                  "it": "Più alto",
+                  "no": "Høyest",
+                  "sv": "Högsta",
+                  "pl": "Najwyższa",
+                  "ru": "Самая высокая",
+                  "ko": "가장 높은"
                 }
               }
             ]
           }
         ],
         "titleFormatted": {
-          "en": "Average price for next [[hours]] hours is [[condition]] within this day"
+          "en": "Average price for next [[hours]] hours is [[condition]] within this day",
+          "nl": "Gemiddelde prijs voor de komende [[hours]] uur is [[condition]] binnen deze dag",
+          "da": "Gennemsnitspris for de næste [[hours]] timer er [[condition]] indenfor denne dag",
+          "de": "Der Durchschnittspreis für die nächsten [[hours]] Stunden ist [[condition]] innerhalb dieses Tages",
+          "es": "El precio promedio para las próximas [[hours]] horas es [[condition]] dentro de este día",
+          "fr": "Le prix moyen pour les prochaines [[hours]] heures est [[condition]] dans cette journée",
+          "it": "Il prezzo medio per le prossime [[hours]] ore è [[condition]] entro oggi",
+          "no": "Gjennomsnittlig pris for de neste [[hours]] timene er [[condition]] i løpet av denne dagen",
+          "sv": "Genomsnittspriset för de kommande [[hours]] timmarna är [[condition]] inom denna dag",
+          "pl": "Średnia cena na następne [[hours]] godzin to [[condition]] w ciągu tego dnia",
+          "ru": "Средняя цена за следующие [[hours]] часов [[condition]] в течение этого дня",
+          "ko": "다음 [[hours]] 시간 동안 평균 가격은 오늘 내 [[condition]] 입니다"
         }
       },
       {
         "id": "when-api-call-fails-trigger",
         "title": {
-          "en": "API call fails"
+          "en": "API call fails",
+          "nl": "API-oproep mislukt",
+          "da": "API-opkald mislykkes",
+          "de": "API-Aufruf schlägt fehl",
+          "es": "La llamada API falla",
+          "fr": "L'appel API échoue",
+          "it": "La chiamata API fallisce",
+          "no": "API-anrop mislykkes",
+          "sv": "API-anrop misslyckas",
+          "pl": "Wywołanie API nie powiodło się",
+          "ru": "Вызов API завершился неудачей",
+          "ko": "API 호출 실패"
         },
         "tokens": [
           {
             "name": "error_message",
             "type": "string",
             "title": {
-              "en": "Error Message"
+              "en": "Error Message",
+              "nl": "Foutmelding",
+              "da": "Fejlmeddelelse",
+              "de": "Fehlermeldung",
+              "es": "Mensaje de error",
+              "fr": "Message d'erreur",
+              "it": "Messaggio di errore",
+              "no": "Feilmelding",
+              "sv": "Felmeddelande",
+              "pl": "Komunikat o błędzie",
+              "ru": "Сообщение об ошибке",
+              "ko": "오류 메시지"
             }
           },
           {
             "name": "will_retry",
             "type": "boolean",
             "title": {
-              "en": "Will Retry"
+              "en": "Will Retry",
+              "nl": "Zal opnieuw proberen",
+              "da": "Vil prøve igen",
+              "de": "Wird erneut versuchen",
+              "es": "Reintentará",
+              "fr": "Réessayera",
+              "it": "Riproverà",
+              "no": "Vil prøve igjen",
+              "sv": "Kommer försöka igen",
+              "pl": "Spróbuje ponownie",
+              "ru": "Попробует снова",
+              "ko": "다시 시도할 것입니다"
             }
           },
           {
             "name": "retry_count",
             "type": "number",
             "title": {
-              "en": "Retry Attempt"
+              "en": "Retry Attempt",
+              "nl": "Opnieuw proberen",
+              "da": "Forsøg igen",
+              "de": "Wiederholungsversuch",
+              "es": "Intento de reintento",
+              "fr": "Tentative de réessai",
+              "it": "Tentativo di ripetizione",
+              "no": "Prøv igjen",
+              "sv": "Försök igen",
+              "pl": "Próba ponowienia",
+              "ru": "Попытка повторения",
+              "ko": "재시도 횟수"
             }
           },
           {
             "name": "next_retry",
             "type": "string",
             "title": {
-              "en": "Next Retry In"
+              "en": "Next Retry In",
+              "nl": "Volgende poging in",
+              "da": "Næste forsøg om",
+              "de": "Nächster Versuch in",
+              "es": "Próximo reintento en",
+              "fr": "Nouvel essai dans",
+              "it": "Prossimo tentativo tra",
+              "no": "Neste forsøk om",
+              "sv": "Nästa försök om",
+              "pl": "Następna próba za",
+              "ru": "Следующая попытка через",
+              "ko": "다음 재시도 시간"
             }
           },
           {
             "name": "max_retries_reached",
             "type": "boolean",
             "title": {
-              "en": "Max Retries Reached"
+              "en": "Max Retries Reached",
+              "nl": "Max pogingen bereikt",
+              "da": "Maksimum forsøg nået",
+              "de": "Maximale Wiederholungen erreicht",
+              "es": "Se alcanzaron los máximos intentos",
+              "fr": "Nombre maximal de tentatives atteint",
+              "it": "Raggiunto il numero massimo di tentativi",
+              "no": "Maks antall forsøk nådd",
+              "sv": "Max antal försök nått",
+              "pl": "Osiągnięto maksymalną liczbę prób",
+              "ru": "Достигнуто максимальное количество попыток",
+              "ko": "최대 재시도 횟수 도달"
             }
           }
         ],
         "titleFormatted": {
-          "en": "API call failed"
+          "en": "API call failed",
+          "nl": "API-oproep mislukt",
+          "da": "API-opkald mislykkedes",
+          "de": "API-Aufruf fehlgeschlagen",
+          "es": "La llamada API falló",
+          "fr": "L'appel API a échoué",
+          "it": "La chiamata API non è riuscita",
+          "no": "API-anrop mislyktes",
+          "sv": "API-anrop misslyckades",
+          "pl": "Wywołanie API nie powiodło się",
+          "ru": "Вызов API не удался",
+          "ko": "API 호출 실패"
         },
         "args": [
           {
@@ -247,10 +566,32 @@
       {
         "id": "when-current-price-changes",
         "title": {
-          "en": "Current price changes"
+          "en": "Current price changes",
+          "nl": "Huidige prijs verandert",
+          "da": "Nuværende prisændringer",
+          "de": "Aktuelle Preisänderungen",
+          "es": "Cambios de precio actual",
+          "fr": "Changements de prix actuels",
+          "it": "Cambiamenti di prezzo attuali",
+          "no": "Nåværende prisendringer",
+          "sv": "Nuvarande prisändringar",
+          "pl": "Zmiany obecnej ceny",
+          "ru": "Текущие изменения цен",
+          "ko": "현재 가격 변경"
         },
         "titleFormatted": {
-          "en": "Current price changes"
+          "en": "Current price changes",
+          "nl": "Huidige prijs verandert",
+          "da": "Nuværende prisændringer",
+          "de": "Aktuelle Preisänderungen",
+          "es": "Cambios de precio actual",
+          "fr": "Changements de prix actuels",
+          "it": "Cambiamenti di prezzo attuali",
+          "no": "Nåværende prisendringer",
+          "sv": "Nuvarande prisändringar",
+          "pl": "Zmiany obecnej ceny",
+          "ru": "Текущие изменения цен",
+          "ko": "현재 가격 변경"
         },
         "args": [
           {
@@ -263,10 +604,32 @@
       {
         "id": "when-distribution-tariff-changes",
         "title": {
-          "en": "Distribution tariff changes"
+          "en": "Distribution tariff changes",
+          "nl": "Distributietarief verandert",
+          "da": "Ændringer i distributionstariffen",
+          "de": "Änderungen des Verteilungstarifs",
+          "es": "Cambios en la tarifa de distribución",
+          "fr": "Changements de tarif de distribution",
+          "it": "Cambiamenti nella tariffa di distribuzione",
+          "no": "Endringer i distribusjonstariffen",
+          "sv": "Ändringar i distributionstariffen",
+          "pl": "Zmiany w taryfie dystrybucyjnej",
+          "ru": "Изменения распределительного тарифа",
+          "ko": "분포 관세 변경"
         },
         "titleFormatted": {
-          "en": "Distribution tariff changes"
+          "en": "Distribution tariff changes",
+          "nl": "Distributietarief verandert",
+          "da": "Ændringer i distributionstariffen",
+          "de": "Änderungen des Verteilungstarifs",
+          "es": "Cambios en la tarifa de distribución",
+          "fr": "Changements de tarif de distribution",
+          "it": "Cambiamenti nella tariffa di distribuzione",
+          "no": "Endringer i distribusjonstariffen",
+          "sv": "Ändringar i distributionstariffen",
+          "pl": "Zmiany w taryfie dystrybucyjnej",
+          "ru": "Изменения распределительного тарифа",
+          "ko": "분포 관세 변경"
         },
         "args": [
           {
@@ -281,7 +644,18 @@
       {
         "id": "price-lower-than-condition",
         "title": {
-          "en": "Price is lower than"
+          "en": "Price is lower than",
+          "nl": "Prijs is lager dan",
+          "da": "Prisen er lavere end",
+          "de": "Der Preis ist niedriger als",
+          "es": "El precio es menor que",
+          "fr": "Le prix est inférieur à",
+          "it": "Il prezzo è inferiore a",
+          "no": "Prisen er lavere enn",
+          "sv": "Priset är lägre än",
+          "pl": "Cena jest niższa niż",
+          "ru": "Цена ниже чем",
+          "ko": "가격이 다음보다 낮습니다"
         },
         "args": [
           {
@@ -293,18 +667,51 @@
             "name": "price",
             "type": "number",
             "title": {
-              "en": "Price"
+              "en": "Price",
+              "nl": "Prijs",
+              "da": "Pris",
+              "de": "Preis",
+              "es": "Precio",
+              "fr": "Prix",
+              "it": "Prezzo",
+              "no": "Pris",
+              "sv": "Pris",
+              "pl": "Cena",
+              "ru": "Цена",
+              "ko": "가격"
             }
           }
         ],
         "titleFormatted": {
-          "en": "Price is lower than [[price]] CZK"
+          "en": "Price is lower than [[price]] CZK",
+          "nl": "Prijs is lager dan [[price]] CZK",
+          "da": "Prisen er lavere end [[price]] CZK",
+          "de": "Der Preis ist niedriger als [[price]] CZK",
+          "es": "El precio es menor que [[price]] CZK",
+          "fr": "Le prix est inférieur à [[price]] CZK",
+          "it": "Il prezzo è inferiore a [[price]] CZK",
+          "no": "Prisen er lavere enn [[price]] CZK",
+          "sv": "Priset är lägre än [[price]] CZK",
+          "pl": "Cena jest niższa niż [[price]] CZK",
+          "ru": "Цена ниже чем [[price]] CZK",
+          "ko": "가격이 [[price]] CZK 보다 낮습니다"
         }
       },
       {
         "id": "price-higher-than-condition",
         "title": {
-          "en": "Price is higher than"
+          "en": "Price is higher than",
+          "nl": "Prijs is hoger dan",
+          "da": "Prisen er højere end",
+          "de": "Der Preis ist höher als",
+          "es": "El precio es mayor que",
+          "fr": "Le prix est supérieur à",
+          "it": "Il prezzo è superiore a",
+          "no": "Prisen er høyere enn",
+          "sv": "Priset är högre än",
+          "pl": "Cena jest wyższa niż",
+          "ru": "Цена выше чем",
+          "ko": "가격이 다음보다 높습니다"
         },
         "args": [
           {
@@ -316,18 +723,51 @@
             "name": "price",
             "type": "number",
             "title": {
-              "en": "Price"
+              "en": "Price",
+              "nl": "Prijs",
+              "da": "Pris",
+              "de": "Preis",
+              "es": "Precio",
+              "fr": "Prix",
+              "it": "Prezzo",
+              "no": "Pris",
+              "sv": "Pris",
+              "pl": "Cena",
+              "ru": "Цена",
+              "ko": "가격"
             }
           }
         ],
         "titleFormatted": {
-          "en": "Price is higher than [[price]] CZK"
+          "en": "Price is higher than [[price]] CZK",
+          "nl": "Prijs is hoger dan [[price]] CZK",
+          "da": "Prisen er højere end [[price]] CZK",
+          "de": "Der Preis ist höher als [[price]] CZK",
+          "es": "El precio es mayor que [[price]] CZK",
+          "fr": "Le prix est supérieur à [[price]] CZK",
+          "it": "Il prezzo è superiore a [[price]] CZK",
+          "no": "Prisen er høyere enn [[price]] CZK",
+          "sv": "Priset är högre än [[price]] CZK",
+          "pl": "Cena jest wyższa niż [[price]] CZK",
+          "ru": "Цена выше чем [[price]] CZK",
+          "ko": "가격이 [[price]] CZK 보다 높습니다"
         }
       },
       {
         "id": "price-index-is-condition",
         "title": {
-          "en": "Price index is"
+          "en": "Price index is",
+          "nl": "Prijsindex is",
+          "da": "Prisindeks er",
+          "de": "Preisindex ist",
+          "es": "El índice de precios es",
+          "fr": "L'indice des prix est",
+          "it": "L'indice dei prezzi è",
+          "no": "Prisindeks er",
+          "sv": "Prisindex är",
+          "pl": "Indeks cenowy to",
+          "ru": "Ценовой индекс",
+          "ko": "가격 지수는 다음과 같습니다:"
         },
         "args": [
           {
@@ -339,44 +779,121 @@
             "name": "index",
             "type": "dropdown",
             "title": {
-              "en": "Price Index"
+              "en": "Price Index",
+              "nl": "Prijsindex",
+              "da": "Prisindeks",
+              "de": "Preisindex",
+              "es": "Índice de Precios",
+              "fr": "Indice des Prix",
+              "it": "Indice dei Prezzi",
+              "no": "Prisindeks",
+              "sv": "Prisindex",
+              "pl": "Indeks Cenowy",
+              "ru": "Ценовой Индекс",
+              "ko": "가격 지수"
             },
             "values": [
               {
                 "id": "low",
                 "title": {
-                  "en": "Low"
+                  "en": "Low",
+                  "nl": "Laag",
+                  "da": "Lav",
+                  "de": "Niedrig",
+                  "es": "Bajo",
+                  "fr": "Bas",
+                  "it": "Basso",
+                  "no": "Lav",
+                  "sv": "Låg",
+                  "pl": "Niski",
+                  "ru": "Низкий",
+                  "ko": "낮은"
                 }
               },
               {
                 "id": "medium",
                 "title": {
-                  "en": "Medium"
+                  "en": "Medium",
+                  "nl": "Middel",
+                  "da": "Mellem",
+                  "de": "Mittel",
+                  "es": "Medio",
+                  "fr": "Moyen",
+                  "it": "Medio",
+                  "no": "Medium",
+                  "sv": "Medium",
+                  "pl": "Średni",
+                  "ru": "Средний",
+                  "ko": "중간"
                 }
               },
               {
                 "id": "high",
                 "title": {
-                  "en": "High"
+                  "en": "High",
+                  "nl": "Hoog",
+                  "da": "Høj",
+                  "de": "Hoch",
+                  "es": "Alto",
+                  "fr": "Élevé",
+                  "it": "Alto",
+                  "no": "Høy",
+                  "sv": "Hög",
+                  "pl": "Wysoki",
+                  "ru": "Высокий",
+                  "ko": "높은"
                 }
               },
               {
                 "id": "unknown",
                 "title": {
-                  "en": "Unknown"
+                  "en": "Unknown",
+                  "nl": "Onbekend",
+                  "da": "Ukendt",
+                  "de": "Unbekannt",
+                  "es": "Desconocido",
+                  "fr": "Inconnu",
+                  "it": "Sconosciuto",
+                  "no": "Ukjent",
+                  "sv": "Okänd",
+                  "pl": "Nieznany",
+                  "ru": "Неизвестно",
+                  "ko": "알 수 없음"
                 }
               }
             ]
           }
         ],
         "titleFormatted": {
-          "en": "Price index is [[index]]"
+          "en": "Price index is [[index]]",
+          "nl": "Prijsindex is [[index]]",
+          "da": "Prisindeks er [[index]]",
+          "de": "Preisindex ist [[index]]",
+          "es": "El índice de precios es [[index]]",
+          "fr": "L'indice des prix est [[index]]",
+          "it": "L'indice dei prezzi è [[index]]",
+          "no": "Prisindeks er [[index]]",
+          "sv": "Prisindex är [[index]]",
+          "pl": "Indeks cenowy to [[index]]",
+          "ru": "Ценовой индекс [[index]]",
+          "ko": "가격 지수는 [[index]] 입니다"
         }
       },
       {
         "id": "average-price-condition",
         "title": {
-          "en": "Average price for next X hours is [lowest/highest] within this day"
+          "en": "Average price for next X hours is [lowest/highest] within this day",
+          "nl": "Gemiddelde prijs voor de komende X uur is [laagst/hoogst] binnen deze dag",
+          "da": "Gennemsnitspris for de næste X timer er [lavest/højest] indenfor denne dag",
+          "de": "Der Durchschnittspreis für die nächsten X Stunden ist [niedrigster/höchster] innerhalb dieses Tages",
+          "es": "El precio promedio para las próximas X horas es [más bajo/más alto] dentro de este día",
+          "fr": "Le prix moyen pour les prochaines X heures est [le plus bas/le plus élevé] dans cette journée",
+          "it": "Il prezzo medio per le prossime X ore è [più basso/più alto] entro oggi",
+          "no": "Gjennomsnittlig pris for de neste X timene er [lavest/høyest] i løpet av denne dagen",
+          "sv": "Genomsnittspriset för de kommande X timmarna är [lägsta/högsta] inom denna dag",
+          "pl": "Średnia cena na następne X godzin to [najniższa/najwyższa] w ciągu tego dnia",
+          "ru": "Средняя цена за следующие X часов [самая низкая/самая высокая] в течение этого дня",
+          "ko": "다음 X 시간 동안 평균 가격은 오늘 내 [가장 낮음/높음] 입니다"
         },
         "args": [
           {
@@ -388,7 +905,18 @@
             "name": "hours",
             "type": "number",
             "title": {
-              "en": "Number of hours"
+              "en": "Number of hours",
+              "nl": "Aantal uren",
+              "da": "Antal timer",
+              "de": "Anzahl der Stunden",
+              "es": "Número de horas",
+              "fr": "Nombre d'heures",
+              "it": "Numero di ore",
+              "no": "Antall timer",
+              "sv": "Antal timmar",
+              "pl": "Liczba godzin",
+              "ru": "Количество часов",
+              "ko": "시간 수"
             },
             "value": 1
           },
@@ -396,35 +924,101 @@
             "name": "condition",
             "type": "dropdown",
             "title": {
-              "en": "lowest/highest"
+              "en": "lowest/highest",
+              "nl": "laagst/hoogst",
+              "da": "lavest/højest",
+              "de": "niedrigster/höchster",
+              "es": "más bajo/más alto",
+              "fr": "le plus bas/le plus élevé",
+              "it": "più basso/più alto",
+              "no": "lavest/høyest",
+              "sv": "lägsta/högsta",
+              "pl": "najniższa/najwyższa",
+              "ru": "самая низкая/самая высокая",
+              "ko": "가장 낮음/높음"
             },
             "values": [
               {
                 "id": "lowest",
                 "title": {
-                  "en": "Lowest"
+                  "en": "Lowest",
+                  "nl": "Laagst",
+                  "da": "Lavest",
+                  "de": "Niedrigster",
+                  "es": "Más bajo",
+                  "fr": "Le plus bas",
+                  "it": "Più basso",
+                  "no": "Lavest",
+                  "sv": "Lägsta",
+                  "pl": "Najniższa",
+                  "ru": "Самая низкая",
+                  "ko": "가장 낮은"
                 }
               },
               {
                 "id": "highest",
                 "title": {
-                  "en": "Highest"
+                  "en": "Highest",
+                  "nl": "Hoogst",
+                  "da": "Højeste",
+                  "de": "Höchster",
+                  "es": "Más alto",
+                  "fr": "Le plus élevé",
+                  "it": "Più alto",
+                  "no": "Høyest",
+                  "sv": "Högsta",
+                  "pl": "Najwyższa",
+                  "ru": "Самая высокая",
+                  "ko": "가장 높은"
                 }
               }
             ]
           }
         ],
         "titleFormatted": {
-          "en": "Average price for next [[hours]] hours is [[condition]] within this day"
+          "en": "Average price for next [[hours]] hours is [[condition]] within this day",
+          "nl": "Gemiddelde prijs voor de komende [[hours]] uur is [[condition]] binnen deze dag",
+          "da": "Gennemsnitspris for de næste [[hours]] timer er [[condition]] indenfor denne dag",
+          "de": "Der Durchschnittspreis für die nächsten [[hours]] Stunden ist [[condition]] innerhalb dieses Tages",
+          "es": "El precio promedio para las próximas [[hours]] horas es [[condition]] dentro de este día",
+          "fr": "Le prix moyen pour les prochaines [[hours]] heures est [[condition]] dans cette journée",
+          "it": "Il prezzo medio per le prossime [[hours]] ore è [[condition]] entro oggi",
+          "no": "Gjennomsnittlig pris for de neste [[hours]] timene er [[condition]] i løpet av denne dagen",
+          "sv": "Genomsnittspriset för de kommande [[hours]] timmarna är [[condition]] inom denna dag",
+          "pl": "Średnia cena na następne [[hours]] godzin to [[condition]] w ciągu tego dnia",
+          "ru": "Средняя цена за следующие [[hours]] часов [[condition]] в течение этого дня",
+          "ko": "다음 [[hours]] 시간 동안 평균 가격은 오늘 내 [[condition]] 입니다"
         }
       },
       {
         "id": "remaining-day-price-condition",
         "title": {
-          "en": "Average price for next X hours is [lowest/highest] within remaining day"
+          "en": "Average price for next X hours is [lowest/highest] within remaining day",
+          "nl": "Gemiddelde prijs voor de komende X uur is [laagst/hoogst] binnen de resterende dag",
+          "da": "Gennemsnitspris for de næste X timer er [lavest/højest] indenfor den resterende dag",
+          "de": "Der Durchschnittspreis für die nächsten X Stunden ist [niedrigster/höchster] innerhalb des verbleibenden Tages",
+          "es": "El precio promedio para las próximas X horas es [más bajo/más alto] dentro del día restante",
+          "fr": "Le prix moyen pour les prochaines X heures est [le plus bas/le plus élevé] dans le reste de la journée",
+          "it": "Il prezzo medio per le prossime X ore è [più basso/più alto] nel resto della giornata",
+          "no": "Gjennomsnittlig pris for de neste X timene er [lavest/høyest] i løpet av den gjenværende dagen",
+          "sv": "Genomsnittspriset för de kommande X timmarna är [lägsta/högsta] inom återstående dag",
+          "pl": "Średnia cena na następne X godzin to [najniższa/najwyższa] w ciągu pozostałej części dnia",
+          "ru": "Средняя цена за следующие X часов [самая низкая/самая высокая] в оставшееся время дня",
+          "ko": "다음 X 시간 동안 평균 가격은 남은 날 내 [가장 낮음/높음] 입니다"
         },
         "hint": {
-          "en": "Condition is always true in last possible interval of day, so it is recommended to set time boundaries for flow use"
+          "en": "Condition is always true in last possible interval of day, so it is recommended to set time boundaries for flow use",
+          "nl": "Voorwaarde is altijd waar in het laatste mogelijke interval van de dag, dus het is aanbevolen om tijdsgrenzen voor stroomgebruik in te stellen",
+          "da": "Betingelsen er altid sand i sidste mulige interval af dagen, så det anbefales at sætte tidsgrænser for flowbrug",
+          "de": "Bedingung ist immer wahr im letzten möglichen Intervall des Tages, daher wird empfohlen, Zeitgrenzen für die Nutzung des Durchflusses festzulegen",
+          "es": "La condición siempre es cierta en el último intervalo posible del día, por lo que se recomienda establecer límites de tiempo para uso del flujo",
+          "fr": "La condition est toujours vraie dans le dernier intervalle possible de la journée, il est donc recommandé de définir des limites de temps pour l'utilisation du flux",
+          "it": "La condizione è sempre vera nell'ultimo intervallo possibile del giorno, quindi si consiglia di impostare limiti di tempo per l'uso del flusso",
+          "no": "Betingelsen er alltid sann i det siste mulige intervallet av dagen, så det anbefales å sette tidsbegrensninger for bruk av flyt",
+          "sv": "Villkoret är alltid sant under det sista möjliga intervallet av dagen, så det rekommenderas att ställa in tidsgränser för flödesanvändning",
+          "pl": "Warunek jest zawsze prawdziwy w ostatnim możliwym przedziale dnia, więc zaleca się ustawić granice czasowe dla korzystania z przepływu",
+          "ru": "Условие всегда истинно в последнем возможном интервале дня, поэтому рекомендуется установить временные границы для использования потока",
+          "ko": "조건은 하루의 마지막 가능한 간격에서 항상 참이므로 흐름 사용에 대한 시간 경계를 설정하는 것이 좋습니다"
         },
         "args": [
           {
@@ -436,7 +1030,18 @@
             "name": "hours",
             "type": "number",
             "title": {
-              "en": "Number of hours"
+              "en": "Number of hours",
+              "nl": "Aantal uren",
+              "da": "Antal timer",
+              "de": "Anzahl der Stunden",
+              "es": "Número de horas",
+              "fr": "Nombre d'heures",
+              "it": "Numero di ore",
+              "no": "Antall timer",
+              "sv": "Antal timmar",
+              "pl": "Liczba godzin",
+              "ru": "Количество часов",
+              "ko": "시간 수"
             },
             "value": 1
           },
@@ -444,32 +1049,87 @@
             "name": "condition",
             "type": "dropdown",
             "title": {
-              "en": "lowest/highest"
+              "en": "lowest/highest",
+              "nl": "laagst/hoogst",
+              "da": "lavest/højest",
+              "de": "niedrigster/höchster",
+              "es": "más bajo/más alto",
+              "fr": "le plus bas/le plus élevé",
+              "it": "più basso/più alto",
+              "no": "lavest/høyest",
+              "sv": "lägsta/högsta",
+              "pl": "najniższa/najwyższa",
+              "ru": "самая низкая/самая высокая",
+              "ko": "가장 낮음/높음"
             },
             "values": [
               {
                 "id": "lowest",
                 "title": {
-                  "en": "Lowest"
+                  "en": "Lowest",
+                  "nl": "Laagst",
+                  "da": "Lavest",
+                  "de": "Niedrigster",
+                  "es": "Más bajo",
+                  "fr": "Le plus bas",
+                  "it": "Più basso",
+                  "no": "Lavest",
+                  "sv": "Lägsta",
+                  "pl": "Najniższa",
+                  "ru": "Самая низкая",
+                  "ko": "가장 낮은"
                 }
               },
               {
                 "id": "highest",
                 "title": {
-                  "en": "Highest"
+                  "en": "Highest",
+                  "nl": "Hoogst",
+                  "da": "Højeste",
+                  "de": "Höchster",
+                  "es": "Más alto",
+                  "fr": "Le plus élevé",
+                  "it": "Più alto",
+                  "no": "Høyest",
+                  "sv": "Högsta",
+                  "pl": "Najwyższa",
+                  "ru": "Самая высокая",
+                  "ko": "가장 높은"
                 }
               }
             ]
           }
         ],
         "titleFormatted": {
-          "en": "Average price for next [[hours]] hours is [[condition]] within remaining day"
+          "en": "Average price for next [[hours]] hours is [[condition]] within remaining day",
+          "nl": "Gemiddelde prijs voor de komende [[hours]] uur is [[condition]] binnen de resterende dag",
+          "da": "Gennemsnitspris for de næste [[hours]] timer er [[condition]] indenfor den resterende dag",
+          "de": "Der Durchschnittspreis für die nächsten [[hours]] Stunden ist [[condition]] innerhalb des verbleibenden Tages",
+          "es": "El precio promedio para las próximas [[hours]] horas es [[condition]] dentro del día restante",
+          "fr": "Le prix moyen pour les prochaines [[hours]] heures est [[condition]] dans le reste de la journée",
+          "it": "Il prezzo medio per le prossime [[hours]] ore è [[condition]] nel resto della giornata",
+          "no": "Gjennomsnittlig pris for de neste [[hours]] timene er [[condition]] i løpet av den gjenværende dagen",
+          "sv": "Genomsnittspriset för de kommande [[hours]] timmarna är [[condition]] inom återstående dag",
+          "pl": "Średnia cena na następne [[hours]] godzin to [[condition]] w ciągu pozostałej części dnia",
+          "ru": "Средняя цена за следующие [[hours]] часов [[condition]] в оставшееся время дня",
+          "ko": "다음 [[hours]] 시간 동안 평균 가격은 남은 날 내 [[condition]] 입니다"
         }
       },
       {
         "id": "distribution-tariff-is",
         "title": {
-          "en": "Distribution tariff is"
+          "en": "Distribution tariff is",
+          "nl": "Distributietarief is",
+          "da": "Distributionstakst er",
+          "de": "Verteilungstarif ist",
+          "es": "La tarifa de distribución es",
+          "fr": "Le tarif de distribution est",
+          "it": "La tariffa di distribuzione è",
+          "no": "Distribusjonstariffen er",
+          "sv": "Distributionstariffen är",
+          "pl": "Taryfa dystrybucyjna to",
+          "ru": "Распределительный тариф",
+          "ko": "분배 요금은 다음과 같습니다:"
         },
         "args": [
           {
@@ -484,20 +1144,53 @@
               {
                 "id": "high",
                 "title": {
-                  "en": "High"
+                  "en": "High",
+                  "nl": "Hoog",
+                  "da": "Høj",
+                  "de": "Hoch",
+                  "es": "Alto",
+                  "fr": "Élevé",
+                  "it": "Alto",
+                  "no": "Høy",
+                  "sv": "Hög",
+                  "pl": "Wysoki",
+                  "ru": "Высокий",
+                  "ko": "높은"
                 }
               },
               {
                 "id": "low",
                 "title": {
-                  "en": "Low"
+                  "en": "Low",
+                  "nl": "Laag",
+                  "da": "Lav",
+                  "de": "Niedrig",
+                  "es": "Bajo",
+                  "fr": "Bas",
+                  "it": "Basso",
+                  "no": "Lav",
+                  "sv": "Låg",
+                  "pl": "Niski",
+                  "ru": "Низкий",
+                  "ko": "낮은"
                 }
               }
             ]
           }
         ],
         "titleFormatted": {
-          "en": "Distribution tariff is [[tariff]]"
+          "en": "Distribution tariff is [[tariff]]",
+          "nl": "Distributietarief is [[tariff]]",
+          "da": "Distributionstakst er [[tariff]]",
+          "de": "Verteilungstarif ist [[tariff]]",
+          "es": "La tarifa de distribución es [[tariff]]",
+          "fr": "Le tarif de distribution est [[tariff]]",
+          "it": "La tariffa di distribuzione è [[tariff]]",
+          "no": "Distribusjonstariffen er [[tariff]]",
+          "sv": "Distributionstariffen är [[tariff]]",
+          "pl": "Taryfa dystrybucyjna to [[tariff]]",
+          "ru": "Распределительный тариф [[tariff]]",
+          "ko": "분배 요금은 [[tariff]] 입니다"
         }
       }
     ],
@@ -505,10 +1198,32 @@
       {
         "id": "update_data_via_api",
         "title": {
-          "en": "Update hourly data via API"
+          "en": "Update hourly data via API",
+          "nl": "Uurgegevens bijwerken via API",
+          "da": "Opdater timebaserede data via API",
+          "de": "Stündliche Daten über API aktualisieren",
+          "es": "Actualizar datos por hora a través de la API",
+          "fr": "Mettre à jour les données horaires via l'API",
+          "it": "Aggiorna i dati orari tramite API",
+          "no": "Oppdater timebaserte data via API",
+          "sv": "Uppdatera timdata via API",
+          "pl": "Aktualizuj dane godzinowe przez API",
+          "ru": "Обновить почасовые данные через API",
+          "ko": "API를 통해 시간별 데이터 업데이트"
         },
         "titleFormatted": {
-          "en": "Update hourly data via API"
+          "en": "Update hourly data via API",
+          "nl": "Uurgegevens bijwerken via API",
+          "da": "Opdater timebaserede data via API",
+          "de": "Stündliche Daten über API aktualisieren",
+          "es": "Actualizar datos por hora a través de la API",
+          "fr": "Mettre à jour les données horaires via l'API",
+          "it": "Aggiorna i dati orari tramite API",
+          "no": "Oppdater timebaserte data via API",
+          "sv": "Uppdatera timdata via API",
+          "pl": "Aktualizuj dane godzinowe przez API",
+          "ru": "Обновить почасовые данные через API",
+          "ko": "API를 통해 시간별 데이터 업데이트"
         },
         "args": [
           {
@@ -524,7 +1239,18 @@
     {
       "id": "cz-spot-prices",
       "name": {
-        "en": "CZ spot prices"
+        "en": "CZ spot prices",
+        "nl": "CZ spotprijzen",
+        "da": "CZ spotpriser",
+        "de": "CZ Spotpreise",
+        "es": "Precios spot CZ",
+        "fr": "Prix spot CZ",
+        "it": "Prezzi spot CZ",
+        "no": "CZ spotpriser",
+        "sv": "CZ spotpriser",
+        "pl": "Ceny spot CZ",
+        "ru": "CZ спотовые цены",
+        "ko": "CZ 스팟 가격"
       },
       "class": "sensor",
       "platforms": [
@@ -678,29 +1404,84 @@
           "id": "enable_logging",
           "type": "checkbox",
           "label": {
-            "en": "Enable debug logging"
+            "en": "Enable debug logging",
+            "nl": "Inschakelen logboekregistratie voor debugging",
+            "da": "Aktivér fejllogning",
+            "de": "Debug-Logging aktivieren",
+            "es": "Habilitar registro de depuración",
+            "fr": "Activer la journalisation de débogage",
+            "it": "Abilita registrazione di debug",
+            "no": "Aktiver feillogging",
+            "sv": "Aktivera felsökningsloggning",
+            "pl": "Włączniej logowanie debugowania",
+            "ru": "Включить ведение журнала отладки",
+            "ko": "디버그 로깅 활성화"
           },
           "value": true,
           "hint": {
-            "en": "Enable detailed logging for debugging purposes"
+            "en": "Enable detailed logging for debugging purposes",
+            "nl": "Inschakelen van gedetailleerde logboekaantekeningen voor debuggingdoeleinden",
+            "da": "Aktivér detaljeret logføring til fejlsøgning",
+            "de": "Ausführliches Logging für Debugging-Zwecke aktivieren",
+            "es": "Habilitar registros detallados para propósitos de depuración",
+            "fr": "Activer la journalisation détaillée pour le débogage",
+            "it": "Abilita registrazione dettagliata per il debugging",
+            "no": "Aktiver detaljert logg for feilsøking",
+            "sv": "Aktivera detaljerad loggning för felsökning",
+            "pl": "Włączniej szczegółowe logi do celów debugowania",
+            "ru": "Включить подробное ведение журнала для отладки",
+            "ko": "디버깅 목적의 상세 로깅 활성화"
           }
         },
         {
           "id": "price_in_kwh",
           "type": "checkbox",
           "label": {
-            "en": "Price in kWh"
+            "en": "Price in kWh",
+            "nl": "Prijs in kWh",
+            "da": "Pris i kWh",
+            "de": "Preis in kWh",
+            "es": "Precio en kWh",
+            "fr": "Prix en kWh",
+            "it": "Prezzo in kWh",
+            "no": "Pris i kWh",
+            "sv": "Pris i kWh",
+            "pl": "Cena w kWh",
+            "ru": "Цена в кВтч",
+            "ko": "kWh 단위 가격"
           },
           "value": false,
           "hint": {
-            "en": "Convert prices from MWh to kWh"
+            "en": "Convert prices from MWh to kWh",
+            "nl": "Prijzen omrekenen van MWh naar kWh",
+            "da": "Konverter priser fra MWh til kWh",
+            "de": "Preise von MWh zu kWh umrechnen",
+            "es": "Convertir precios de MWh a kWh",
+            "fr": "Convertir les prix de MWh en kWh",
+            "it": "Converti prezzi da MWh a kWh",
+            "no": "Konverter priser fra MWh til kWh",
+            "sv": "Omvandla priser från MWh till kWh",
+            "pl": "Konwersja cen z MWh na kWh",
+            "ru": "Конвертировать цены с МВтч в кВтч",
+            "ko": "가격을 MWh에서 kWh로 변환"
           }
         },
         {
           "id": "low_index_hours",
           "type": "number",
           "label": {
-            "en": "Number of hours for Low index"
+            "en": "Number of hours for Low index",
+            "nl": "Aantal uren voor lage index",
+            "da": "Antal timer for lav indeksering",
+            "de": "Anzahl der Stunden für niedrigen Index",
+            "es": "Número de horas para índice bajo",
+            "fr": "Nombre d'heures pour indice bas",
+            "it": "Numero di ore per indice basso",
+            "no": "Antall timer for lav indeks",
+            "sv": "Antal timmar för låg index",
+            "pl": "Liczba godzin dla niskiego wskaźnika",
+            "ru": "Количество часов для низкого индекса",
+            "ko": "낮은 지수 용 시간 수"
           },
           "value": 8,
           "min": 0,
@@ -710,7 +1491,18 @@
           "id": "high_index_hours",
           "type": "number",
           "label": {
-            "en": "Number of hours for High index"
+            "en": "Number of hours for High index",
+            "nl": "Aantal uren voor hoge index",
+            "da": "Antal timer for høj indeksering",
+            "de": "Anzahl der Stunden für hohen Index",
+            "es": "Número de horas para índice alto",
+            "fr": "Nombre d'heures pour indice élevé",
+            "it": "Numero di ore per indice alto",
+            "no": "Antall timer for høy indeks",
+            "sv": "Antal timmar för hög index",
+            "pl": "Liczba godzin dla wysokiego wskaźnika",
+            "ru": "Количество часов для высокого индекса",
+            "ko": "높은 지수 용 시간 수"
           },
           "value": 8,
           "min": 0,
@@ -720,10 +1512,32 @@
           "id": "high_tariff_price",
           "type": "number",
           "label": {
-            "en": "Distribution price for high tariff without VAT (CZK)"
+            "en": "Distribution price for high tariff without VAT (CZK)",
+            "nl": "Distributieprijs voor hoog tarief zonder BTW (CZK)",
+            "da": "Distributionspris for høj takst uden moms (CZK)",
+            "de": "Verteilungspreis für hohen Tarif ohne MwSt. (CZK)",
+            "es": "Precio de distribución para tarifa alta sin IVA (CZK)",
+            "fr": "Prix de distribution pour tarif élevé sans TVA (CZK)",
+            "it": "Prezzo di distribuzione per tariffa alta senza IVA (CZK)",
+            "no": "Distribusjonspris for høy tariff uten MVA (CZK)",
+            "sv": "Distributionspris för hög tariff utan moms (CZK)",
+            "pl": "Cena dystrybucyjna dla wysokiej taryfy bez VAT (CZK)",
+            "ru": "Цена распределения для высокого тарифа без НДС (CZK)",
+            "ko": "부가가치세 없는 높은 요금의 배급 가격 (CZK)"
           },
           "hint": {
-            "en": "Enter the distribution price without VAT during high tariff hours."
+            "en": "Enter the distribution price without VAT during high tariff hours.",
+            "nl": "Voer de distributieprijs zonder BTW in tijdens uren van hoog tarief.",
+            "da": "Indtast distributionsprisen uden moms i høje taksttimer.",
+            "de": "Geben Sie den Verteilungspreis ohne MwSt. während der Stunden mit hohem Tarif ein.",
+            "es": "Introduzca el precio de distribución sin IVA durante las horas de tarifa alta.",
+            "fr": "Entrez le prix de distribution sans TVA pendant les heures de tarif élevé.",
+            "it": "Inserire il prezzo di distribuzione senza IVA durante le ore di tariffa alta.",
+            "no": "Skriv inn distribusjonsprisen uten MVA i høye tarifftimer.",
+            "sv": "Ange distributionspriset utan moms under högtarifftimmar.",
+            "pl": "Wprowadź cenę dystrybucyjną bez VAT podczas godzin wysokiej taryfy.",
+            "ru": "Ввести стоимость распределения без НДС в период высокого тарифа.",
+            "ko": "높은 요금 시간 동안 부가가치세 없는 배급 가격을 입력하세요."
           },
           "value": 0,
           "min": 0
@@ -732,10 +1546,32 @@
           "id": "low_tariff_price",
           "type": "number",
           "label": {
-            "en": "Distribution price for low tariff without VAT (CZK)"
+            "en": "Distribution price for low tariff without VAT (CZK)",
+            "nl": "Distributieprijs voor laag tarief zonder BTW (CZK)",
+            "da": "Distributionspris for lav takst uden moms (CZK)",
+            "de": "Verteilungspreis für niedrigen Tarif ohne MwSt. (CZK)",
+            "es": "Precio de distribución para tarifa baja sin IVA (CZK)",
+            "fr": "Prix de distribution pour tarif bas sans TVA (CZK)",
+            "it": "Prezzo di distribuzione per tariffa bassa senza IVA (CZK)",
+            "no": "Distribusjonspris for lav tariff uten MVA (CZK)",
+            "sv": "Distributionspris för låg tariff utan moms (CZK)",
+            "pl": "Cena dystrybucyjna dla niskiej taryfy bez VAT (CZK)",
+            "ru": "Цена распределения для низкого тарифа без НДС (CZK)",
+            "ko": "부가가치세 없는 낮은 요금의 배급 가격 (CZK)"
           },
           "hint": {
-            "en": "Enter the distribution price without VAT during low tariff hours."
+            "en": "Enter the distribution price without VAT during low tariff hours.",
+            "nl": "Voer de distributieprijs zonder BTW in tijdens uren van laag tarief.",
+            "da": "Indtast distributionsprisen uden moms i lave taksttimer.",
+            "de": "Geben Sie den Verteilungspreis ohne MwSt. während der Stunden mit niedrigem Tarif ein.",
+            "es": "Introduzca el precio de distribución sin IVA durante las horas de tarifa baja.",
+            "fr": "Entrez le prix de distribution sans TVA pendant les heures de tarif bas.",
+            "it": "Inserire il prezzo di distribuzione senza IVA durante le ore di tariffa bassa.",
+            "no": "Skriv inn distribusjonsprisen uten MVA i lavtarifftimer.",
+            "sv": "Ange distributionspriset utan moms under lågtarifftimmar.",
+            "pl": "Wprowadź cenę dystrybucyjną bez VAT podczas godzin niskiej taryfy.",
+            "ru": "Ввести стоимость распределения без НДС в период низкого тарифа.",
+            "ko": "낮은 요금 시간 동안 부가가치세 없는 배급 가격을 입력하세요."
           },
           "value": 0,
           "min": 0
@@ -744,14 +1580,36 @@
           "id": "tariff_hours",
           "type": "group",
           "label": {
-            "en": "Low Tariff Hours"
+            "en": "Low Tariff Hours",
+            "nl": "Lage Tarieftijden",
+            "da": "Lave taksttimer",
+            "de": "Niedrigtarifstunden",
+            "es": "Horas de tarifa baja",
+            "fr": "Heures de tarif bas",
+            "it": "Ore a tariffa bassa",
+            "no": "Lave tarifftimer",
+            "sv": "Låg tarifttimmar",
+            "pl": "Godziny niskiej taryfy",
+            "ru": "Часы низкого тарифа",
+            "ko": "낮은 요금 시간"
           },
           "children": [
             {
               "id": "hour_0",
               "type": "checkbox",
               "label": {
-                "en": "00:00 - 00:59"
+                "en": "00:00 - 00:59",
+                "nl": "00:00 - 00:59",
+                "da": "00:00 - 00:59",
+                "de": "00:00 - 00:59",
+                "es": "00:00 - 00:59",
+                "fr": "00:00 - 00:59",
+                "it": "00:00 - 00:59",
+                "no": "00:00 - 00:59",
+                "sv": "00:00 - 00:59",
+                "pl": "00:00 - 00:59",
+                "ru": "00:00 - 00:59",
+                "ko": "00:00 - 00:59"
               },
               "value": false
             },
@@ -759,7 +1617,18 @@
               "id": "hour_1",
               "type": "checkbox",
               "label": {
-                "en": "01:00 - 01:59"
+                "en": "01:00 - 01:59",
+                "nl": "01:00 - 01:59",
+                "da": "01:00 - 01:59",
+                "de": "01:00 - 01:59",
+                "es": "01:00 - 01:59",
+                "fr": "01:00 - 01:59",
+                "it": "01:00 - 01:59",
+                "no": "01:00 - 01:59",
+                "sv": "01:00 - 01:59",
+                "pl": "01:00 - 01:59",
+                "ru": "01:00 - 01:59",
+                "ko": "01:00 - 01:59"
               },
               "value": false
             },
@@ -767,7 +1636,18 @@
               "id": "hour_2",
               "type": "checkbox",
               "label": {
-                "en": "02:00 - 02:59"
+                "en": "02:00 - 02:59",
+                "nl": "02:00 - 02:59",
+                "da": "02:00 - 02:59",
+                "de": "02:00 - 02:59",
+                "es": "02:00 - 02:59",
+                "fr": "02:00 - 02:59",
+                "it": "02:00 - 02:59",
+                "no": "02:00 - 02:59",
+                "sv": "02:00 - 02:59",
+                "pl": "02:00 - 02:59",
+                "ru": "02:00 - 02:59",
+                "ko": "02:00 - 02:59"
               },
               "value": false
             },
@@ -775,7 +1655,18 @@
               "id": "hour_3",
               "type": "checkbox",
               "label": {
-                "en": "03:00 - 03:59"
+                "en": "03:00 - 03:59",
+                "nl": "03:00 - 03:59",
+                "da": "03:00 - 03:59",
+                "de": "03:00 - 03:59",
+                "es": "03:00 - 03:59",
+                "fr": "03:00 - 03:59",
+                "it": "03:00 - 03:59",
+                "no": "03:00 - 03:59",
+                "sv": "03:00 - 03:59",
+                "pl": "03:00 - 03:59",
+                "ru": "03:00 - 03:59",
+                "ko": "03:00 - 03:59"
               },
               "value": false
             },
@@ -783,7 +1674,18 @@
               "id": "hour_4",
               "type": "checkbox",
               "label": {
-                "en": "04:00 - 04:59"
+                "en": "04:00 - 04:59",
+                "nl": "04:00 - 04:59",
+                "da": "04:00 - 04:59",
+                "de": "04:00 - 04:59",
+                "es": "04:00 - 04:59",
+                "fr": "04:00 - 04:59",
+                "it": "04:00 - 04:59",
+                "no": "04:00 - 04:59",
+                "sv": "04:00 - 04:59",
+                "pl": "04:00 - 04:59",
+                "ru": "04:00 - 04:59",
+                "ko": "04:00 - 04:59"
               },
               "value": false
             },
@@ -791,7 +1693,18 @@
               "id": "hour_5",
               "type": "checkbox",
               "label": {
-                "en": "05:00 - 05:59"
+                "en": "05:00 - 05:59",
+                "nl": "05:00 - 05:59",
+                "da": "05:00 - 05:59",
+                "de": "05:00 - 05:59",
+                "es": "05:00 - 05:59",
+                "fr": "05:00 - 05:59",
+                "it": "05:00 - 05:59",
+                "no": "05:00 - 05:59",
+                "sv": "05:00 - 05:59",
+                "pl": "05:00 - 05:59",
+                "ru": "05:00 - 05:59",
+                "ko": "05:00 - 05:59"
               },
               "value": false
             },
@@ -799,7 +1712,18 @@
               "id": "hour_6",
               "type": "checkbox",
               "label": {
-                "en": "06:00 - 06:59"
+                "en": "06:00 - 06:59",
+                "nl": "06:00 - 06:59",
+                "da": "06:00 - 06:59",
+                "de": "06:00 - 06:59",
+                "es": "06:00 - 06:59",
+                "fr": "06:00 - 06:59",
+                "it": "06:00 - 06:59",
+                "no": "06:00 - 06:59",
+                "sv": "06:00 - 06:59",
+                "pl": "06:00 - 06:59",
+                "ru": "06:00 - 06:59",
+                "ko": "06:00 - 06:59"
               },
               "value": false
             },
@@ -807,7 +1731,18 @@
               "id": "hour_7",
               "type": "checkbox",
               "label": {
-                "en": "07:00 - 07:59"
+                "en": "07:00 - 07:59",
+                "nl": "07:00 - 07:59",
+                "da": "07:00 - 07:59",
+                "de": "07:00 - 07:59",
+                "es": "07:00 - 07:59",
+                "fr": "07:00 - 07:59",
+                "it": "07:00 - 07:59",
+                "no": "07:00 - 07:59",
+                "sv": "07:00 - 07:59",
+                "pl": "07:00 - 07:59",
+                "ru": "07:00 - 07:59",
+                "ko": "07:00 - 07:59"
               },
               "value": false
             },
@@ -815,7 +1750,18 @@
               "id": "hour_8",
               "type": "checkbox",
               "label": {
-                "en": "08:00 - 08:59"
+                "en": "08:00 - 08:59",
+                "nl": "08:00 - 08:59",
+                "da": "08:00 - 08:59",
+                "de": "08:00 - 08:59",
+                "es": "08:00 - 08:59",
+                "fr": "08:00 - 08:59",
+                "it": "08:00 - 08:59",
+                "no": "08:00 - 08:59",
+                "sv": "08:00 - 08:59",
+                "pl": "08:00 - 08:59",
+                "ru": "08:00 - 08:59",
+                "ko": "08:00 - 08:59"
               },
               "value": false
             },
@@ -823,7 +1769,18 @@
               "id": "hour_9",
               "type": "checkbox",
               "label": {
-                "en": "09:00 - 09:59"
+                "en": "09:00 - 09:59",
+                "nl": "09:00 - 09:59",
+                "da": "09:00 - 09:59",
+                "de": "09:00 - 09:59",
+                "es": "09:00 - 09:59",
+                "fr": "09:00 - 09:59",
+                "it": "09:00 - 09:59",
+                "no": "09:00 - 09:59",
+                "sv": "09:00 - 09:59",
+                "pl": "09:00 - 09:59",
+                "ru": "09:00 - 09:59",
+                "ko": "09:00 - 09:59"
               },
               "value": false
             },
@@ -831,7 +1788,18 @@
               "id": "hour_10",
               "type": "checkbox",
               "label": {
-                "en": "10:00 - 10:59"
+                "en": "10:00 - 10:59",
+                "nl": "10:00 - 10:59",
+                "da": "10:00 - 10:59",
+                "de": "10:00 - 10:59",
+                "es": "10:00 - 10:59",
+                "fr": "10:00 - 10:59",
+                "it": "10:00 - 10:59",
+                "no": "10:00 - 10:59",
+                "sv": "10:00 - 10:59",
+                "pl": "10:00 - 10:59",
+                "ru": "10:00 - 10:59",
+                "ko": "10:00 - 10:59"
               },
               "value": false
             },
@@ -839,7 +1807,18 @@
               "id": "hour_11",
               "type": "checkbox",
               "label": {
-                "en": "11:00 - 11:59"
+                "en": "11:00 - 11:59",
+                "nl": "11:00 - 11:59",
+                "da": "11:00 - 11:59",
+                "de": "11:00 - 11:59",
+                "es": "11:00 - 11:59",
+                "fr": "11:00 - 11:59",
+                "it": "11:00 - 11:59",
+                "no": "11:00 - 11:59",
+                "sv": "11:00 - 11:59",
+                "pl": "11:00 - 11:59",
+                "ru": "11:00 - 11:59",
+                "ko": "11:00 - 11:59"
               },
               "value": false
             },
@@ -847,7 +1826,18 @@
               "id": "hour_12",
               "type": "checkbox",
               "label": {
-                "en": "12:00 - 12:59"
+                "en": "12:00 - 12:59",
+                "nl": "12:00 - 12:59",
+                "da": "12:00 - 12:59",
+                "de": "12:00 - 12:59",
+                "es": "12:00 - 12:59",
+                "fr": "12:00 - 12:59",
+                "it": "12:00 - 12:59",
+                "no": "12:00 - 12:59",
+                "sv": "12:00 - 12:59",
+                "pl": "12:00 - 12:59",
+                "ru": "12:00 - 12:59",
+                "ko": "12:00 - 12:59"
               },
               "value": false
             },
@@ -855,7 +1845,18 @@
               "id": "hour_13",
               "type": "checkbox",
               "label": {
-                "en": "13:00 - 13:59"
+                "en": "13:00 - 13:59",
+                "nl": "13:00 - 13:59",
+                "da": "13:00 - 13:59",
+                "de": "13:00 - 13:59",
+                "es": "13:00 - 13:59",
+                "fr": "13:00 - 13:59",
+                "it": "13:00 - 13:59",
+                "no": "13:00 - 13:59",
+                "sv": "13:00 - 13:59",
+                "pl": "13:00 - 13:59",
+                "ru": "13:00 - 13:59",
+                "ko": "13:00 - 13:59"
               },
               "value": false
             },
@@ -863,7 +1864,18 @@
               "id": "hour_14",
               "type": "checkbox",
               "label": {
-                "en": "14:00 - 14:59"
+                "en": "14:00 - 14:59",
+                "nl": "14:00 - 14:59",
+                "da": "14:00 - 14:59",
+                "de": "14:00 - 14:59",
+                "es": "14:00 - 14:59",
+                "fr": "14:00 - 14:59",
+                "it": "14:00 - 14:59",
+                "no": "14:00 - 14:59",
+                "sv": "14:00 - 14:59",
+                "pl": "14:00 - 14:59",
+                "ru": "14:00 - 14:59",
+                "ko": "14:00 - 14:59"
               },
               "value": false
             },
@@ -871,7 +1883,18 @@
               "id": "hour_15",
               "type": "checkbox",
               "label": {
-                "en": "15:00 - 15:59"
+                "en": "15:00 - 15:59",
+                "nl": "15:00 - 15:59",
+                "da": "15:00 - 15:59",
+                "de": "15:00 - 15:59",
+                "es": "15:00 - 15:59",
+                "fr": "15:00 - 15:59",
+                "it": "15:00 - 15:59",
+                "no": "15:00 - 15:59",
+                "sv": "15:00 - 15:59",
+                "pl": "15:00 - 15:59",
+                "ru": "15:00 - 15:59",
+                "ko": "15:00 - 15:59"
               },
               "value": false
             },
@@ -879,7 +1902,18 @@
               "id": "hour_16",
               "type": "checkbox",
               "label": {
-                "en": "16:00 - 16:59"
+                "en": "16:00 - 16:59",
+                "nl": "16:00 - 16:59",
+                "da": "16:00 - 16:59",
+                "de": "16:00 - 16:59",
+                "es": "16:00 - 16:59",
+                "fr": "16:00 - 16:59",
+                "it": "16:00 - 16:59",
+                "no": "16:00 - 16:59",
+                "sv": "16:00 - 16:59",
+                "pl": "16:00 - 16:59",
+                "ru": "16:00 - 16:59",
+                "ko": "16:00 - 16:59"
               },
               "value": false
             },
@@ -887,7 +1921,18 @@
               "id": "hour_17",
               "type": "checkbox",
               "label": {
-                "en": "17:00 - 17:59"
+                "en": "17:00 - 17:59",
+                "nl": "17:00 - 17:59",
+                "da": "17:00 - 17:59",
+                "de": "17:00 - 17:59",
+                "es": "17:00 - 17:59",
+                "fr": "17:00 - 17:59",
+                "it": "17:00 - 17:59",
+                "no": "17:00 - 17:59",
+                "sv": "17:00 - 17:59",
+                "pl": "17:00 - 17:59",
+                "ru": "17:00 - 17:59",
+                "ko": "17:00 - 17:59"
               },
               "value": false
             },
@@ -895,7 +1940,18 @@
               "id": "hour_18",
               "type": "checkbox",
               "label": {
-                "en": "18:00 - 18:59"
+                "en": "18:00 - 18:59",
+                "nl": "18:00 - 18:59",
+                "da": "18:00 - 18:59",
+                "de": "18:00 - 18:59",
+                "es": "18:00 - 18:59",
+                "fr": "18:00 - 18:59",
+                "it": "18:00 - 18:59",
+                "no": "18:00 - 18:59",
+                "sv": "18:00 - 18:59",
+                "pl": "18:00 - 18:59",
+                "ru": "18:00 - 18:59",
+                "ko": "18:00 - 18:59"
               },
               "value": false
             },
@@ -903,7 +1959,18 @@
               "id": "hour_19",
               "type": "checkbox",
               "label": {
-                "en": "19:00 - 19:59"
+                "en": "19:00 - 19:59",
+                "nl": "19:00 - 19:59",
+                "da": "19:00 - 19:59",
+                "de": "19:00 - 19:59",
+                "es": "19:00 - 19:59",
+                "fr": "19:00 - 19:59",
+                "it": "19:00 - 19:59",
+                "no": "19:00 - 19:59",
+                "sv": "19:00 - 19:59",
+                "pl": "19:00 - 19:59",
+                "ru": "19:00 - 19:59",
+                "ko": "19:00 - 19:59"
               },
               "value": false
             },
@@ -911,7 +1978,18 @@
               "id": "hour_20",
               "type": "checkbox",
               "label": {
-                "en": "20:00 - 20:59"
+                "en": "20:00 - 20:59",
+                "nl": "20:00 - 20:59",
+                "da": "20:00 - 20:59",
+                "de": "20:00 - 20:59",
+                "es": "20:00 - 20:59",
+                "fr": "20:00 - 20:59",
+                "it": "20:00 - 20:59",
+                "no": "20:00 - 20:59",
+                "sv": "20:00 - 20:59",
+                "pl": "20:00 - 20:59",
+                "ru": "20:00 - 20:59",
+                "ko": "20:00 - 20:59"
               },
               "value": false
             },
@@ -919,7 +1997,18 @@
               "id": "hour_21",
               "type": "checkbox",
               "label": {
-                "en": "21:00 - 21:59"
+                "en": "21:00 - 21:59",
+                "nl": "21:00 - 21:59",
+                "da": "21:00 - 21:59",
+                "de": "21:00 - 21:59",
+                "es": "21:00 - 21:59",
+                "fr": "21:00 - 21:59",
+                "it": "21:00 - 21:59",
+                "no": "21:00 - 21:59",
+                "sv": "21:00 - 21:59",
+                "pl": "21:00 - 21:59",
+                "ru": "21:00 - 21:59",
+                "ko": "21:00 - 21:59"
               },
               "value": false
             },
@@ -927,7 +2016,18 @@
               "id": "hour_22",
               "type": "checkbox",
               "label": {
-                "en": "22:00 - 22:59"
+                "en": "22:00 - 22:59",
+                "nl": "22:00 - 22:59",
+                "da": "22:00 - 22:59",
+                "de": "22:00 - 22:59",
+                "es": "22:00 - 22:59",
+                "fr": "22:00 - 22:59",
+                "it": "22:00 - 22:59",
+                "no": "22:00 - 22:59",
+                "sv": "22:00 - 22:59",
+                "pl": "22:00 - 22:59",
+                "ru": "22:00 - 22:59",
+                "ko": "22:00 - 22:59"
               },
               "value": false
             },
@@ -935,7 +2035,18 @@
               "id": "hour_23",
               "type": "checkbox",
               "label": {
-                "en": "23:00 - 23:59"
+                "en": "23:00 - 23:59",
+                "nl": "23:00 - 23:59",
+                "da": "23:00 - 23:59",
+                "de": "23:00 - 23:59",
+                "es": "23:00 - 23:59",
+                "fr": "23:00 - 23:59",
+                "it": "23:00 - 23:59",
+                "no": "23:00 - 23:59",
+                "sv": "23:00 - 23:59",
+                "pl": "23:00 - 23:59",
+                "ru": "23:00 - 23:59",
+                "ko": "23:00 - 23:59"
               },
               "value": false
             }
@@ -947,7 +2058,18 @@
   "widgets": {
     "current-hour-price-and-index": {
       "name": {
-        "en": "Electricity Price Widget"
+        "en": "Electricity Price Widget",
+        "nl": "Elektriciteitsprijs Widget",
+        "da": "Elektricitetspris Widget",
+        "de": "Strompreis Widget",
+        "es": "Widget de Precio de Electricidad",
+        "fr": "Widget de Prix de l'Électricité",
+        "it": "Widget del Prezzo dell'Elettricità",
+        "no": "Elektrisitetspris Widget",
+        "sv": "Elpris Widget",
+        "pl": "Widget Ceny Energii Elektrycznej",
+        "ru": "Виджет Цены на Электричество",
+        "ko": "전기 요금 위젯"
       },
       "settings": [],
       "height": 120,
@@ -961,7 +2083,18 @@
     },
     "today-spot-prices": {
       "name": {
-        "en": "Today Spot Price Graph"
+        "en": "Today Spot Price Graph",
+        "nl": "Vandaag Spotprijs Grafiek",
+        "da": "Dagens Spotpris Graf",
+        "de": "Heutiger Spotpreisdiagramm",
+        "es": "Gráfico del Precio Spot de Hoy",
+        "fr": "Graphique du Prix Spot d'Aujourd'hui",
+        "it": "Grafico del Prezzo Spot di Oggi",
+        "no": "Dagens Spotpris Graf",
+        "sv": "Dagens Spotpris Graf",
+        "pl": "Dzisiejszy Wykres Cen Spot",
+        "ru": "График Спотовой Цены Сегодня",
+        "ko": "오늘의 스팟 가격 그래프"
       },
       "settings": [],
       "height": 250,
@@ -978,7 +2111,18 @@
     "daily_average_price": {
       "type": "number",
       "title": {
-        "en": "Daily average price (CZK)"
+        "en": "Daily average price (CZK)",
+        "nl": "Dagelijkse gemiddelde prijs (CZK)",
+        "da": "Daglig gennemsnitspris (CZK)",
+        "de": "Täglicher Durchschnittspreis (CZK)",
+        "es": "Precio medio diario (CZK)",
+        "fr": "Prix moyen quotidien (CZK)",
+        "it": "Prezzo medio giornaliero (CZK)",
+        "no": "Daglig gjennomsnittspris (CZK)",
+        "sv": "Dagligt genomsnittspris (CZK)",
+        "pl": "Średnia cena dzienna (CZK)",
+        "ru": "Средняя дневная цена (CZK)",
+        "ko": "일일 평균 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -991,7 +2135,18 @@
     "hour_price_CZK_0": {
       "type": "number",
       "title": {
-        "en": "Hour 0 Price (CZK)"
+        "en": "Hour 0 Price (CZK)",
+        "nl": "Uur 0 Prijs (CZK)",
+        "da": "Time 0 Pris (CZK)",
+        "de": "Stunde 0 Preis (CZK)",
+        "es": "Precio Hora 0 (CZK)",
+        "fr": "Prix Heure 0 (CZK)",
+        "it": "Prezzo Ora 0 (CZK)",
+        "no": "Time 0 Pris (CZK)",
+        "sv": "Timme 0 Pris (CZK)",
+        "pl": "Cena Godzina 0 (CZK)",
+        "ru": "Цена за 0 час (CZK)",
+        "ko": "시간 0 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1004,7 +2159,18 @@
     "hour_price_CZK_1": {
       "type": "number",
       "title": {
-        "en": "Hour 1 Price (CZK)"
+        "en": "Hour 1 Price (CZK)",
+        "nl": "Prijs uur 1 (CZK)",
+        "da": "Pris time 1 (CZK)",
+        "de": "Stunde 1 Preis (CZK)",
+        "es": "Precio hora 1 (CZK)",
+        "fr": "Prix heure 1 (CZK)",
+        "it": "Prezzo ora 1 (CZK)",
+        "no": "Pris time 1 (CZK)",
+        "sv": "Pris timme 1 (CZK)",
+        "pl": "Cena za godzinę 1 (CZK)",
+        "ru": "Цена за 1 час (CZK)",
+        "ko": "1시간 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1017,7 +2183,18 @@
     "hour_price_CZK_10": {
       "type": "number",
       "title": {
-        "en": "Hour 10 Price (CZK)"
+        "en": "Hour 10 Price (CZK)",
+        "nl": "Uur 10 Prijs (CZK)",
+        "da": "Time 10 Pris (CZK)",
+        "de": "Stunde 10 Preis (CZK)",
+        "es": "Precio Hora 10 (CZK)",
+        "fr": "Prix Heure 10 (CZK)",
+        "it": "Prezzo Ora 10 (CZK)",
+        "no": "Time 10 Pris (CZK)",
+        "sv": "Timme 10 Pris (CZK)",
+        "pl": "Cena za godzinę 10 (CZK)",
+        "ru": "Цена за 10-й час (CZK)",
+        "ko": "10시간 요금 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1030,7 +2207,18 @@
     "hour_price_CZK_11": {
       "type": "number",
       "title": {
-        "en": "Hour 11 Price (CZK)"
+        "en": "Hour 11 Price (CZK)",
+        "nl": "Prijs uur 11 (CZK)",
+        "da": "Time 11 Pris (CZK)",
+        "de": "Stunde 11 Preis (CZK)",
+        "es": "Precio de la hora 11 (CZK)",
+        "fr": "Prix de l'heure 11 (CZK)",
+        "it": "Prezzo ora 11 (CZK)",
+        "no": "Time 11 Pris (CZK)",
+        "sv": "Timme 11 Pris (CZK)",
+        "pl": "Cena za godzinę 11 (CZK)",
+        "ru": "Цена за 11-й час (CZK)",
+        "ko": "11시 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1043,7 +2231,18 @@
     "hour_price_CZK_12": {
       "type": "number",
       "title": {
-        "en": "Hour 12 Price (CZK)"
+        "en": "Hour 12 Price (CZK)",
+        "nl": "Uur 12 Prijs (CZK)",
+        "da": "Time 12 Pris (CZK)",
+        "de": "Stunde 12 Preis (CZK)",
+        "es": "Precio Hora 12 (CZK)",
+        "fr": "Prix Heure 12 (CZK)",
+        "it": "Prezzo Ora 12 (CZK)",
+        "no": "Time 12 Pris (CZK)",
+        "sv": "Timme 12 Pris (CZK)",
+        "pl": "Cena Godziny 12 (CZK)",
+        "ru": "Цена за 12 Часов (CZK)",
+        "ko": "12 시간 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1056,7 +2255,18 @@
     "hour_price_CZK_13": {
       "type": "number",
       "title": {
-        "en": "Hour 13 Price (CZK)"
+        "en": "Hour 13 Price (CZK)",
+        "nl": "Uur 13 Prijs (CZK)",
+        "da": "Time 13 Pris (CZK)",
+        "de": "Stunde 13 Preis (CZK)",
+        "es": "Precio de la Hora 13 (CZK)",
+        "fr": "Prix de l'heure 13 (CZK)",
+        "it": "Prezzo Ora 13 (CZK)",
+        "no": "Pris Time 13 (CZK)",
+        "sv": "Pris Timme 13 (CZK)",
+        "pl": "Cena za godzinę 13 (CZK)",
+        "ru": "Цена за 13 час (CZK)",
+        "ko": "13시 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1069,7 +2279,18 @@
     "hour_price_CZK_14": {
       "type": "number",
       "title": {
-        "en": "Hour 14 Price (CZK)"
+        "en": "Hour 14 Price (CZK)",
+        "nl": "Uur 14 Prijs (CZK)",
+        "da": "Time 14 Pris (CZK)",
+        "de": "Stunde 14 Preis (CZK)",
+        "es": "Precio de la hora 14 (CZK)",
+        "fr": "Prix de l'heure 14 (CZK)",
+        "it": "Prezzo ora 14 (CZK)",
+        "no": "Time 14 Pris (CZK)",
+        "sv": "Timme 14 Pris (CZK)",
+        "pl": "Cena za godzinę 14 (CZK)",
+        "ru": "Цена за 14 час (CZK)",
+        "ko": "14시간 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1082,7 +2303,18 @@
     "hour_price_CZK_15": {
       "type": "number",
       "title": {
-        "en": "Hour 15 Price (CZK)"
+        "en": "Hour 15 Price (CZK)",
+        "nl": "Uur 15 Prijs (CZK)",
+        "da": "Time 15 Pris (CZK)",
+        "de": "Stunde 15 Preis (CZK)",
+        "es": "Precio de la hora 15 (CZK)",
+        "fr": "Prix de l'heure 15 (CZK)",
+        "it": "Prezzo ora 15 (CZK)",
+        "no": "Time 15 Pris (CZK)",
+        "sv": "Timme 15 Pris (CZK)",
+        "pl": "Cena godziny 15 (CZK)",
+        "ru": "Цена за 15 час (CZK)",
+        "ko": "15시간 요금 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1095,7 +2327,18 @@
     "hour_price_CZK_16": {
       "type": "number",
       "title": {
-        "en": "Hour 16 Price (CZK)"
+        "en": "Hour 16 Price (CZK)",
+        "nl": "Uur 16 Prijs (CZK)",
+        "da": "Time 16 Pris (CZK)",
+        "de": "Stunde 16 Preis (CZK)",
+        "es": "Precio de la Hora 16 (CZK)",
+        "fr": "Prix de l'Heure 16 (CZK)",
+        "it": "Prezzo dell'Ora 16 (CZK)",
+        "no": "Time 16 Pris (CZK)",
+        "sv": "Timme 16 Pris (CZK)",
+        "pl": "Cena godziny 16 (CZK)",
+        "ru": "Цена за Час 16 (CZK)",
+        "ko": "16시간 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1108,7 +2351,18 @@
     "hour_price_CZK_17": {
       "type": "number",
       "title": {
-        "en": "Hour 17 Price (CZK)"
+        "en": "Hour 17 Price (CZK)",
+        "nl": "Uur 17 Prijs (CZK)",
+        "da": "Time 17 Pris (CZK)",
+        "de": "Stunde 17 Preis (CZK)",
+        "es": "Precio de la Hora 17 (CZK)",
+        "fr": "Prix à l'Heure 17 (CZK)",
+        "it": "Prezzo Ora 17 (CZK)",
+        "no": "Pris kl. 17 (CZK)",
+        "sv": "Pris timme 17 (CZK)",
+        "pl": "Cena godziny 17 (CZK)",
+        "ru": "Цена на 17-й час (CZK)",
+        "ko": "17시 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1121,7 +2375,18 @@
     "hour_price_CZK_18": {
       "type": "number",
       "title": {
-        "en": "Hour 18 Price (CZK)"
+        "en": "Hour 18 Price (CZK)",
+        "nl": "Uur 18 Prijs (CZK)",
+        "da": "Time 18 Pris (CZK)",
+        "de": "Stunde 18 Preis (CZK)",
+        "es": "Precio Hora 18 (CZK)",
+        "fr": "Prix Heure 18 (CZK)",
+        "it": "Prezzo Ora 18 (CZK)",
+        "no": "Pris Time 18 (CZK)",
+        "sv": "Pris Timme 18 (CZK)",
+        "pl": "Cena Godzina 18 (CZK)",
+        "ru": "Цена на 18 Часов (CZK)",
+        "ko": "18시 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1134,7 +2399,18 @@
     "hour_price_CZK_19": {
       "type": "number",
       "title": {
-        "en": "Hour 19 Price (CZK)"
+        "en": "Hour 19 Price (CZK)",
+        "nl": "Uur 19 Prijs (CZK)",
+        "da": "Time 19 Pris (CZK)",
+        "de": "Stunde 19 Preis (CZK)",
+        "es": "Precio hora 19 (CZK)",
+        "fr": "Prix de l'heure 19 (CZK)",
+        "it": "Prezzo ora 19 (CZK)",
+        "no": "Time 19 Pris (CZK)",
+        "sv": "Timme 19 Pris (CZK)",
+        "pl": "Cena godzina 19 (CZK)",
+        "ru": "Цена в 19 часов (CZK)",
+        "ko": "19시 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1147,7 +2423,18 @@
     "hour_price_CZK_2": {
       "type": "number",
       "title": {
-        "en": "Hour 2 Price (CZK)"
+        "en": "Hour 2 Price (CZK)",
+        "nl": "Uur 2 Prijs (CZK)",
+        "da": "Time 2 Pris (CZK)",
+        "de": "Stunde 2 Preis (CZK)",
+        "es": "Precio de la Hora 2 (CZK)",
+        "fr": "Prix de l'Heure 2 (CZK)",
+        "it": "Prezzo Ora 2 (CZK)",
+        "no": "Pris for Time 2 (CZK)",
+        "sv": "Timme 2 Pris (CZK)",
+        "pl": "Cena za Godzinę 2 (CZK)",
+        "ru": "Цена за 2 Час (CZK)",
+        "ko": "2시간 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1160,7 +2447,18 @@
     "hour_price_CZK_20": {
       "type": "number",
       "title": {
-        "en": "Hour 20 Price (CZK)"
+        "en": "Hour 20 Price (CZK)",
+        "nl": "Uur 20 Prijs (CZK)",
+        "da": "Time 20 Pris (CZK)",
+        "de": "Stunde 20 Preis (CZK)",
+        "es": "Precio hora 20 (CZK)",
+        "fr": "Prix de l’heure 20 (CZK)",
+        "it": "Prezzo ora 20 (CZK)",
+        "no": "Time 20 Pris (CZK)",
+        "sv": "Timme 20 Pris (CZK)",
+        "pl": "Cena godziny 20 (CZK)",
+        "ru": "Цена за 20 час (CZK)",
+        "ko": "20시간 요금 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1173,7 +2471,18 @@
     "hour_price_CZK_21": {
       "type": "number",
       "title": {
-        "en": "Hour 21 Price (CZK)"
+        "en": "Hour 21 Price (CZK)",
+        "nl": "Uur 21 Prijs (CZK)",
+        "da": "Time 21 Pris (CZK)",
+        "de": "Preis Stunde 21 (CZK)",
+        "es": "Precio Hora 21 (CZK)",
+        "fr": "Prix Heure 21 (CZK)",
+        "it": "Prezzo Ora 21 (CZK)",
+        "no": "Time 21 Pris (CZK)",
+        "sv": "Pris Timme 21 (CZK)",
+        "pl": "Cena godzina 21 (CZK)",
+        "ru": "Цена Час 21 (CZK)",
+        "ko": "시간 21 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1186,7 +2495,18 @@
     "hour_price_CZK_22": {
       "type": "number",
       "title": {
-        "en": "Hour 22 Price (CZK)"
+        "en": "Hour 22 Price (CZK)",
+        "nl": "Uur 22 Prijs (CZK)",
+        "da": "Time 22 Pris (CZK)",
+        "de": "Preis für Stunde 22 (CZK)",
+        "es": "Precio Hora 22 (CZK)",
+        "fr": "Prix Heure 22 (CZK)",
+        "it": "Prezzo Ora 22 (CZK)",
+        "no": "Time 22 Pris (CZK)",
+        "sv": "Timme 22 Pris (CZK)",
+        "pl": "Cena za godzinę 22 (CZK)",
+        "ru": "Цена за 22-й час (CZK)",
+        "ko": "22시 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1199,7 +2519,18 @@
     "hour_price_CZK_23": {
       "type": "number",
       "title": {
-        "en": "Hour 23 Price (CZK)"
+        "en": "Hour 23 Price (CZK)",
+        "nl": "Uur 23 Prijs (CZK)",
+        "da": "Time 23 Pris (CZK)",
+        "de": "Stunde 23 Preis (CZK)",
+        "es": "Precio Hora 23 (CZK)",
+        "fr": "Prix Heure 23 (CZK)",
+        "it": "Prezzo Ora 23 (CZK)",
+        "no": "Pris Time 23 (CZK)",
+        "sv": "Pris Timme 23 (CZK)",
+        "pl": "Cena Godzina 23 (CZK)",
+        "ru": "Цена за 23 Час (CZK)",
+        "ko": "시간 23 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1212,7 +2543,18 @@
     "hour_price_CZK_3": {
       "type": "number",
       "title": {
-        "en": "Hour 3 Price (CZK)"
+        "en": "Hour 3 Price (CZK)",
+        "nl": "Uur 3 Prijs (CZK)",
+        "da": "Time 3 Pris (CZK)",
+        "de": "Stunde 3 Preis (CZK)",
+        "es": "Precio Hora 3 (CZK)",
+        "fr": "Prix Heure 3 (CZK)",
+        "it": "Prezzo Ora 3 (CZK)",
+        "no": "Time 3 Pris (CZK)",
+        "sv": "Timme 3 Pris (CZK)",
+        "pl": "Cena Godzina 3 (CZK)",
+        "ru": "Цена за 3-й Час (CZK)",
+        "ko": "시간 3 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1225,7 +2567,18 @@
     "hour_price_CZK_4": {
       "type": "number",
       "title": {
-        "en": "Hour 4 Price (CZK)"
+        "en": "Hour 4 Price (CZK)",
+        "nl": "Uur 4 Prijs (CZK)",
+        "da": "Time 4 Pris (CZK)",
+        "de": "Stunde 4 Preis (CZK)",
+        "es": "Hora 4 Precio (CZK)",
+        "fr": "Heure 4 Prix (CZK)",
+        "it": "Ora 4 Prezzo (CZK)",
+        "no": "Time 4 Pris (CZK)",
+        "sv": "Timme 4 Pris (CZK)",
+        "pl": "Godzina 4 Cena (CZK)",
+        "ru": "Час 4 Цена (CZK)",
+        "ko": "시간 4 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1238,7 +2591,18 @@
     "hour_price_CZK_5": {
       "type": "number",
       "title": {
-        "en": "Hour 5 Price (CZK)"
+        "en": "Hour 5 Price (CZK)",
+        "nl": "Uur 5 Prijs (CZK)",
+        "da": "Time 5 Pris (CZK)",
+        "de": "Stunde 5 Preis (CZK)",
+        "es": "Precio de la Hora 5 (CZK)",
+        "fr": "Prix Heure 5 (CZK)",
+        "it": "Prezzo Ora 5 (CZK)",
+        "no": "Time 5 Pris (CZK)",
+        "sv": "Timme 5 Pris (CZK)",
+        "pl": "Cena za godzinę 5 (CZK)",
+        "ru": "Цена за 5-й час (CZK)",
+        "ko": "5시간 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1251,7 +2615,18 @@
     "hour_price_CZK_6": {
       "type": "number",
       "title": {
-        "en": "Hour 6 Price (CZK)"
+        "en": "Hour 6 Price (CZK)",
+        "nl": "Uur 6 Prijs (CZK)",
+        "da": "Time 6 Pris (CZK)",
+        "de": "Stunde 6 Preis (CZK)",
+        "es": "Precio de la Hora 6 (CZK)",
+        "fr": "Prix de l'Heure 6 (CZK)",
+        "it": "Prezzo Ora 6 (CZK)",
+        "no": "Time 6 Pris (CZK)",
+        "sv": "Timme 6 Pris (CZK)",
+        "pl": "Cena za Godzinę 6 (CZK)",
+        "ru": "Цена за 6 Час (CZK)",
+        "ko": "6시 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1264,7 +2639,18 @@
     "hour_price_CZK_7": {
       "type": "number",
       "title": {
-        "en": "Hour 7 Price (CZK)"
+        "en": "Hour 7 Price (CZK)",
+        "nl": "Uur 7 Prijs (CZK)",
+        "da": "Time 7 Pris (CZK)",
+        "de": "Stunde 7 Preis (CZK)",
+        "es": "Precio de la Hora 7 (CZK)",
+        "fr": "Prix de l'Heure 7 (CZK)",
+        "it": "Prezzo Ora 7 (CZK)",
+        "no": "Time 7 Pris (CZK)",
+        "sv": "Timme 7 Pris (CZK)",
+        "pl": "Cena godziny 7 (CZK)",
+        "ru": "Цена за 7 час (CZK)",
+        "ko": "7시간 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1277,7 +2663,18 @@
     "hour_price_CZK_8": {
       "type": "number",
       "title": {
-        "en": "Hour 8 Price (CZK)"
+        "en": "Hour 8 Price (CZK)",
+        "nl": "Uur 8 Prijs (CZK)",
+        "da": "Time 8 Pris (CZK)",
+        "de": "Stunde 8 Preis (CZK)",
+        "es": "Precio Hora 8 (CZK)",
+        "fr": "Prix de l'Heure 8 (CZK)",
+        "it": "Prezzo Ora 8 (CZK)",
+        "no": "Time 8 Pris (CZK)",
+        "sv": "Timme 8 Pris (CZK)",
+        "pl": "Cena za godzinę 8 (CZK)",
+        "ru": "Цена за 8 Час (CZK)",
+        "ko": "8시간 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1290,7 +2687,18 @@
     "hour_price_CZK_9": {
       "type": "number",
       "title": {
-        "en": "Hour 9 Price (CZK)"
+        "en": "Hour 9 Price (CZK)",
+        "nl": "Prijs uur 9 (CZK)",
+        "da": "Time 9 Pris (CZK)",
+        "de": "Stunde 9 Preis (CZK)",
+        "es": "Precio hora 9 (CZK)",
+        "fr": "Prix heure 9 (CZK)",
+        "it": "Prezzo ora 9 (CZK)",
+        "no": "Time 9 Pris (CZK)",
+        "sv": "Pris timme 9 (CZK)",
+        "pl": "Cena godzina 9 (CZK)",
+        "ru": "Цена за 9 час (CZK)",
+        "ko": "9시 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -1303,31 +2711,86 @@
     "hour_price_index_0": {
       "type": "enum",
       "title": {
-        "en": "Hour 0 Price Index"
+        "en": "Hour 0 Price Index",
+        "nl": "Prijsindex uur 0",
+        "da": "Time 0 Prisindeks",
+        "de": "Preisindex Stunde 0",
+        "es": "Índice de precios hora 0",
+        "fr": "Indice des prix heure 0",
+        "it": "Indice dei prezzi ora 0",
+        "no": "Time 0 Prisindeks",
+        "sv": "Tidsindex 0",
+        "pl": "Indeks cen godzina 0",
+        "ru": "Индекс цен на час 0",
+        "ko": "시간 0 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Midden",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Medium",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1339,31 +2802,86 @@
     "hour_price_index_1": {
       "type": "enum",
       "title": {
-        "en": "Hour 1 Price Index"
+        "en": "Hour 1 Price Index",
+        "nl": "Uur 1 Prijsindex",
+        "da": "Time 1 Prisindeks",
+        "de": "Stunde 1 Preisindex",
+        "es": "Índice de Precio Hora 1",
+        "fr": "Indice de Prix Heure 1",
+        "it": "Indice dei Prezzi Ora 1",
+        "no": "Time 1 Prisindeks",
+        "sv": "Timme 1 Prisindex",
+        "pl": "Indeks Ceny Godzina 1",
+        "ru": "Индекс Цены на Час 1",
+        "ko": "시간 1 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Gemiddeld",
+            "da": "Medium",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "보통"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1375,31 +2893,86 @@
     "hour_price_index_10": {
       "type": "enum",
       "title": {
-        "en": "Hour 10 Price Index"
+        "en": "Hour 10 Price Index",
+        "nl": "Uur 10 Prijsindex",
+        "da": "Time 10 Prisindeks",
+        "de": "Stunde 10 Preisindex",
+        "es": "Índice de Precio Hora 10",
+        "fr": "Indice des Prix Heure 10",
+        "it": "Indice Prezzi Ora 10",
+        "no": "Time 10 Prisindeks",
+        "sv": "Timme 10 Prisindex",
+        "pl": "Indeks Cenowy Godziny 10",
+        "ru": "Индекс Цены 10 Часа",
+        "ko": "10시 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Medium",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Medium",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестный",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1411,31 +2984,86 @@
     "hour_price_index_11": {
       "type": "enum",
       "title": {
-        "en": "Hour 11 Price Index"
+        "en": "Hour 11 Price Index",
+        "nl": "Uur 11 Prijsindex",
+        "da": "Time 11 Prisindeks",
+        "de": "Stunde 11 Preisindex",
+        "es": "Índice de Precios Hora 11",
+        "fr": "Indice des Prix Heure 11",
+        "it": "Indice dei Prezzi Ora 11",
+        "no": "Time 11 Prisindeks",
+        "sv": "Timme 11 Prisindex",
+        "pl": "Indeks Cen Godzina 11",
+        "ru": "Индекс Цен Час 11",
+        "ko": "11시 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Middel",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Medel",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "보통"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1447,31 +3075,86 @@
     "hour_price_index_12": {
       "type": "enum",
       "title": {
-        "en": "Hour 12 Price Index"
+        "en": "Hour 12 Price Index",
+        "nl": "Uur 12 Prijsindex",
+        "da": "Time 12 Prisindeks",
+        "de": "Stunde 12 Preisindex",
+        "es": "Índice de Precios de la Hora 12",
+        "fr": "Indice des Prix Heure 12",
+        "it": "Indice dei Prezzi Ora 12",
+        "no": "Time 12 Prisindeks",
+        "sv": "Timme 12 Prisindex",
+        "pl": "Indeks Cen Godziny 12",
+        "ru": "Индекс Цен 12 Часа",
+        "ko": "12시간 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Faible",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Middel",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1483,31 +3166,86 @@
     "hour_price_index_13": {
       "type": "enum",
       "title": {
-        "en": "Hour 13 Price Index"
+        "en": "Hour 13 Price Index",
+        "nl": "Uur 13 Prijsindex",
+        "da": "Time 13 Prisindeks",
+        "de": "Stunde 13 Preisindex",
+        "es": "Índice de precios de la hora 13",
+        "fr": "Indice des prix heure 13",
+        "it": "Indice dei prezzi ora 13",
+        "no": "Time 13 Prisindeks",
+        "sv": "Timme 13 Prisindex",
+        "pl": "Indeks cen godzina 13",
+        "ru": "Индекс цен на час 13",
+        "ko": "13시 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Medium",
+            "da": "Medium",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Medium",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Haut",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1519,31 +3257,86 @@
     "hour_price_index_14": {
       "type": "enum",
       "title": {
-        "en": "Hour 14 Price Index"
+        "en": "Hour 14 Price Index",
+        "nl": "Uur 14 Prijsindex",
+        "da": "Time 14 Prisindeks",
+        "de": "Stunde 14 Preisindex",
+        "es": "Índice de precios de la hora 14",
+        "fr": "Indice des prix de l'heure 14",
+        "it": "Indice dei prezzi dell'ora 14",
+        "no": "Time 14 Prisindeks",
+        "sv": "Timme 14 Prisindex",
+        "pl": "Indeks cen dla godziny 14",
+        "ru": "Индекс цен на 14 час",
+        "ko": "14시 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Faible",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Middel",
+            "da": "Medium",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Medium",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестный",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1555,31 +3348,86 @@
     "hour_price_index_15": {
       "type": "enum",
       "title": {
-        "en": "Hour 15 Price Index"
+        "en": "Hour 15 Price Index",
+        "nl": "Uur 15 Prijsindex",
+        "da": "Time 15 Prisindeks",
+        "de": "Stunde 15 Preisindex",
+        "es": "Índice de Precios Hora 15",
+        "fr": "Indice des Prix Heure 15",
+        "it": "Indice dei Prezzi Ora 15",
+        "no": "Time 15 Prisindeks",
+        "sv": "Timme 15 Prisindex",
+        "pl": "Wskaźnik Cen Godzina 15",
+        "ru": "Индекс Цен Час 15",
+        "ko": "15시 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Gemiddeld",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Medium",
+            "sv": "Medel",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1591,31 +3439,86 @@
     "hour_price_index_16": {
       "type": "enum",
       "title": {
-        "en": "Hour 16 Price Index"
+        "en": "Hour 16 Price Index",
+        "nl": "Uur 16 Prijsindex",
+        "da": "Time 16 Prisindeks",
+        "de": "Stunde 16 Preisindex",
+        "es": "Índice de Precios Hora 16",
+        "fr": "Indice des Prix Heure 16",
+        "it": "Indice dei Prezzi Ora 16",
+        "no": "Time 16 Prisindeks",
+        "sv": "Timme 16 Prisindex",
+        "pl": "Indeks Cen Godzina 16",
+        "ru": "Индекс цен на 16 часов",
+        "ko": "16시 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Middel",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Mellan",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Haut",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестный",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1627,31 +3530,86 @@
     "hour_price_index_17": {
       "type": "enum",
       "title": {
-        "en": "Hour 17 Price Index"
+        "en": "Hour 17 Price Index",
+        "nl": "Uur 17 Prijsindex",
+        "da": "Time 17 Prisindeks",
+        "de": "Stunde 17 Preisindex",
+        "es": "Índice de Precios Hora 17",
+        "fr": "Indice des Prix Heure 17",
+        "it": "Indice dei Prezzi Ora 17",
+        "no": "Time 17 Prisindeks",
+        "sv": "Timme 17 Prisindex",
+        "pl": "Indeks Cen Godzina 17",
+        "ru": "Индекс Цен Час 17",
+        "ko": "17시 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Gemiddeld",
+            "da": "Middel",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Haut",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznane",
+            "ru": "Неизвестный",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1663,31 +3621,86 @@
     "hour_price_index_18": {
       "type": "enum",
       "title": {
-        "en": "Hour 18 Price Index"
+        "en": "Hour 18 Price Index",
+        "nl": "Uur 18 Prijsindex",
+        "da": "Time 18 Prisindeks",
+        "de": "Stunde 18 Preisindex",
+        "es": "Índice de precios hora 18",
+        "fr": "Indice des prix de l'heure 18",
+        "it": "Indice dei prezzi ora 18",
+        "no": "Time 18 Prisindeks",
+        "sv": "Timme 18 Prisindex",
+        "pl": "Indeks cen godzina 18",
+        "ru": "Индекс цен на час 18",
+        "ko": "시간 18 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Baja",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Middel",
+            "da": "Medium",
+            "de": "Mittel",
+            "es": "Media",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Medium",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "보통"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alta",
+            "fr": "Haut",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1699,31 +3712,86 @@
     "hour_price_index_19": {
       "type": "enum",
       "title": {
-        "en": "Hour 19 Price Index"
+        "en": "Hour 19 Price Index",
+        "nl": "Prijsindex uur 19",
+        "da": "Time 19 Prisindeks",
+        "de": "Preisindex Stunde 19",
+        "es": "Índice de precios hora 19",
+        "fr": "Indice de prix heure 19",
+        "it": "Indice di prezzo ora 19",
+        "no": "Prisindeks time 19",
+        "sv": "Prisindex timme 19",
+        "pl": "Indeks cen godzina 19",
+        "ru": "Индекс цен за 19 час",
+        "ko": "19시 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Middel",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестный",
+            "ko": "모름"
           }
         }
       ],
@@ -1735,31 +3803,86 @@
     "hour_price_index_2": {
       "type": "enum",
       "title": {
-        "en": "Hour 2 Price Index"
+        "en": "Hour 2 Price Index",
+        "nl": "Uur 2 Prijsindex",
+        "da": "Time 2 Prisindeks",
+        "de": "Stunde 2 Preisindex",
+        "es": "Índice de Precios Hora 2",
+        "fr": "Indice des Prix de l'Heure 2",
+        "it": "Indice dei Prezzi Ora 2",
+        "no": "Time 2 Prisindeks",
+        "sv": "Timme 2 Prisindex",
+        "pl": "Indeks Cen Godzina 2",
+        "ru": "Индекс цен час 2",
+        "ko": "시간 2 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Gemiddeld",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Mellan",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1771,31 +3894,86 @@
     "hour_price_index_20": {
       "type": "enum",
       "title": {
-        "en": "Hour 20 Price Index"
+        "en": "Hour 20 Price Index",
+        "nl": "Uur 20 Prijsindex",
+        "da": "Time 20 Prisindeks",
+        "de": "Stunde 20 Preisindex",
+        "es": "Índice de precios Hora 20",
+        "fr": "Indice de prix Heure 20",
+        "it": "Indice dei prezzi Ora 20",
+        "no": "Time 20 Prisindeks",
+        "sv": "Timme 20 Prisindex",
+        "pl": "Indeks cen Godzina 20",
+        "ru": "Индекс цен Час 20",
+        "ko": "시간 20 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Gemiddeld",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Medium",
+            "sv": "Medel",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1807,31 +3985,86 @@
     "hour_price_index_21": {
       "type": "enum",
       "title": {
-        "en": "Hour 21 Price Index"
+        "en": "Hour 21 Price Index",
+        "nl": "Uur 21 Prijsindex",
+        "da": "Time 21 Prisindeks",
+        "de": "Stunde 21 Preisindex",
+        "es": "Índice de Precios Hora 21",
+        "fr": "Indice des Prix Heure 21",
+        "it": "Indice dei Prezzi Ora 21",
+        "no": "Time 21 Prisindeks",
+        "sv": "Timme 21 Prisindex",
+        "pl": "Indeks Cen Godzina 21",
+        "ru": "Индекс цен на 21 час",
+        "ko": "21시 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Faible",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Gemiddeld",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестный",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1843,31 +4076,86 @@
     "hour_price_index_22": {
       "type": "enum",
       "title": {
-        "en": "Hour 22 Price Index"
+        "en": "Hour 22 Price Index",
+        "nl": "Uur 22 Prijsindex",
+        "da": "Time 22 Prisindeks",
+        "de": "Stunde 22 Preisindex",
+        "es": "Índice de Precios Hora 22",
+        "fr": "Indice des Prix Heure 22",
+        "it": "Indice dei Prezzi Ora 22",
+        "no": "Time 22 Prisindeks",
+        "sv": "Timme 22 Prisindex",
+        "pl": "Indeks Cen Godzina 22",
+        "ru": "Индекс Цен Час 22",
+        "ko": "시간 22 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Middel",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Medium",
+            "sv": "Medel",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1879,31 +4167,86 @@
     "hour_price_index_23": {
       "type": "enum",
       "title": {
-        "en": "Hour 23 Price Index"
+        "en": "Hour 23 Price Index",
+        "nl": "Uur 23 Prijsindex",
+        "da": "Time 23 Prisindeks",
+        "de": "Stunde 23 Preisindex",
+        "es": "Índice de precios de la hora 23",
+        "fr": "Indice des prix de l'heure 23",
+        "it": "Indice dei prezzi ora 23",
+        "no": "Time 23 Priseindeks",
+        "sv": "Timme 23 Prisindex",
+        "pl": "Indeks cen godziny 23",
+        "ru": "Ценовой индекс 23-го часа",
+        "ko": "23시 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Middel",
+            "da": "Middel",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "보통"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1915,31 +4258,86 @@
     "hour_price_index_3": {
       "type": "enum",
       "title": {
-        "en": "Hour 3 Price Index"
+        "en": "Hour 3 Price Index",
+        "nl": "Uur 3 Prijsindex",
+        "da": "Time 3 Prisindeks",
+        "de": "Stunde 3 Preisindex",
+        "es": "Índice de Precios Hora 3",
+        "fr": "Indice des Prix Heure 3",
+        "it": "Indice dei Prezzi Ora 3",
+        "no": "Time 3 Prisindeks",
+        "sv": "Timme 3 Prisindex",
+        "pl": "Wskaźnik Cen Godzina 3",
+        "ru": "Час 3 Индекс Цен",
+        "ko": "시간 3 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Gemiddeld",
+            "da": "Medium",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1951,31 +4349,86 @@
     "hour_price_index_4": {
       "type": "enum",
       "title": {
-        "en": "Hour 4 Price Index"
+        "en": "Hour 4 Price Index",
+        "nl": "Uur 4 Prijsindex",
+        "da": "Time 4 Prisindeks",
+        "de": "Stunde 4 Preisindex",
+        "es": "Índice de Precios Hora 4",
+        "fr": "Indice des Prix Heure 4",
+        "it": "Indice dei Prezzi Ora 4",
+        "no": "Time 4 Prisindeks",
+        "sv": "Timme 4 Prisindex",
+        "pl": "Indeks Cen Godziny 4",
+        "ru": "Час 4 Индекс цен",
+        "ko": "시간 4 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Middel",
+            "da": "Middels",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Medel",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -1987,31 +4440,86 @@
     "hour_price_index_5": {
       "type": "enum",
       "title": {
-        "en": "Hour 5 Price Index"
+        "en": "Hour 5 Price Index",
+        "nl": "Uur 5 Prijsindex",
+        "da": "Time 5 Prisindeks",
+        "de": "Stunde 5 Preisindex",
+        "es": "Índice de Precios de la Hora 5",
+        "fr": "Indice des Prix Heure 5",
+        "it": "Indice dei Prezzi Ora 5",
+        "no": "Time 5 Prisindeks",
+        "sv": "Timme 5 Prisindex",
+        "pl": "Indeks Cen Godzina 5",
+        "ru": "Индекс Цен Час 5",
+        "ko": "5시 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Faible",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Gemiddeld",
+            "da": "Middel",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Mellan",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -2023,31 +4531,86 @@
     "hour_price_index_6": {
       "type": "enum",
       "title": {
-        "en": "Hour 6 Price Index"
+        "en": "Hour 6 Price Index",
+        "nl": "Uur 6 Prijsindex",
+        "da": "Time 6 Prisindeks",
+        "de": "Preisindex Stunde 6",
+        "es": "Índice de Precio Hora 6",
+        "fr": "Indice des Prix Heure 6",
+        "it": "Indice dei Prezzi Ora 6",
+        "no": "Time 6 Prisindeks",
+        "sv": "Timme 6 Prisindex",
+        "pl": "Indeks Cen Godzina 6",
+        "ru": "Индекс Цен Час 6",
+        "ko": "6시간 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lavt",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Faible",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Gemiddeld",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Medium",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестный",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -2059,31 +4622,86 @@
     "hour_price_index_7": {
       "type": "enum",
       "title": {
-        "en": "Hour 7 Price Index"
+        "en": "Hour 7 Price Index",
+        "nl": "Uur 7 Prijsindex",
+        "da": "Time 7 Prisindeks",
+        "de": "Stunde 7 Preisindex",
+        "es": "Índice de Precios de la Hora 7",
+        "fr": "Indice des Prix Heure 7",
+        "it": "Indice dei Prezzi Ora 7",
+        "no": "Time 7 Prisindeks",
+        "sv": "Timme 7 Prisindex",
+        "pl": "Indeks Cen Godzina 7",
+        "ru": "Индекс Цен Час 7",
+        "ko": "시간 7 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Midden",
+            "da": "Medium",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -2095,31 +4713,86 @@
     "hour_price_index_8": {
       "type": "enum",
       "title": {
-        "en": "Hour 8 Price Index"
+        "en": "Hour 8 Price Index",
+        "nl": "Uur 8 Prijsindex",
+        "da": "Time 8 Prisindeks",
+        "de": "Stunde 8 Preisindex",
+        "es": "Índice de Precios Hora 8",
+        "fr": "Indice des Prix Heure 8",
+        "it": "Indice di Prezzo Ora 8",
+        "no": "Time 8 Prisindeks",
+        "sv": "Timme 8 Prisindex",
+        "pl": "Indeks Cenowy godzina 8",
+        "ru": "Индекс Цен Час 8",
+        "ko": "8시 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Middel",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -2131,31 +4804,86 @@
     "hour_price_index_9": {
       "type": "enum",
       "title": {
-        "en": "Hour 9 Price Index"
+        "en": "Hour 9 Price Index",
+        "nl": "Uur 9 Prijsindex",
+        "da": "Time 9 Prisindeks",
+        "de": "Stunde 9 Preisindex",
+        "es": "Índice de Precios Hora 9",
+        "fr": "Indice de Prix Heure 9",
+        "it": "Indice dei Prezzi Ora 9",
+        "no": "Time 9 Priseindeks",
+        "sv": "Timme 9 Prisindex",
+        "pl": "Indeks Cen Godzina 9",
+        "ru": "Индекс цен час 9",
+        "ko": "9시 가격 지수"
       },
       "values": [
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Medium",
+            "da": "Medium",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Medel",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "중간"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Haut",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ],
@@ -2167,7 +4895,18 @@
     "measure_current_spot_index": {
       "type": "enum",
       "title": {
-        "en": "Current Spot Price Index"
+        "en": "Current Spot Price Index",
+        "nl": "Huidige Spotprijsindex",
+        "da": "Aktuel Spotprisindeks",
+        "de": "Aktueller Spotpreisindex",
+        "es": "Índice de Precio Spot Actual",
+        "fr": "Indice des Prix du Marché Actuel",
+        "it": "Indice del Prezzo Spot Corrente",
+        "no": "Gjeldende Spotprisindeks",
+        "sv": "Aktuellt Spotprisindex",
+        "pl": "Aktualny Indeks Cen Spotowych",
+        "ru": "Текущий Индекс Спот-Цены",
+        "ko": "현재 스팟 가격 지수"
       },
       "getable": true,
       "setable": false,
@@ -2178,25 +4917,69 @@
         {
           "id": "low",
           "title": {
-            "en": "Low"
+            "en": "Low",
+            "nl": "Laag",
+            "da": "Lav",
+            "de": "Niedrig",
+            "es": "Bajo",
+            "fr": "Bas",
+            "it": "Basso",
+            "no": "Lav",
+            "sv": "Låg",
+            "pl": "Niski",
+            "ru": "Низкий",
+            "ko": "낮음"
           }
         },
         {
           "id": "medium",
           "title": {
-            "en": "Medium"
+            "en": "Medium",
+            "nl": "Gemiddeld",
+            "da": "Mellem",
+            "de": "Mittel",
+            "es": "Medio",
+            "fr": "Moyen",
+            "it": "Medio",
+            "no": "Middels",
+            "sv": "Medium",
+            "pl": "Średni",
+            "ru": "Средний",
+            "ko": "보통"
           }
         },
         {
           "id": "high",
           "title": {
-            "en": "High"
+            "en": "High",
+            "nl": "Hoog",
+            "da": "Høj",
+            "de": "Hoch",
+            "es": "Alto",
+            "fr": "Élevé",
+            "it": "Alto",
+            "no": "Høy",
+            "sv": "Hög",
+            "pl": "Wysoki",
+            "ru": "Высокий",
+            "ko": "높음"
           }
         },
         {
           "id": "unknown",
           "title": {
-            "en": "Unknown"
+            "en": "Unknown",
+            "nl": "Onbekend",
+            "da": "Ukendt",
+            "de": "Unbekannt",
+            "es": "Desconocido",
+            "fr": "Inconnu",
+            "it": "Sconosciuto",
+            "no": "Ukjent",
+            "sv": "Okänd",
+            "pl": "Nieznany",
+            "ru": "Неизвестно",
+            "ko": "알 수 없음"
           }
         }
       ]
@@ -2204,7 +4987,18 @@
     "measure_current_spot_price_CZK": {
       "type": "number",
       "title": {
-        "en": "Current Spot Price (CZK)"
+        "en": "Current Spot Price (CZK)",
+        "nl": "Huidige Spotprijs (CZK)",
+        "da": "Nuværende Spotpris (CZK)",
+        "de": "Aktueller Spotpreis (CZK)",
+        "es": "Precio Spot Actual (CZK)",
+        "fr": "Prix Spot Actuel (CZK)",
+        "it": "Prezzo Spot Attuale (CZK)",
+        "no": "Gjeldende Spotpris (CZK)",
+        "sv": "Nuvarande Spotpris (CZK)",
+        "pl": "Aktualna Cena Spotowa (CZK)",
+        "ru": "Текущая Спотовая Цена (CZK)",
+        "ko": "현재 현물 가격 (CZK)"
       },
       "units": "CZK",
       "decimals": 2,
@@ -2216,7 +5010,18 @@
     "measure_next_hour_price": {
       "type": "number",
       "title": {
-        "en": "Next Hour Price"
+        "en": "Next Hour Price",
+        "nl": "Volgende Uurprijs",
+        "da": "Næste Times Pris",
+        "de": "Preis der nächsten Stunde",
+        "es": "Precio de la Próxima Hora",
+        "fr": "Prix de la Prochaine Heure",
+        "it": "Prezzo della Prossima Ora",
+        "no": "Pris for Neste Time",
+        "sv": "Nästa Timpris",
+        "pl": "Cena Następnej Godziny",
+        "ru": "Цена на следующий час",
+        "ko": "다음 시간 가격"
       },
       "units": "CZK",
       "decimals": 2,
@@ -2229,7 +5034,18 @@
     "measure_today_max_price": {
       "type": "number",
       "title": {
-        "en": "Today's Maximum Price"
+        "en": "Today's Maximum Price",
+        "nl": "Maximumprijs van vandaag",
+        "da": "Dagens maksimale pris",
+        "de": "Heutiger Höchstpreis",
+        "es": "Precio máximo de hoy",
+        "fr": "Prix maximum d'aujourd'hui",
+        "it": "Prezzo massimo di oggi",
+        "no": "Dagens makspris",
+        "sv": "Dagens maxpris",
+        "pl": "Dzisiejsza cena maksymalna",
+        "ru": "Максимальная цена на сегодня",
+        "ko": "오늘의 최대 가격"
       },
       "units": "CZK",
       "decimals": 2,
@@ -2242,7 +5058,18 @@
     "measure_today_min_price": {
       "type": "number",
       "title": {
-        "en": "Today's Minimum Price"
+        "en": "Today's Minimum Price",
+        "nl": "Minimumprijs van vandaag",
+        "da": "Dagens minimumpris",
+        "de": "Heutiger Mindestpreis",
+        "es": "Precio mínimo de hoy",
+        "fr": "Prix minimum d'aujourd'hui",
+        "it": "Prezzo minimo di oggi",
+        "no": "Dagens minimumspris",
+        "sv": "Dagens lägsta pris",
+        "pl": "Dzisiejsza cena minimalna",
+        "ru": "Сегодняшняя минимальная цена",
+        "ko": "오늘의 최저 가격"
       },
       "units": "CZK",
       "decimals": 2,
@@ -2256,34 +5083,100 @@
       "id": "primary_api_fail",
       "type": "boolean",
       "title": {
-        "en": "Fail of primary api"
+        "en": "Fail of primary api",
+        "nl": "Fout van primaire api",
+        "da": "Fejl i primær API",
+        "de": "Fehler der primären API",
+        "es": "Fallo de la API principal",
+        "fr": "Échec de l'API principale",
+        "it": "Errore dell'API principale",
+        "no": "Feil på primær API",
+        "sv": "Fel på primär API",
+        "pl": "Awaria głównego API",
+        "ru": "Сбой основной API",
+        "ko": "기본 API 실패"
       },
       "getable": true,
       "setable": false,
       "uiComponent": null,
       "insights": true,
       "insightsTitleTrue": {
-        "en": "Getting prices from primary API"
+        "en": "Getting prices from primary API",
+        "nl": "Prijzen ophalen van primaire API",
+        "da": "Henter priser fra primær API",
+        "de": "Preise von der primären API abrufen",
+        "es": "Obteniendo precios de la API principal",
+        "fr": "Récupération des prix depuis l'API principale",
+        "it": "Recupero prezzi dall'API principale",
+        "no": "Henter priser fra primær API",
+        "sv": "Hämtar priser från primär API",
+        "pl": "Pobieranie cen z głównego API",
+        "ru": "Получение цен от основной API",
+        "ko": "기본 API에서 가격 가져오기"
       },
       "insightsTitleFalse": {
-        "en": "Primary API failed, trying backup API"
+        "en": "Primary API failed, trying backup API",
+        "nl": "Primair API mislukt, back-up API proberen",
+        "da": "Primær API mislykkedes, prøver backup-API",
+        "de": "Primäre API fehlgeschlagen, versuche Backup-API",
+        "es": "La API principal falló, intentando con la API de respaldo",
+        "fr": "L'API principale a échoué, essai de l'API de secours",
+        "it": "API principale fallita, tentativo con API di backup",
+        "no": "Primær API feilet, prøver backup API",
+        "sv": "Primär API misslyckades, försöker med backup API",
+        "pl": "Awaria głównego API, próba z zapasowym API",
+        "ru": "Сбой основной API, пробую резервную API",
+        "ko": "기본 API 실패, 백업 API 시도 중"
       }
     },
     "spot_price_update_status": {
       "id": "spot_price_update_status",
       "type": "boolean",
       "title": {
-        "en": "Spot Price Update Status"
+        "en": "Spot Price Update Status",
+        "nl": "Spotprijs Update Status",
+        "da": "Spotpris Opdateringsstatus",
+        "de": "Spotpreis Aktualisierungsstatus",
+        "es": "Estado de Actualización de Precio Spot",
+        "fr": "Statut de Mise à Jour du Prix Spot",
+        "it": "Stato di Aggiornamento Prezzo Spot",
+        "no": "Spotpris Oppdateringsstatus",
+        "sv": "Spotpris Uppdateringsstatus",
+        "pl": "Status Aktualizacji Ceny Spot",
+        "ru": "Статус Обновления Спотовой Цены",
+        "ko": "스팟 가격 업데이트 상태"
       },
       "getable": true,
       "setable": true,
       "uiComponent": null,
       "insights": true,
       "insightsTitleTrue": {
-        "en": "Spot prices updated"
+        "en": "Spot prices updated",
+        "nl": "Spotprijzen bijgewerkt",
+        "da": "Spotpriser opdateret",
+        "de": "Spotpreise aktualisiert",
+        "es": "Precios spot actualizados",
+        "fr": "Prix spot mis à jour",
+        "it": "Prezzi spot aggiornati",
+        "no": "Spotpriser oppdatert",
+        "sv": "Spotpriser uppdaterade",
+        "pl": "Ceny spot zaktualizowane",
+        "ru": "Спотовые цены обновлены",
+        "ko": "스팟 가격 업데이트 완료"
       },
       "insightsTitleFalse": {
-        "en": "Calling API to update prices"
+        "en": "Calling API to update prices",
+        "nl": "API oproepen om prijzen bij te werken",
+        "da": "Ringer API for at opdatere priser",
+        "de": "API wird aufgerufen, um Preise zu aktualisieren",
+        "es": "Llamando a la API para actualizar precios",
+        "fr": "Appel de l'API pour mettre à jour les prix",
+        "it": "Chiamata all'API per aggiornare i prezzi",
+        "no": "Ringer API for å oppdatere priser",
+        "sv": "Ringer API för att uppdatera priser",
+        "pl": "Wywoływanie API w celu zaktualizowania cen",
+        "ru": "Вызов API для обновления цен",
+        "ko": "가격 업데이트를 위해 API 호출 중"
       }
     }
   }

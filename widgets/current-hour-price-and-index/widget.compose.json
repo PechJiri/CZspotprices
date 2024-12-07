@@ -1,6 +1,17 @@
 {
   "name": {
-    "en": "Electricity Price Widget"
+    "en": "Electricity Price Widget",
+    "nl": "Elektriciteitsprijs Widget",
+    "da": "Elektricitetspris Widget",
+    "de": "Strompreis Widget",
+    "es": "Widget de Precio de Electricidad",
+    "fr": "Widget de Prix de l'Électricité",
+    "it": "Widget del Prezzo dell'Elettricità",
+    "no": "Elektrisitetspris Widget",
+    "sv": "Elpris Widget",
+    "pl": "Widget Ceny Energii Elektrycznej",
+    "ru": "Виджет Цены на Электричество",
+    "ko": "전기 요금 위젯"
   },
   "settings": [],
   "height": 120,
