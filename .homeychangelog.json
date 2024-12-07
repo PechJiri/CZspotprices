@@ -169,5 +169,8 @@
   },
   "2.1.2": {
     "en": "updated readme"
+  },
+  "2.2.0": {
+    "en": "Added AI translation"
   }
 }
