@@ -172,5 +172,8 @@
   },
   "2.2.0": {
     "en": "Added AI translation"
+  },
+  "2.2.1": {
+    "en": "Added GitHub Sponsor as a way to support the app"
   }
 }
