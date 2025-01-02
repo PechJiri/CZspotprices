@@ -374,7 +374,7 @@ async _fetchFromPrimaryAPI(timeoutMs) {
         }));
     }
     
-    async updateDeviceValues(device, processedPrices) {
+    async updateDeviceValues() {
         // Implementace aktualizace hodnot zařízení
     }
     
