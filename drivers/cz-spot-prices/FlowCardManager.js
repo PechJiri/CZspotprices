@@ -148,7 +148,7 @@ class FlowCardManager {
     
         const card = this.homey.flow.getDeviceTriggerCard(triggerConfig.id);
         
-        card.registerRunListener(async (args, state) => {
+        card.registerRunListener(async (args) => {
             try {
                 const currentValue = await this.device.getCapabilityValue(triggerConfig.capability);
                 if (currentValue === null || currentValue === undefined) {
@@ -302,7 +302,7 @@ class FlowCardManager {
     
         const card = this.homey.flow.getDeviceTriggerCard('when-current-price-changes');
     
-        card.registerRunListener(async (args, state) => {
+        card.registerRunListener(async () => {
             if (this.logger) {
                 this.logger.debug('Price change trigger spuštěn');
             }
@@ -440,7 +440,7 @@ class FlowCardManager {
     
             const card = this.homey.flow.getConditionCard(conditionConfig.id);
             
-            card.registerRunListener(async (args, state) => {
+            card.registerRunListener(async (args) => {
                 try {
                     const currentValue = await this.device.getCapabilityValue(conditionConfig.capability);
     
@@ -527,7 +527,7 @@ async _registerAveragePriceCondition() {
 
     const card = this.homey.flow.getConditionCard('average-price-condition');
     
-    card.registerRunListener(async (args, state) => {
+    card.registerRunListener(async (args) => {
         try {
             const { hours, condition } = args;
             const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
@@ -613,7 +613,7 @@ async _registerRemainingDayPriceCondition() {
 
     const card = this.homey.flow.getConditionCard('remaining-day-price-condition');
     
-    card.registerRunListener(async (args, state) => {
+    card.registerRunListener(async (args) => {
         try {
             const { hours, condition } = args;
             const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
@@ -699,7 +699,7 @@ async _registerTariffCondition() {
 
     const card = this.homey.flow.getConditionCard('distribution-tariff-is');
     
-    card.registerRunListener(async (args, state) => {
+    card.registerRunListener(async (args) => {
         try {
             const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
             const currentHour = timeInfo.hour;
@@ -747,7 +747,7 @@ async _registerUpdateDataAction() {
 
     const card = this.homey.flow.getActionCard('update_data_via_api');
     
-    card.registerRunListener(async (args) => {
+    card.registerRunListener(async () => {
         try {
             await this.device.fetchAndUpdateSpotPrices();
             await this.device.setAvailable();
