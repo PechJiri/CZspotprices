@@ -1540,135 +1540,180 @@ async triggerCurrentPriceChanged(tokens) {
     }
 }
 
-async triggerAPIFailure(errorInfo) {
-    if (this.flowCardManager) {
-        await this.flowCardManager.triggerApiFailure(errorInfo);
-    }
-}
-
  /**
  * Cleanup při odstranění zařízení
  */
- async onDeleted() {
+ /**
+ * Hlavní metoda pro cleanup při odstranění zařízení
+ */
+async onDeleted() {
+    try {
+        this.logInitialCleanup();
+        await this.cleanupComponents();
+        await this.cleanupStoreValues();
+        await this.resetCapabilities();
+        await this.cleanupEventListeners();
+        await this.cleanupReferences();
+        this.logFinalCleanup();
+    } catch (error) {
+        this.logCleanupError(error);
+    }
+}
+
+/**
+ * Logování začátku čištění
+ */
+logInitialCleanup() {
     if (this.logger) {
         this.logger.log('Cleaning up device resources...', {
             deviceId: this.getData().id
         });
     }
+}
 
-    try {
-        // Zrušení případných probíhajících operací
-        this.isInitialized = false;
-        
-        // Vyčištění všech intervalů
-        if (this.intervalManager) {
-            this.intervalManager.clearAll();
-            if (this.logger) {
-                this.logger.log('All intervals cleared');
-            }
+/**
+ * Vyčištění hlavních komponent
+ */
+async cleanupComponents() {
+    this.isInitialized = false;
+
+    // Vyčištění všech intervalů
+    if (this.intervalManager) {
+        this.intervalManager.clearAll();
+        if (this.logger) {
+            this.logger.log('All intervals cleared');
         }
+    }
 
-        // Vyčištění cache priceCalculatoru
-        if (this.priceCalculator) {
-            this.priceCalculator.clearCache();
-            if (this.logger) {
-                this.logger.log('Price calculator cache cleared');
-            }
+    // Vyčištění cache priceCalculatoru
+    if (this.priceCalculator) {
+        this.priceCalculator.clearCache();
+        if (this.logger) {
+            this.logger.log('Price calculator cache cleared');
         }
+    }
 
-        // Vyčištění FlowCardManageru
-        if (this.flowCardManager) {
-            this.flowCardManager.destroy();
-            this.flowCardManager = null;
-            if (this.logger) {
-                this.logger.log('Flow card manager destroyed');
-            }
+    // Vyčištění FlowCardManageru
+    if (this.flowCardManager) {
+        this.flowCardManager.destroy();
+        this.flowCardManager = null;
+        if (this.logger) {
+            this.logger.log('Flow card manager destroyed');
         }
+    }
 
-        // V metodě onDeleted v device.js
-        if (this.lockManager) {
-            this.lockManager.clearAllLocks();
-            if (this.logger) {
-                this.logger.log('Lock manager cleared');
-            }
-        }       
-
-        // Rozšířený seznam store hodnot
-        const storeKeys = [
-            'device_id', 
-            'previousTariff',
-            'lastDataUpdate',
-            'lastMidnightUpdate',
-            'lastHourlyUpdate',
-            'lastAverageUpdate',
-            'firstInit'
-        ];
-
-        // Pokus o odstranění store hodnot
-        for (const key of storeKeys) {
-            try {
-                await this.unsetStoreValue(key);
-                if (this.logger) {
-                    this.logger.log(`Store value ${key} unset successfully`);
-                }
-            } catch (error) {
-                if (error.statusCode === 404) {
-                    if (this.logger) {
-                        this.logger.log(`Store value ${key} already deleted or device not found.`);
-                    }
-                } else {
-                    if (this.logger) {
-                        this.logger.error(`Failed to unset store value ${key}`, error);
-                    }
-                }
-            }
+    // Vyčištění LockManageru
+    if (this.lockManager) {
+        this.lockManager.clearAllLocks();
+        if (this.logger) {
+            this.logger.log('Lock manager cleared');
         }
+    }
+}
 
-        // Reset všech capabilities na null
+/**
+ * Vyčištění hodnot v úložišti
+ */
+async cleanupStoreValues() {
+    const storeKeys = [
+        'device_id', 
+        'previousTariff',
+        'lastDataUpdate',
+        'lastMidnightUpdate',
+        'lastHourlyUpdate',
+        'lastAverageUpdate',
+        'firstInit'
+    ];
+
+    for (const key of storeKeys) {
         try {
-            const capabilities = this.getCapabilities();
-            await Promise.all(capabilities.map(capability => 
-                this.setCapabilityValue(capability, null).catch(err => {
-                    if (this.logger) {
-                        this.logger.warn(`Failed to reset capability ${capability}`, err);
-                    }
-                })
-            ));
+            await this.unsetStoreValue(key);
             if (this.logger) {
-                this.logger.log('All capabilities reset');
+                this.logger.log(`Store value ${key} unset successfully`);
             }
         } catch (error) {
-            if (this.logger) {
-                this.logger.error('Error resetting capabilities', error);
+            if (error.statusCode === 404) {
+                if (this.logger) {
+                    this.logger.log(`Store value ${key} already deleted or device not found.`);
+                }
+            } else {
+                if (this.logger) {
+                    this.logger.error(`Failed to unset store value ${key}`, error);
+                }
             }
         }
+    }
+}
 
-        // Odpojení event listenerů, pokud nějaké existují
-        this.homey.removeAllListeners('spot_prices_updated');
-        this.homey.removeAllListeners('settings_changed');
-
-        // Vyčištění referencí
-        this.spotPriceApi = null;
-        this.priceCalculator = null;
-        this.intervalManager = null;
-        this.flowCardManager = null;
-
-        // Vyčištění loggeru jako poslední
+/**
+ * Reset capabilities
+ */
+async resetCapabilities() {
+    try {
+        const capabilities = this.getCapabilities();
+        await Promise.all(capabilities.map(capability => 
+            this.setCapabilityValue(capability, null).catch(err => {
+                if (this.logger) {
+                    this.logger.warn(`Failed to reset capability ${capability}`, err);
+                }
+            })
+        ));
         if (this.logger) {
-            this.logger.log('Device cleanup completed successfully', {
-                deviceId: this.getData().id,
-                timestamp: new Date().toISOString()
-            });
-            this.logger = null;
+            this.logger.log('All capabilities reset');
         }
-
     } catch (error) {
         if (this.logger) {
-            this.logger.error('Error during device cleanup', error, {
-                deviceId: this.getData().id,
-                timestamp: new Date().toISOString()
-            });
+            this.logger.error('Error resetting capabilities', error);
         }
+    }
+}
+
+/**
+ * Vyčištění event listenerů
+ */
+cleanupEventListeners() {
+    this.homey.removeAllListeners('spot_prices_updated');
+    this.homey.removeAllListeners('settings_changed');
+    if (this.logger) {
+        this.logger.log('Event listeners removed');
+    }
+}
+
+/**
+ * Vyčištění referencí na komponenty
+ */
+cleanupReferences() {
+    this.spotPriceApi = null;
+    this.priceCalculator = null;
+    this.intervalManager = null;
+    this.flowCardManager = null;
+    if (this.logger) {
+        this.logger.log('Component references cleared');
+    }
+}
+
+/**
+ * Logování finálního vyčištění
+ */
+logFinalCleanup() {
+    if (this.logger) {
+        this.logger.log('Device cleanup completed successfully', {
+            deviceId: this.getData().id,
+            timestamp: new Date().toISOString()
+        });
+        this.logger = null;
+    }
+}
+
+/**
+ * Logování chyby při čištění
+ */
+logCleanupError(error) {
+    if (this.logger) {
+        this.logger.error('Error during device cleanup', error, {
+            deviceId: this.getData().id,
+            timestamp: new Date().toISOString()
+        });
     }
 }
 

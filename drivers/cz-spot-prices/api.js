@@ -304,7 +304,7 @@ async _fetchFromPrimaryAPI(timeoutMs) {
     }
 }
 
-async getBackupDailyPrices(device) {
+async getBackupDailyPrices() {
     try {
         if (this.logger) {
             this.logger.debug('Začátek získávání cen ze záložního API', { url: this.backupUrl });
