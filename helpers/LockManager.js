@@ -1,7 +1,7 @@
 'use strict';
 
 class LockManager {
-    constructor(homey, context = 'LockManager') {
+    constructor(homey) {
         this.homey = homey;
         this.locks = new Map();
         this.logger = null;
