@@ -1521,8 +1521,8 @@ class CZSpotPricesDevice extends Homey.Device {
             await this.cleanupComponents();
             await this.cleanupStoreValues();
             await this.resetCapabilities();
-            await this.cleanupEventListeners();
-            await this.cleanupReferences();
+            this.cleanupEventListeners();
+            this.cleanupReferences();
             this.logFinalCleanup();
         } catch (error) {
             this.logCleanupError(error);

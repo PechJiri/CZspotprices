@@ -1,8 +1,7 @@
 'use strict';
 
-const Homey = require('homey');
 const axios = require('axios');
-const instance = axios.create({
+const axiosInstance = axios.create({
     httpsAgent: new (require('https').Agent)({
         rejectUnauthorized: false
     })    

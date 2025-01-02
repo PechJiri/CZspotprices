@@ -333,13 +333,6 @@ class PriceCalculator {
                 return { ...hodinoveData, level };
             });
     
-            // Validace výsledků
-            const statistiky = {
-                low: vysledek.filter(h => h.level === 'low').length,
-                medium: vysledek.filter(h => h.level === 'medium').length,
-                high: vysledek.filter(h => h.level === 'high').length
-            };
-    
             // Uložení do cache
             this.priceCache.set(cacheKey, {
                 data: vysledek,

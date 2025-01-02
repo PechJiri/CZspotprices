@@ -339,7 +339,7 @@ class CZSpotPricesDriver extends Homey.Driver {
 
     async _scheduleRetry(device, retryCount, baseDelay) {
         try {
-            await this.validateRetryParams(device, baseDelay);
+            this.validateRetryParams(device, baseDelay);
             const delay = this.calculateRetryDelay(retryCount, baseDelay);
             await this.logRetrySchedule(device, retryCount, delay);
             await this.triggerRetryNotification(device, retryCount, delay);

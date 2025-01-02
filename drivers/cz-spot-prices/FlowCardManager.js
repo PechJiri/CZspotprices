@@ -1,7 +1,5 @@
 'use strict';
 
-const Homey = require('homey');
-
 class FlowCardManager {
     constructor(homey, device) {
         this.homey = homey;
