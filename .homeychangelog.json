@@ -175,5 +175,8 @@
   },
   "2.2.1": {
     "en": "Added GitHub Sponsor as a way to support the app"
+  },
+  "2.2.2": {
+    "en": "refactor and code style"
   }
 }
