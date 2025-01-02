@@ -3,9 +3,9 @@
 const Homey = require('homey');
 const axios = require('axios');
 const instance = axios.create({
-    httpsAgent: new require('https').Agent({
+    httpsAgent: new (require('https').Agent)({
         rejectUnauthorized: false
-    })
+    })    
 });
 const PriceCalculator = require('../../helpers/PriceCalculator');
 const Logger = require('../../helpers/Logger');

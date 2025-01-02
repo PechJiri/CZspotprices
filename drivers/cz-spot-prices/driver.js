@@ -216,11 +216,11 @@ class CZSpotPricesDriver extends Homey.Driver {
             initialDelay
         );
 
-        this.logger.log('Midnight update naplánován', {
+        this.logger?.log?.('Midnight update naplánován', {
             nextUpdateIn: Math.round(initialDelay / 60000),
             nextUpdateTime: new Date(Date.now() + initialDelay).toISOString(),
-            timezone: this.homey.clock.getTimezone()
-        });
+            timezone: this.homey.clock.getTimezone(),
+        });        
 
         } catch (error) {
         this.logger.error('Chyba při plánování midnight update', error);
@@ -394,6 +394,10 @@ class CZSpotPricesDriver extends Homey.Driver {
             this.intervalManager.clearScheduledInterval(intervalKey);
         }
     
+        if (!this.intervalManager || typeof this.intervalManager.setScheduledInterval !== 'function') {
+            throw new Error('IntervalManager není inicializován nebo jeho metoda není dostupná.');
+        }
+        
         this.intervalManager.setScheduledInterval(
             intervalKey,
             async () => {
@@ -408,6 +412,7 @@ class CZSpotPricesDriver extends Homey.Driver {
             intervalPeriod,
             delay
         );
+        
     }
  
     logRetryError(error, device, retryCount) {
