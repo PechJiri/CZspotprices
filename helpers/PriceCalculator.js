@@ -5,7 +5,6 @@ const Logger = require('./Logger');
 class PriceCalculator {
     constructor(homey, deviceContext = 'PriceCalculator') {
         this.homey = homey;
-        this.homey = homey;
         this.logger = new Logger(this.homey, deviceContext);
         this.logger.setEnabled(true);
         this.priceCache = new Map();
@@ -19,18 +18,6 @@ class PriceCalculator {
         this.setupCacheCleanup();
         
         this.logger.debug('PriceCalculator inicializován');
-    }
-
-    // Přidáme metody pro práci s loggerem
-    setLogger(logger) {
-        this.logger = logger;
-        if (this.logger) {
-            this.logger.debug('PriceCalculator: Logger inicializován');
-        }
-    }
-
-    getLogger() {
-        return this.logger;
     }
 
     /**

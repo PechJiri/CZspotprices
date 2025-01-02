@@ -26,7 +26,6 @@ class CZSpotPricesDriver extends Homey.Driver {
             // Předání loggeru všem komponentám
             if (this.spotPriceApi) this.spotPriceApi.setLogger(this.logger);
             if (this.intervalManager) this.intervalManager.setLogger(this.logger);
-            if (this.priceCalculator) this.priceCalculator.setLogger(this.logger);
 
             // Validace instancí
             this.validateInstances();

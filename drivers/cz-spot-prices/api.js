@@ -305,23 +305,71 @@ async _fetchFromPrimaryAPI(timeoutMs) {
     }
 
     async updateCurrentValues(device) {
-        if (await this.isUpdateInProgress(device)) return;
+        const operationId = `update-${Date.now()}`;
         
-        const updateLock = await this.acquireUpdateLock();
-        if (!updateLock) return;
+        if (!this.initialized) {
+            // Jednorázová inicializace komponent
+            this.priceCalculator = new PriceCalculator(this.homey, 'PriceCalculator');
+            if (this.logger) this.priceCalculator.setLogger(this.logger);
+            this.initialized = true;
+        }
     
         try {
-            await this.initializeUpdate(device);
-            const dailyPrices = await this.fetchAndValidateData(device);
-            await this.processAndUpdatePrices(device, dailyPrices);
-            await this.finalizeUpdate(device);
-            return true;
+            const lockAcquired = await this.lockManager.acquireLock(device.getData().id, operationId);
+            if (!lockAcquired) {
+                if (this.logger) {
+                    this.logger.warn('Nelze získat zámek pro aktualizaci - jiná operace probíhá', {
+                        operationId,
+                        lockInfo: this.lockManager.getLockInfo(device.getData().id)
+                    });
+                }
+                return false;
+            }
+    
+            try {
+                await device.setCapabilityValue('spot_price_update_status', false);
+                const dailyPrices = await this.getDailyPrices(device);
+                
+                // Zpracování dat s existujícím PriceCalculatorem
+                const processedPrices = dailyPrices.map(priceData => ({
+                    ...priceData,
+                    priceCZK: this.priceCalculator.addDistributionPrice(
+                        priceData.priceCZK, 
+                        device.getSettings(),
+                        priceData.hour
+                    )
+                }));
+    
+                await device.updateAllPrices(processedPrices);
+                await device.setAvailable();
+                await device.setCapabilityValue('spot_price_update_status', true);
+    
+                await this.emitPriceUpdate(device);
+                
+                return true;
+    
+            } finally {
+                await this.lockManager.releaseLock(device.getData().id, operationId);
+            }
+    
         } catch (error) {
-            await this.handleUpdateError(device, error);
+            if (this.logger) {
+                this.logger.error('Chyba při aktualizaci cen', error, {
+                    deviceId: device.getData().id,
+                    operationId
+                });
+            }
             return false;
-        } finally {
-            await this.releaseUpdateLock();
         }
+    }
+    
+    async emitPriceUpdate(device) {
+        await this.homey.emit('spot_prices_updated', {
+            deviceId: device.getData().id,
+            currentPrice: await device.getCapabilityValue('measure_current_spot_price_CZK'),
+            currentIndex: await device.getCapabilityValue('measure_current_spot_index'),
+            averagePrice: await device.getCapabilityValue('daily_average_price')
+        });
     }
     
     async isUpdateInProgress(device) {

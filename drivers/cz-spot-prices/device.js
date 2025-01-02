@@ -135,162 +135,108 @@ class CZSpotPricesDevice extends Homey.Device {
             return true;
         }
     } 
-  
+    
+    // inicializace základních nastavení
     async initializeBasicSettings() {
         try {
-            if (this.logger) {
-                this.logger.log('Začátek inicializace základních nastavení');
-            }
-    
-            // Inicializace helperů s vlastními loggery a kontextem
-            this.logger.debug('Inicializace helper tříd');
-            
-            // Inicializace s předáním kontextu
-            this.priceCalculator = new PriceCalculator(this.homey, 'PriceCalculator');
-            this.spotPriceApi = new SpotPriceAPI(this.homey, 'SpotPriceAPI');
-            this.intervalManager = new IntervalManager(this.homey), 'IntervalManager';
-            this.LockManager = new LockManager(this.homey, 'DeviceLockManager');
-            
-            // Nastavení loggerů pro všechny komponenty
-            if (this.priceCalculator) {
-                this.priceCalculator.setLogger(this.logger);
-                this.logger.debug('Logger nastaven pro PriceCalculator');
-            }
-            
-            if (this.spotPriceApi) {
-                this.spotPriceApi.setLogger(this.logger);
-                this.logger.debug('Logger nastaven pro SpotPriceAPI');
-            }
-            
-            if (this.intervalManager) {
-                this.intervalManager.setLogger(this.logger);
-                this.logger.debug('Logger nastaven pro IntervalManager');
-            }
-
-            if (this.LockManager) {
-                this.LockManager.setLogger(this.logger);
-                this.logger.debug('Logger nastaven pro LockManager');
-            }
-    
-            // Kontrola závislostí včetně kontroly nastavení loggerů
-            const requiredDependencies = [
-                { 
-                    name: 'SpotPriceAPI', 
-                    instance: this.spotPriceApi,
-                    checkLogger: true 
-                },
-                { 
-                    name: 'IntervalManager', 
-                    instance: this.intervalManager,
-                    checkLogger: true 
-                },
-                { 
-                    name: 'PriceCalculator', 
-                    instance: this.priceCalculator,
-                    checkLogger: true 
-                },
-                { 
-                    name: 'LockManager', 
-                    instance: this.lockManager,
-                    checkLogger: true 
-                }
-            ];
-    
-            this.logger.debug('Kontrola inicializace závislostí a jejich loggerů');
-            
-            for (const { name, instance, checkLogger } of requiredDependencies) {
-                if (!instance) {
-                    const errorMessage = `Komponenta ${name} není inicializována`;
-                    this.logger.error(errorMessage, new Error(errorMessage));
-                    throw new Error(errorMessage);
-                }
-    
-                if (checkLogger && (!instance.getLogger || !instance.getLogger())) {
-                    const errorMessage = `Logger není správně nastaven pro ${name}`;
-                    this.logger.error(errorMessage, new Error(errorMessage));
-                    throw new Error(errorMessage);
-                }
-    
-                this.logger.debug(`${name} úspěšně inicializován včetně loggeru`);
-            }
-    
-            this.logger.log('Všechny komponenty a jejich loggery jsou inicializovány');
-    
-            // Inicializace device ID
-            this.logger.debug('Začátek inicializace Device ID');
-            try {
-                await this.initializeDeviceId();
-                this.logger.log('Device ID úspěšně inicializováno');
-            } catch (error) {
-                this.logger.error('Chyba při inicializaci Device ID', error, {
-                    deviceId: this.getData().id
-                });
-                throw error;
-            }
-    
-            // Načtení nastavení
-            this.logger.debug('Začátek načítání nastavení');
-            try {
-                await this.initializeSettings();
-                const settings = this.getSettings();
-                this.logger.log('Nastavení zařízení inicializováno', {
-                    deviceId: this.getData().id,
-                    settings: {
-                        lowIndexHours: settings.low_index_hours || 8,
-                        highIndexHours: settings.high_index_hours || 8,
-                        priceInKWh: settings.price_in_kwh || false
-                    }
-                });
-            } catch (error) {
-                this.logger.error('Chyba při načítání nastavení zařízení', error, {
-                    deviceId: this.getData().id
-                });
-                throw error;
-            }
-    
-            // Registrace capabilities
-            this.logger.debug('Začátek registrace capabilities');
-            try {
-                await this._registerCapabilities();
-                this.logger.log('Capabilities úspěšně registrovány');
-            } catch (error) {
-                this.logger.error('Chyba při registraci capabilities', error, {
-                    deviceId: this.getData().id
-                });
-                throw error;
-            }
-    
-            // Nastavení iniciálního tarifu
-            this.logger.debug('Začátek nastavení iniciálního tarifu');
-            try {
-                await this.initializeInitialTariff();
-                this.logger.log('Iniciální tarif nastaven');
-            } catch (error) {
-                this.logger.error('Chyba při nastavení počátečního tarifu', error, {
-                    deviceId: this.getData().id
-                });
-                throw error;
-            }
-    
-            // Ověření dostupnosti všech kritických metod
-            this.logger.debug('Kontrola dostupnosti kritických metod');
-            if (!this.spotPriceApi.getCurrentTimeInfo) {
-                throw new Error('Metoda getCurrentTimeInfo není dostupná v SpotPriceAPI');
-            }
-    
-            this.logger.log('Inicializace základních nastavení dokončena úspěšně', {
-                deviceId: this.getData().id,
-                componentsInitialized: requiredDependencies.map(d => d.name)
-            });
-            
+            this.logInitializationStart();
+            this.initializeHelpers();
+            this.checkDependencies();
+            await this.initializeDeviceId();
+            await this.loadAndApplySettings();
+            await this.registerCapabilities();
+            await this.setInitialTariff();
+            this.verifyCriticalMethods();
+            this.logInitializationSuccess();
         } catch (error) {
-            this.logger.error('Kritická chyba při inicializaci základních nastavení', error, {
-                deviceId: this.getData().id
-            });
+            this.handleInitializationError(error);
+        }
+    }
+    
+    logInitializationStart() {
+        if (this.logger) {
+            this.logger.log('Začátek inicializace základních nastavení');
+        }
+    }
+    
+    initializeHelpers() {
+        this.logger.debug('Inicializace helper tříd');
+        this.priceCalculator = new PriceCalculator(this.homey, 'PriceCalculator');
+        this.spotPriceApi = new SpotPriceAPI(this.homey, 'SpotPriceAPI');
+        this.intervalManager = new IntervalManager(this.homey, 'IntervalManager');
+        this.lockManager = new LockManager(this.homey, 'DeviceLockManager');
+        this.setHelperLoggers();
+    }
+    
+    setHelperLoggers() {
+        const helpers = [this.spotPriceApi, this.intervalManager, this.lockManager];
+        helpers.forEach(helper => {
+            if (helper) {
+                helper.setLogger(this.logger);
+                this.logger.debug(`Logger nastaven pro ${helper.constructor.name}`);
+            }
+        });
+    }
+    
+    checkDependencies() {
+        const requiredDependencies = [
+            { name: 'SpotPriceAPI', instance: this.spotPriceApi },
+            { name: 'IntervalManager', instance: this.intervalManager },
+            { name: 'LockManager', instance: this.lockManager },
+        ];
+    
+        this.logger.debug('Kontrola inicializace závislostí a jejich loggerů');
+        requiredDependencies.forEach(({ name, instance }) => {
+            if (!instance) {
+                throw new Error(`Komponenta ${name} není inicializována`);
+            }
+        });
+    }
+    
+    async loadAndApplySettings() {
+        try {
+            await this.initializeSettings();
+            this.logger.log('Nastavení zařízení inicializováno', this.getSettings());
+        } catch (error) {
+            this.logger.error('Chyba při načítání nastavení zařízení', error);
             throw error;
         }
     }
     
+    async registerCapabilities() {
+        try {
+            await this._registerCapabilities();
+            this.logger.log('Capabilities úspěšně registrovány');
+        } catch (error) {
+            this.logger.error('Chyba při registraci capabilities', error);
+            throw error;
+        }
+    }
+    
+    async setInitialTariff() {
+        try {
+            await this.initializeInitialTariff();
+            this.logger.log('Iniciální tarif nastaven');
+        } catch (error) {
+            this.logger.error('Chyba při nastavení počátečního tarifu', error);
+            throw error;
+        }
+    }
+    
+    verifyCriticalMethods() {
+        if (!this.spotPriceApi.getCurrentTimeInfo) {
+            throw new Error('Metoda getCurrentTimeInfo není dostupná v SpotPriceAPI');
+        }
+    }
+    
+    logInitializationSuccess() {
+        this.logger.log('Inicializace základních nastavení dokončena úspěšně');
+    }
+    
+    handleInitializationError(error) {
+        this.logger.error('Kritická chyba při inicializaci základních nastavení', error);
+        throw error;
+    }
   
     async initializeDeviceId() {
         const deviceId = this.getData().id || this.getStoreValue('device_id');
@@ -339,98 +285,115 @@ class CZSpotPricesDevice extends Homey.Device {
         }
     }
     
-  
+    //Spuštění stahování dat
     async initialDataFetch() {
         try {
-            const lastUpdate = await this.getStoreValue('lastDataUpdate');
-            const now = Date.now();
-            const firstInit = await this.getStoreValue('firstInit');
-    
-            if (this.logger) {
-                this.logger.debug('Kontrola potřeby počátečního načtení dat', { 
-                    lastUpdate: lastUpdate ? new Date(lastUpdate).toISOString() : 'nikdy',
-                    timeSinceLastUpdate: lastUpdate ? Math.floor((now - lastUpdate) / 1000 / 60) + ' minut' : 'N/A',
-                    firstInit,
-                    needsUpdate: !firstInit || !lastUpdate || (now - lastUpdate > 15 * 60 * 1000)
-                });
-            }
-    
-            // Kontrola, zda potřebujeme aktualizovat data
-            if (!firstInit || !lastUpdate || (now - lastUpdate > 15 * 60 * 1000)) {
-                try {
-                    // Získání a aktualizace dat
-                    const success = await this.fetchAndUpdateSpotPrices();
-                    
-                    if (!success) {
-                        throw new Error('Fetch and update failed');
-                    }
-    
-                    // Získání aktuálních cen pro zpracování
-                    const dailyPrices = [];
-                    for (let hour = 0; hour < 24; hour++) {
-                        const price = await this.getCapabilityValue(`hour_price_CZK_${hour}`);
-                        if (price !== null && price !== undefined) {
-                            dailyPrices.push({ hour, priceCZK: price });
-                        }
-                    }
-    
-                    if (dailyPrices.length !== 24) {
-                        throw new Error(`Neplatný počet hodinových cen: ${dailyPrices.length}`);
-                    }
-    
-                    // Provedení aktualizací
-                    await Promise.all([
-                        this._updateMinMaxPrices(dailyPrices),
-                        this._updateCurrentAndNextHourPrices(dailyPrices)
-                    ]);
-    
-                    // Aktualizace store hodnot
-                    await Promise.all([
-                        this.setStoreValue('lastDataUpdate', now),
-                        this.setStoreValue('firstInit', true)
-                    ]);
-    
-                    await this.setAvailable();
-    
-                    if (this.logger) {
-                        this.logger.log('Počáteční načtení dat dokončeno', {
-                            timestamp: new Date(now).toISOString(),
-                            pricesLoaded: dailyPrices.length,
-                            firstPrice: dailyPrices[0],
-                            lastPrice: dailyPrices[23]
-                        });
-                    }
-    
-                    return true;
-    
-                } catch (error) {
-                    if (this.logger) {
-                        this.logger.error('Chyba při počátečním načtení dat', error, {
-                            errorType: error.name,
-                            errorMessage: error.message,
-                            stack: error.stack
-                        });
-                    }
-                    await this.setUnavailable(`Initial data fetch failed: ${error.message}`);
-                    return false;
-                }
-            } else {
-                if (this.logger) {
-                    this.logger.log('Použití cached dat', {
-                        lastUpdate: new Date(lastUpdate).toISOString(),
-                        age: Math.floor((now - lastUpdate) / 1000 / 60) + ' minut'
-                    });
-                }
+            const needsUpdate = await this.checkUpdateNecessity();
+            if (!needsUpdate) {
+                this.logger.log('Použití cached dat');
                 return true;
             }
+    
+            return await this.performDataFetch();
         } catch (error) {
-            if (this.logger) {
-                this.logger.error('Kritická chyba v initialDataFetch', error);
-            }
-            await this.setUnavailable('Critical error in initial data fetch');
+            await this.handleDataFetchError(error);
             return false;
         }
-    }   
+    }
+    
+    async checkUpdateNecessity() {
+        const lastUpdate = await this.getStoreValue('lastDataUpdate');
+        const now = Date.now();
+        const firstInit = await this.getStoreValue('firstInit');
+    
+        this.logger.debug('Kontrola potřeby načtení dat', {
+            lastUpdate: lastUpdate ? new Date(lastUpdate).toISOString() : 'nikdy',
+            timeSinceLastUpdate: lastUpdate ? Math.floor((now - lastUpdate) / 1000 / 60) + ' minut' : 'N/A',
+            firstInit,
+            needsUpdate: !firstInit || !lastUpdate || (now - lastUpdate > 15 * 60 * 1000),
+        });
+    
+        return !firstInit || !lastUpdate || (now - lastUpdate > 15 * 60 * 1000);
+    }
+    
+    async performDataFetch() {
+        let retryCount = 0;
+        const maxRetries = 3;
+    
+        while (retryCount < maxRetries) {
+            try {
+                this.logger.debug(`Pokus o načtení dat #${retryCount + 1}`);
+                await this.fetchAndProcessData();
+                await this.updateLastDataTimestamp();
+                return true;
+            } catch (error) {
+                retryCount++;
+                this.logger.error(`Pokus ${retryCount} o načtení dat selhal`, {
+                    error,
+                    retryCount,
+                    maxRetries,
+                    nextRetryIn: retryCount < maxRetries ? `${5 * retryCount}s` : 'N/A',
+                });
+    
+                if (retryCount === maxRetries) {
+                    throw new Error('Max retries reached for initial data fetch');
+                }
+    
+                await this.delayRetry(retryCount);
+            }
+        }
+    }
+    
+    async fetchAndProcessData() {
+        await this.initialDataFetchOperations();
+        const dailyPrices = await this.retrieveDailyPrices();
+        await this.validateAndUpdatePrices(dailyPrices);
+    }
+    
+    async retrieveDailyPrices() {
+        const dailyPrices = [];
+        for (let hour = 0; hour < 24; hour++) {
+            const price = await this.getCapabilityValue(`hour_price_CZK_${hour}`);
+            if (price !== null && price !== undefined) {
+                dailyPrices.push({ hour, priceCZK: price });
+            }
+        }
+    
+        if (dailyPrices.length !== 24) {
+            throw new Error(`Neplatný počet hodinových cen: ${dailyPrices.length}`);
+        }
+    
+        return dailyPrices;
+    }
+    
+    async validateAndUpdatePrices(dailyPrices) {
+        await Promise.all([
+            this._updateMinMaxPrices(dailyPrices),
+            this._updateCurrentAndNextHourPrices(dailyPrices),
+        ]);
+    }
+    
+    async updateLastDataTimestamp() {
+        const now = Date.now();
+        await Promise.all([
+            this.setStoreValue('lastDataUpdate', now),
+            this.setStoreValue('firstInit', true),
+        ]);
+        await this.setAvailable();
+        this.logger.log('Data úspěšně načtena a aktualizována');
+    }
+    
+    async handleDataFetchError(error) {
+        this.logger.error('Chyba při počátečním načtení dat', error);
+        await this.setUnavailable(`Initial data fetch failed: ${error.message}`);
+    }
+    
+    async delayRetry(retryCount) {
+        const delay = 5000 * retryCount;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        this.logger.debug(`Čekání ${delay / 1000}s před dalším pokusem`);
+    }
+       
   
     async setupScheduledTasks(runImmediately = false) {
         if (this.logger) {
