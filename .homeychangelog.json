@@ -178,5 +178,8 @@
   },
   "2.2.2": {
     "en": "refactor and code style"
+  },
+  "2.2.3": {
+    "en": "Added VAT/DPH as a device setting. Code/App optimalisation"
   }
 }
