@@ -11,21 +11,20 @@ class CZSpotPricesDriver extends Homey.Driver {
 
     async onInit() {
         try {
-            // Inicializace loggeru jako první
-            this.logger = new Logger(this.homey, 'CZSpotPricesDriver');
-            // Driver logger vždy zapnutý
-            this.logger.setEnabled(true);
+            if (!this.homey) {
+                throw new Error('Homey instance není dostupná při inicializaci driveru.');
+            }
             
+            // Inicializace loggeru jako první
+            this.logger = Logger.getInstance(this.homey, 'CZSpotPricesDriver');
+            this.logger.setEnabled(true);
             this.logger.log('Inicializace CZSpotPricesDriver');
             
             // Inicializace všech helperů s jejich kontexty
-            this.spotPriceApi = new SpotPriceAPI(this.homey, 'SpotPriceAPI');
-            this.intervalManager = new IntervalManager(this.homey, 'IntervalManager');
-            this.priceCalculator = new PriceCalculator(this.homey, 'PriceCalculator');
+            this.spotPriceApi = SpotPriceAPI.getInstance(this.homey, 'SpotPriceAPI');
+            this.intervalManager = IntervalManager.getInstance(this.homey, 'IntervalManager');
+            this.priceCalculator = PriceCalculator.getInstance(this.homey, 'PriceCalculator');
 
-            // Předání loggeru všem komponentám
-            if (this.spotPriceApi) this.spotPriceApi.setLogger(this.logger);
-            if (this.intervalManager) this.intervalManager.setLogger(this.logger);
 
             // Validace instancí
             this.validateInstances();
@@ -43,39 +42,30 @@ class CZSpotPricesDriver extends Homey.Driver {
         }
     }
 
-  validateInstances() {
-    this.logger.debug('Validace instancí komponent');
+    validateInstances() {
+        this.logger.debug('Validace instancí komponent');
+        
+        const validations = [
+            { instance: this.spotPriceApi, name: 'SpotPriceAPI' },
+            { instance: this.intervalManager, name: 'IntervalManager' }
+        ];
     
-    const validations = [
-        { instance: this.spotPriceApi, name: 'SpotPriceAPI' },
-        { instance: this.intervalManager, name: 'IntervalManager' },
-        { instance: this.priceCalculator, name: 'PriceCalculator' }
-    ];
-
-    const missingInstances = validations
-        .filter(({instance}) => !instance)
-        .map(({name}) => name);
-
-    if (missingInstances.length > 0) {
-        const error = new Error(`Chybí instance: ${missingInstances.join(', ')}`);
-        this.logger.error('Chyba validace instancí', error, { 
-            missing: missingInstances 
-        });
-        throw error;
-    }
-
-    // Validace nastavení loggeru
-    const invalidLoggers = validations
-        .filter(({instance}) => instance && (!instance.getLogger || !instance.getLogger()))
-        .map(({name}) => name);
-
-    if (invalidLoggers.length > 0) {
-        this.logger.debug(`Komponenty bez loggeru: ${invalidLoggers.join(', ')}`);
-    }
-
-    this.logger.debug('Validace instancí úspěšná');
-    return true;
-  }
+        // Kontrola, zda některá z instancí nechybí
+        const missingInstances = validations
+            .filter(({ instance }) => !instance)
+            .map(({ name }) => name);
+    
+        if (missingInstances.length > 0) {
+            const error = new Error(`Chybí instance: ${missingInstances.join(', ')}`);
+            this.logger.error('Chyba validace instancí', error, { 
+                missing: missingInstances 
+            });
+            throw error;
+        }
+    
+        this.logger.debug('Validace instancí úspěšná');
+        return true;
+    }    
 
   async scheduleMidnightUpdate() {
     try {

@@ -1,22 +1,16 @@
 'use strict';
 
+const Logger = require('./Logger');
+
 class LockManager {
     constructor(homey) {
         this.homey = homey;
         this.locks = new Map();
-        this.logger = null;
         this.lockTimeout = 30000; // 30 sekund timeout pro zámek
-    }
 
-    setLogger(logger) {
-        this.logger = logger;
-        if (this.logger) {
-            this.logger.debug('LockManager: Logger inicializován');
-        }
-    }
-
-    getLogger() {
-        return this.logger;
+        // Automatická inicializace loggeru jako singletonu
+        this.logger = Logger.getInstance(this.homey, 'LockManager');
+        this.logger.debug('LockManager: Inicializace dokončena');
     }
 
     /**
@@ -32,28 +26,24 @@ class LockManager {
 
             if (this.locks.has(lockKey)) {
                 const existingLock = this.locks.get(lockKey);
-                
+
                 // Kontrola timeoutu existujícího zámku
                 if (now - existingLock.timestamp < this.lockTimeout) {
-                    if (this.logger) {
-                        this.logger.debug('Zámek je již držen', {
-                            resourceId,
-                            existingOperation: existingLock.operationId,
-                            requestingOperation: operationId,
-                            heldFor: now - existingLock.timestamp
-                        });
-                    }
+                    this.logger.debug('Zámek je již držen', {
+                        resourceId,
+                        existingOperation: existingLock.operationId,
+                        requestingOperation: operationId,
+                        heldFor: now - existingLock.timestamp
+                    });
                     return false;
                 }
 
                 // Automatické uvolnění timeoutovaného zámku
-                if (this.logger) {
-                    this.logger.warn('Uvolňuji timeoutovaný zámek', {
-                        resourceId,
-                        existingOperation: existingLock.operationId,
-                        timeout: this.lockTimeout
-                    });
-                }
+                this.logger.warn('Uvolňuji timeoutovaný zámek', {
+                    resourceId,
+                    existingOperation: existingLock.operationId,
+                    timeout: this.lockTimeout
+                });
                 this.locks.delete(lockKey);
             }
 
@@ -63,18 +53,14 @@ class LockManager {
                 timestamp: now
             });
 
-            if (this.logger) {
-                this.logger.debug('Zámek získán', {
-                    resourceId,
-                    operationId
-                });
-            }
+            this.logger.debug('Zámek získán', {
+                resourceId,
+                operationId
+            });
 
             return true;
         } catch (error) {
-            if (this.logger) {
-                this.logger.error('Chyba při získávání zámku', error);
-            }
+            this.logger.error('Chyba při získávání zámku', error);
             return false;
         }
     }
@@ -91,41 +77,33 @@ class LockManager {
             const existingLock = this.locks.get(lockKey);
 
             if (!existingLock) {
-                if (this.logger) {
-                    this.logger.warn('Pokus o uvolnění neexistujícího zámku', {
-                        resourceId,
-                        operationId
-                    });
-                }
+                this.logger.warn('Pokus o uvolnění neexistujícího zámku', {
+                    resourceId,
+                    operationId
+                });
                 return false;
             }
 
             // Kontrola vlastníka zámku
             if (existingLock.operationId !== operationId) {
-                if (this.logger) {
-                    this.logger.warn('Pokus o uvolnění cizího zámku', {
-                        resourceId,
-                        existingOperation: existingLock.operationId,
-                        requestingOperation: operationId
-                    });
-                }
+                this.logger.warn('Pokus o uvolnění cizího zámku', {
+                    resourceId,
+                    existingOperation: existingLock.operationId,
+                    requestingOperation: operationId
+                });
                 return false;
             }
 
             this.locks.delete(lockKey);
 
-            if (this.logger) {
-                this.logger.debug('Zámek uvolněn', {
-                    resourceId,
-                    operationId
-                });
-            }
+            this.logger.debug('Zámek uvolněn', {
+                resourceId,
+                operationId
+            });
 
             return true;
         } catch (error) {
-            if (this.logger) {
-                this.logger.error('Chyba při uvolňování zámku', error);
-            }
+            this.logger.error('Chyba při uvolňování zámku', error);
             return false;
         }
     }
@@ -150,9 +128,7 @@ class LockManager {
                 age: Date.now() - lock.timestamp
             };
         } catch (error) {
-            if (this.logger) {
-                this.logger.error('Chyba při získávání informací o zámku', error);
-            }
+            this.logger.error('Chyba při získávání informací o zámku', error);
             return null;
         }
     }
@@ -165,13 +141,9 @@ class LockManager {
             const count = this.locks.size;
             this.locks.clear();
 
-            if (this.logger) {
-                this.logger.debug('Všechny zámky vyčištěny', { count });
-            }
+            this.logger.debug('Všechny zámky vyčištěny', { count });
         } catch (error) {
-            if (this.logger) {
-                this.logger.error('Chyba při čištění zámků', error);
-            }
+            this.logger.error('Chyba při čištění zámků', error);
         }
     }
 }

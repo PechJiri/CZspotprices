@@ -1,19 +1,26 @@
 'use strict';
 
 class Logger {
-    constructor(homey, context) {
+    static instance;
+    constructor(homey, context = 'Default') {
+        if (Logger.instance) {
+            return Logger.instance; // Pokud instance už existuje, vrátíme ji
+        }
+
         this.homey = homey;
         this.context = context;
         this.enabled = false; // Výchozí stav logování
-        
+
         // Nastavení pro rotaci logů
         this.maxLogSize = 1000; // Maximální počet záznamů
         this.logHistory = [];
         this.rotationInterval = 60 * 60 * 1000; // 1 hodina
         this.lastRotation = Date.now();
-        
+
         // Nastavení automatické rotace
         this.setupAutoRotation();
+
+        Logger.instance = this; // Uložíme novou instanci do statické proměnné
     }
 
     // Nastavení rotace logů
@@ -170,6 +177,17 @@ class Logger {
         });
 
         return stats;
+    }
+
+    // Metoda pro získání instance Loggeru (pro případné použití např. bez `new Logger(...)`)
+    static getInstance(homey, context = 'Default') {
+        if (!Logger.instance) {
+            Logger.instance = new Logger(homey, context);
+        } else {
+            // Pokud už instance existuje, můžeme aktualizovat kontext
+            Logger.instance.context = context;
+        }
+        return Logger.instance;
     }
 }
 

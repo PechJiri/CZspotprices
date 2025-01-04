@@ -16,7 +16,7 @@ class CZSpotPricesDevice extends Homey.Device {
             this.isInitialized = false;
             // Vytvoření instance loggeru jako první věc, pouze pokud neexistuje
             if (!this.logger) {
-                this.logger = new Logger(this.homey, 'CZSpotPricesDevice');
+                this.logger = Logger.getInstance(this.homey, 'CZSpotPricesDevice');
                 const enableLogging = this.getSetting('enable_logging') || false;
                 this.logger.setEnabled(enableLogging);
                 this.logger.debug('Logger inicializován');
@@ -25,27 +25,14 @@ class CZSpotPricesDevice extends Homey.Device {
             // Inicializace LockManageru před voláním initializeBasicSettings
             if (!this.lockManager) {
                 this.lockManager = new LockManager(this.homey, 'DeviceLockManager');
-                this.lockManager.setLogger(this.logger);
-                this.logger.debug('LockManager inicializován včetně loggeru');
+                this.logger.debug('LockManager inicializován');
             }
             
-            // Inicializace `flowCardManager` pouze pokud ještě neexistuje
+            // Inicializace `flowCardManager`
             if (!this.flowCardManager) {
-                this.flowCardManager = new FlowCardManager(this.homey, this);
-                if (this.flowCardManager) {
-                    this.flowCardManager.setLogger(this.logger);
-                    this.logger.debug('Logger nastaven pro FlowCardManager');
-                }
-            }
-    
-            this.logger.debug('Začátek inicializace zařízení');
-    
-            // Inicializace základních nastavení
-            await this.initializeBasicSettings();
-            this.logger.log('Základní nastavení inicializována');
-    
-            // Inicializace FlowCardManageru
-            if (this.flowCardManager) {
+                this.flowCardManager = FlowCardManager.getInstance(this.homey, this);
+                this.logger.debug('FlowCardManager získán jako singleton');
+                
                 try {
                     this.logger.debug('Inicializace FlowCardManageru');
                     await this.flowCardManager.initialize();
@@ -54,7 +41,13 @@ class CZSpotPricesDevice extends Homey.Device {
                     this.logger.error('Chyba při inicializaci FlowCardManageru', error);
                     throw error;
                 }
-            }
+            }            
+    
+            this.logger.debug('Začátek inicializace zařízení');
+    
+            // Inicializace základních nastavení
+            await this.initializeBasicSettings();
+            this.logger.log('Základní nastavení inicializována');
     
             // Nastavení timeoutu pro inicializaci
             const initTimeoutPromise = new Promise((_, reject) => {
@@ -161,21 +154,10 @@ class CZSpotPricesDevice extends Homey.Device {
     
     initializeHelpers() {
         this.logger.debug('Inicializace helper tříd');
-        this.priceCalculator = new PriceCalculator(this.homey, 'PriceCalculator');
-        this.spotPriceApi = new SpotPriceAPI(this.homey, 'SpotPriceAPI');
-        this.intervalManager = new IntervalManager(this.homey, 'IntervalManager');
+        this.priceCalculator = PriceCalculator.getInstance(this.homey, 'PriceCalculator');
+        this.spotPriceApi = SpotPriceAPI.getInstance(this.homey, 'SpotPriceAPI');
+        this.intervalManager = IntervalManager.getInstance(this.homey, 'IntervalManager');
         this.lockManager = new LockManager(this.homey, 'DeviceLockManager');
-        this.setHelperLoggers();
-    }
-    
-    setHelperLoggers() {
-        const helpers = [this.spotPriceApi, this.intervalManager, this.lockManager];
-        helpers.forEach(helper => {
-            if (helper) {
-                helper.setLogger(this.logger);
-                this.logger.debug(`Logger nastaven pro ${helper.constructor.name}`);
-            }
-        });
     }
     
     checkDependencies() {
@@ -318,7 +300,7 @@ class CZSpotPricesDevice extends Homey.Device {
     
     async performDataFetch() {
         let retryCount = 0;
-        const maxRetries = 3;
+        const maxRetries = 5;
     
         while (retryCount < maxRetries) {
             try {
@@ -345,9 +327,21 @@ class CZSpotPricesDevice extends Homey.Device {
     }
     
     async fetchAndProcessData() {
-        await this.initialDataFetchOperations();
-        const dailyPrices = await this.retrieveDailyPrices();
-        await this.validateAndUpdatePrices(dailyPrices);
+        try {
+            const dailyPrices = await this.retrieveDailyPrices();
+            await this.validateAndUpdatePrices(dailyPrices);
+            
+            if (this.logger) {
+                this.logger.debug('Data úspěšně načtena a zpracována', {
+                    pricesCount: dailyPrices.length
+                });
+            }
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Chyba při načítání nebo zpracování dat', error);
+            }
+            throw error;
+        }
     }
     
     async retrieveDailyPrices() {
@@ -926,7 +920,8 @@ class CZSpotPricesDevice extends Homey.Device {
                 key.startsWith('hour_') || 
                 key === 'high_tariff_price' || 
                 key === 'low_tariff_price' ||
-                key === 'price_in_kwh'
+                key === 'price_in_kwh' ||
+                key === 'commodity_price_with_vat'
             );
     
             if (needsRecalculation) {

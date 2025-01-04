@@ -1,7 +1,28 @@
 'use strict';
 
+const Logger = require('./Logger');
+
 class IntervalManager {
+    // Statická proměnná pro uchování jediné instance
+    static _instance = null;
+
+    /**
+     * Statická metoda pro získání jediné instance IntervalManager
+     * @param {Homey} homey - Homey instance
+     * @returns {IntervalManager} - Singleton instance
+     */
+    static getInstance(homey) {
+        if (!IntervalManager._instance) {
+            IntervalManager._instance = new IntervalManager(homey);
+        }
+        return IntervalManager._instance;
+    }
+
     constructor(homey) {
+        if (IntervalManager._instance) {
+            throw new Error('IntervalManager je singleton. Použijte IntervalManager.getInstance()');
+        }
+        
         this.homey = homey;
         this.intervals = {
             hourly: null,
@@ -15,18 +36,10 @@ class IntervalManager {
             tariff: null,
             midnight: null
         };
-        this.logger = null;
-    }
 
-    setLogger(logger) {
-        this.logger = logger;
-        if (this.logger) {
-            this.logger.debug('IntervalManager: Logger inicializován');
-        }
-    }
-
-    getLogger() {
-        return this.logger;
+        // Inicializace loggeru
+        this.logger = Logger.getInstance(homey, 'IntervalManager');
+        this.logger.debug('IntervalManager: Logger inicializován');
     }
 
 setScheduledInterval(key, callback, interval, initialDelay = 0) {

@@ -1,19 +1,36 @@
 'use strict';
 
+const Logger = require('../../helpers/Logger');
+
 class FlowCardManager {
+    // Statická proměnná pro jedinou instanci
+    static instance = null;
+
+    // Statická metoda pro získání nebo vytvoření instance
+    static getInstance(homey, device = null) {
+        if (!FlowCardManager.instance) {
+            FlowCardManager.instance = new FlowCardManager(homey, device);
+        }
+        return FlowCardManager.instance;
+    }
+
     constructor(homey, device) {
+        if (FlowCardManager.instance) {
+            throw new Error('Použijte FlowCardManager.getInstance() místo volání new FlowCardManager().');
+        }
         this.homey = homey;
         this.device = device;
-        this.logger = null;
+
+        // Automatická inicializace loggeru jako singletonu
+        this.logger = Logger.getInstance(this.homey, 'FlowCardManager');
+        this.logger.debug('Inicializace FlowCardManageru');
         
         // Reference na flow karty
         this._flowCards = {
             triggers: new Map(),
             conditions: new Map(),
             actions: new Map()
-        };    
-
-        if (this.logger) this.logger.debug('Inicializace FlowCardManageru');
+        };
 
         // Registrace základních typů karet
         this._basicTriggers = [
@@ -34,7 +51,7 @@ class FlowCardManager {
             }
         ];
 
-        if (this.logger) this.logger.debug(`Základní triggery nastaveny: ${this._basicTriggers.length}`);
+        this.logger.debug(`Základní triggery nastaveny: ${this._basicTriggers.length}`);
 
         this._basicConditions = [
             {
@@ -54,17 +71,7 @@ class FlowCardManager {
             }
         ];
 
-        if (this.logger) this.logger.debug(`Základní podmínky nastaveny: ${this._basicConditions.length}`);
-    }
-
-    // Metody pro práci s loggerem
-    setLogger(logger) {
-        this.logger = logger;
-        if (this.logger) this.logger.debug('Logger nastaven pro FlowCardManager');
-    }
-
-    getLogger() {
-        return this.logger;
+        this.logger.debug(`Základní podmínky nastaveny: ${this._basicConditions.length}`);
     }
 
     /**
@@ -72,9 +79,7 @@ class FlowCardManager {
      */
     async initialize() {
         try {
-            if (this.logger) {
-                this.logger.log('Initializing Flow cards...');
-            }
+                this.logger.log('Initializace Flow cards...');
     
             await this._initializeTriggers();
             await this._initializeConditions();
@@ -85,16 +90,13 @@ class FlowCardManager {
             const registeredConditions = Array.from(this._flowCards.conditions.keys());
             const registeredActions = Array.from(this._flowCards.actions.keys());
     
-            if (this.logger) {
-                this.logger.debug('Registered Flow triggers', { registeredTriggers });
-                this.logger.debug('Registered Flow conditions', { registeredConditions });
-                this.logger.debug('Registered Flow actions', { registeredActions });
-                this.logger.log('Flow cards initialized successfully.');
-            }
+            this.logger.debug('Registrace Flow triggers', { registeredTriggers });
+            this.logger.debug('Registrace Flow conditions', { registeredConditions });
+            this.logger.debug('Registrace Flow actions', { registeredActions });
+            this.logger.log('Flow cards inicializované úspěšně.');
+
         } catch (error) {
-            if (this.logger) {
-                this.logger.error('Error during Flow card initialization', error);
-            }
+            this.logger.error('Chyba při inicializaci flow karet', error);
             throw error;
         }
     }    
@@ -104,16 +106,12 @@ class FlowCardManager {
      */
     async _initializeTriggers() {
         try {
-            if (this.logger) {
                 this.logger.log('Initializing Flow card triggers...');
-            }
     
             // Registrace základních triggerů
             for (const trigger of this._basicTriggers) {
                 await this._registerBasicTriggerCard(trigger);
-                if (this.logger) {
-                    this.logger.debug('Basic trigger registered', { trigger });
-                }
+                this.logger.debug('Basic trigger registered', { trigger });
             }
     
             // Registrace speciálních triggerů
@@ -122,13 +120,10 @@ class FlowCardManager {
             await this._registerPriceChangeTrigger();
             await this._registerTariffChangeTrigger();
     
-            if (this.logger) {
-                this.logger.log('Flow card triggers initialized successfully');
-            }
+            this.logger.log('Flow card triggers initialized successfully');
+
         } catch (error) {
-            if (this.logger) {
-                this.logger.error('Chyba při inicializaci trigger karet', error);
-            }
+            this.logger.error('Chyba při inicializaci trigger karet', error);
             throw error;
         }
     }
@@ -138,9 +133,7 @@ class FlowCardManager {
      */
     async _registerBasicTriggerCard(triggerConfig) {
         if (this._flowCards.triggers.has(triggerConfig.id)) {
-            if (this.logger) {
-                this.logger.debug(`Trigger karta ${triggerConfig.id} již je registrována`);
-            }
+            this.logger.debug(`Trigger karta ${triggerConfig.id} již je registrována`);
             return;
         }
     
@@ -155,28 +148,21 @@ class FlowCardManager {
     
                 const result = triggerConfig.comparison(currentValue, args.value);
     
-                if (this.logger) {
-                    this.logger.debug(`Trigger ${triggerConfig.id} vyhodnocen`, {
+                this.logger.debug(`Trigger ${triggerConfig.id} vyhodnocen`, {
                         current: currentValue,
                         target: args.value,
                         result
-                    });
-                }
+                });
     
                 return result;
             } catch (error) {
-                if (this.logger) {
-                    this.logger.error(`Chyba v trigger kartě ${triggerConfig.id}`, error);
-                }
+                this.logger.error(`Chyba v trigger kartě ${triggerConfig.id}`, error);
                 return false;
             }
         });
     
         this._flowCards.triggers.set(triggerConfig.id, card);
-    
-        if (this.logger) {
-            this.logger.log(`Trigger karta ${triggerConfig.id} úspěšně registrována`);
-        }
+        this.logger.log(`Trigger karta ${triggerConfig.id} úspěšně registrována`);
     }
     
     /**
@@ -184,9 +170,7 @@ class FlowCardManager {
      */
     async _registerAveragePriceTrigger() {
         if (this._flowCards.triggers.has('average-price-trigger')) {
-            if (this.logger) {
-                this.logger.debug('Average price trigger již je registrován');
-            }
+            this.logger.debug('Average price trigger již je registrován');
             return;
         }
     
@@ -195,13 +179,11 @@ class FlowCardManager {
         card.registerRunListener(async (args, state) => {
             try {
                 const { hours, condition } = args;
-                if (this.logger) {
-                    this.logger.debug('Average price trigger check začíná', {
+                this.logger.debug('Average price trigger check začíná', {
                         hours,
                         condition,
                         state
-                    });
-                }
+                });
                 const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
                 const currentHour = timeInfo.hour;
     
@@ -212,9 +194,7 @@ class FlowCardManager {
                 );
     
                 if (!combinations || combinations.length === 0) {
-                    if (this.logger) {
-                        this.logger.error('Žádné platné kombinace pro průměrnou cenu');
-                    }
+                    this.logger.error('Žádné platné kombinace pro průměrnou cenu');
                     return false;
                 }
     
@@ -230,7 +210,6 @@ class FlowCardManager {
                 // Trigger se spustí pouze v hodinu, kdy interval začíná
                 const result = currentHour === bestCombination.startHour;
     
-                if (this.logger) {
                     this.logger.debug('Vyhodnocení average price triggeru', {
                         currentHour,
                         bestCombinationStartHour: bestCombination.startHour,
@@ -238,14 +217,11 @@ class FlowCardManager {
                         condition,
                         willTrigger: result
                     });
-                }
     
                 return result;
     
             } catch (error) {
-                if (this.logger) {
-                    this.logger.error('Chyba v average price triggeru', error);
-                }
+                this.logger.error('Chyba v average price triggeru', error);
                 return false;
             }
         });
@@ -258,29 +234,22 @@ class FlowCardManager {
      */
     async _registerApiFailureTrigger() {
         if (this._flowCards.triggers.has('when-api-call-fails-trigger')) {
-            if (this.logger) {
-                this.logger.debug('API failure trigger již je registrován');
-            }
+            this.logger.debug('API failure trigger již je registrován');
             return;
         }
     
         const card = this.homey.flow.getDeviceTriggerCard('when-api-call-fails-trigger');
     
         card.registerRunListener(async (args, state) => {
-            if (this.logger) {
-                this.logger.debug('API failure trigger spuštěn', {
+            this.logger.debug('API failure trigger spuštěn', {
                     argsType: args.type,
                     stateType: state.type
-                });
-            }
+            });
             return args.type === state.type;
         });
     
         this._flowCards.triggers.set('when-api-call-fails-trigger', card);
-    
-        if (this.logger) {
-            this.logger.log('API failure trigger úspěšně registrován');
-        }
+        this.logger.log('API failure trigger úspěšně registrován');
     }    
 
     /**
@@ -288,30 +257,22 @@ class FlowCardManager {
      */
     async _registerPriceChangeTrigger() {
         if (this._flowCards.triggers.has('when-current-price-changes')) {
-            if (this.logger) {
-                this.logger.debug('Price change trigger již je registrován');
-            }
+            this.logger.debug('Price change trigger již je registrován');
             return;
         }
     
-        if (this.logger) {
-            this.logger.log('Registrace price change triggeru...');
-        }
+        this.logger.log('Registrace price change triggeru...');
     
         const card = this.homey.flow.getDeviceTriggerCard('when-current-price-changes');
     
         card.registerRunListener(async () => {
-            if (this.logger) {
-                this.logger.debug('Price change trigger spuštěn');
-            }
+            this.logger.debug('Price change trigger spuštěn');
             return true;
         });
     
         this._flowCards.triggers.set('when-current-price-changes', card);
     
-        if (this.logger) {
-            this.logger.log('Price change trigger registrován');
-        }
+        this.logger.log('Price change trigger registrován');
     }    
 
     /**
@@ -321,9 +282,7 @@ class FlowCardManager {
         try {
             // Kontrola existence triggeru
             if (this._flowCards.triggers.has('when-distribution-tariff-changes')) {
-                if (this.logger) {
-                    this.logger.debug('Tariff change trigger již je registrován');
-                }
+                this.logger.debug('Tariff change trigger již je registrován');
                 return;
             }
     
@@ -357,26 +316,22 @@ class FlowCardManager {
                     const expectedTariff = state ? state.tariff : null;
                     const tariffMatches = !expectedTariff || expectedTariff === currentTariff;
     
-                    if (this.logger) {
-                        this.logger.debug('Distribution tariff change trigger vyhodnocen', {
+                    this.logger.debug('Distribution tariff change trigger vyhodnocen', {
                             currentHour,
                             currentTariff,
                             expectedTariff,
                             tariffMatches,
                             args,
                             state
-                        });
-                    }
+                    });
     
                     return tariffMatches;
     
                 } catch (error) {
-                    if (this.logger) {
-                        this.logger.error('Chyba v run listeneru tariff triggeru', error, {
+                    this.logger.error('Chyba v run listeneru tariff triggeru', error, {
                             args,
                             state
-                        });
-                    }
+                    });
                     return false;
                 }
             });
@@ -385,20 +340,16 @@ class FlowCardManager {
             this._flowCards.triggers.set('when-distribution-tariff-changes', card);
     
             // Logování úspěšné registrace
-            if (this.logger) {
-                this.logger.log('Tariff change trigger úspěšně registrován', {
+            this.logger.log('Tariff change trigger úspěšně registrován', {
                     triggerId: 'when-distribution-tariff-changes',
                     deviceId: this.device?.getData()?.id
-                });
-            }
+            });
     
             // Můžeme vrátit kartu pro další použití
             return card;
     
         } catch (error) {
-            if (this.logger) {
-                this.logger.error('Kritická chyba při registraci tariff triggeru', error);
-            }
+            this.logger.error('Kritická chyba při registraci tariff triggeru', error);
             throw error; // Propagujeme error výš pro správné zachycení
         }
     }
@@ -419,7 +370,7 @@ class FlowCardManager {
             await this._registerTariffCondition();
 
         } catch (error) {
-            this.homey.error('Chyba při inicializaci condition karet:', error);
+            this.logger.error('Chyba při inicializaci condition karet:', error);
             throw error;
         }
     }
@@ -430,9 +381,7 @@ class FlowCardManager {
     async _registerBasicConditionCard(conditionConfig) {
         try {
             if (this._flowCards.conditions.has(conditionConfig.id)) {
-                if (this.logger) {
-                    this.logger.debug(`Condition karta ${conditionConfig.id} již je registrována`);
-                }
+                this.logger.debug(`Condition karta ${conditionConfig.id} již je registrována`);
                 return;
             }
     
@@ -448,22 +397,18 @@ class FlowCardManager {
                         const validIndexes = ['low', 'medium', 'high', 'unknown'];
                         expectedValue = args.index;
                         
-                        if (this.logger) {
                             this.logger.debug('Vyhodnocení podmínky pro index', {
                                 currentValue,
                                 expectedIndex: expectedValue,
                                 validIndexes
                             });
-                        }
                     } else {
                         expectedValue = args.value;
                         
-                        if (this.logger) {
                             this.logger.debug('Vyhodnocení podmínky pro hodnotu', {
                                 currentValue,
                                 expectedValue
                             });
-                        }
                     }
     
                     // Kontrola chybějících hodnot
@@ -477,37 +422,29 @@ class FlowCardManager {
     
                     const result = conditionConfig.comparison(currentValue, expectedValue);
     
-                    if (this.logger) {
                         this.logger.debug(`Condition ${conditionConfig.id} vyhodnocena:`, {
                             current: currentValue,
                             expected: expectedValue,
                             result
                         });
-                    }
     
                     return result;
     
                 } catch (error) {
-                    if (this.logger) {
-                        this.logger.error(`Chyba v condition kartě ${conditionConfig.id}:`, error);
-                    }
+                    this.logger.error(`Chyba v condition kartě ${conditionConfig.id}:`, error);
                     return false;
                 }
             });
     
             this._flowCards.conditions.set(conditionConfig.id, card);
     
-            if (this.logger) {
-                this.logger.log(`Condition karta ${conditionConfig.id} úspěšně registrována`);
-            }
+            this.logger.log(`Condition karta ${conditionConfig.id} úspěšně registrována`);
     
         } catch (error) {
-            if (this.logger) {
-                this.logger.error('Kritická chyba při registraci condition karty', {
+            this.logger.error('Kritická chyba při registraci condition karty', {
                     cardId: conditionConfig.id,
                     error: error.message
-                });
-            }
+            });
             throw error;
         }
     }
@@ -517,9 +454,7 @@ class FlowCardManager {
      */
 async _registerAveragePriceCondition() {
     if (this._flowCards.conditions.has('average-price-condition')) {
-        if (this.logger) {
-            this.logger.debug('Average price condition již je registrována');
-        }
+        this.logger.debug('Average price condition již je registrována');
         return;
     }
 
@@ -533,14 +468,12 @@ async _registerAveragePriceCondition() {
 
             // Kontrola, zda dokážeme spočítat celý interval ze zbývajících hodin
             if (currentHour + hours > 24) {
-                if (this.logger) {
                     this.logger.debug('Nedostatek hodin pro dokončení intervalu', {
                         currentHour,
                         požadovanéHodiny: hours,
                         konecIntervalu: currentHour + hours,
                         zbývajícíHodiny: 24 - currentHour
                     });
-                }
                 return false;
             }
 
@@ -551,12 +484,10 @@ async _registerAveragePriceCondition() {
             );
             
             if (!combinations || combinations.length === 0) {
-                if (this.logger) {
                     this.logger.debug('Nenalezeny žádné kombinace pro výpočet průměru', {
                         currentHour,
                         požadovanéHodiny: hours
                     });
-                }
                 return false;
             }
 
@@ -573,7 +504,6 @@ async _registerAveragePriceCondition() {
             const isInInterval = currentHour >= bestCombination.startHour && 
                                currentHour < (bestCombination.startHour + hours);
 
-            if (this.logger) {
                 this.logger.log('Average price condition vyhodnocena:', {
                     currentHour,
                     startHour: bestCombination.startHour,
@@ -584,13 +514,10 @@ async _registerAveragePriceCondition() {
                     isInInterval,
                     počet_kombinací: combinations.length
                 });
-            }
 
             return isInInterval;
         } catch (error) {
-            if (this.logger) {
                 this.logger.error('Chyba v average price condition:', error);
-            }
             return false;
         }
     });
@@ -603,9 +530,7 @@ async _registerAveragePriceCondition() {
      */
 async _registerRemainingDayPriceCondition() {
     if (this._flowCards.conditions.has('remaining-day-price-condition')) {
-        if (this.logger) {
             this.logger.debug('Remaining day price condition již je registrována');
-        }
         return;
     }
 
@@ -620,14 +545,12 @@ async _registerRemainingDayPriceCondition() {
             // Pokud jsme v intervalu, pro který už nemáme dost zbývajících hodin,
             // rovnou vracíme false
             if (currentHour + hours > 24) {
-                if (this.logger) {
                     this.logger.debug('Nedostatek hodin pro dokončení intervalu', {
                         currentHour,
                         požadovanéHodiny: hours,
                         konecIntervalu: currentHour + hours,
                         zbývajícíHodiny: 24 - currentHour
                     });
-                }
                 return false;
             }
 
@@ -639,12 +562,10 @@ async _registerRemainingDayPriceCondition() {
             );
             
             if (!combinations || combinations.length === 0) {
-                if (this.logger) {
                     this.logger.debug('Žádné platné kombinace pro výpočet průměru zbývajícího dne', {
                         currentHour,
                         požadovanéHodiny: hours
                     });
-                }
                 return false;
             }
 
@@ -661,7 +582,6 @@ async _registerRemainingDayPriceCondition() {
             const isInInterval = currentHour >= bestCombination.startHour && 
                                currentHour < (bestCombination.startHour + hours);
 
-            if (this.logger) {
                 this.logger.log('Remaining day price condition vyhodnocena:', {
                     currentHour,
                     startHour: bestCombination.startHour,
@@ -672,13 +592,10 @@ async _registerRemainingDayPriceCondition() {
                     isInInterval,
                     počet_kombinací: combinations.length
                 });
-            }
 
             return isInInterval;
         } catch (error) {
-            if (this.logger) {
                 this.logger.error('Chyba v remaining day price condition:', error);
-            }
             return false;
         }
     });
@@ -691,7 +608,7 @@ async _registerRemainingDayPriceCondition() {
  */
 async _registerTariffCondition() {
     if (this._flowCards.conditions.has('distribution-tariff-is')) {
-        this.homey.log('Tariff condition již je registrována');
+        this.logger.debug('Tariff condition již je registrována');
         return;
     }
 
@@ -705,7 +622,7 @@ async _registerTariffCondition() {
             const isLowTariff = this.device.priceCalculator.isLowTariff(currentHour, settings);
             const result = args.tariff === (isLowTariff ? 'low' : 'high');
 
-            this.homey.log('Distribution tariff condition vyhodnocena:', {
+            this.logger.debug('Distribution tariff condition vyhodnocena:', {
                 currentHour,
                 isLowTariff,
                 expected: args.tariff,
@@ -714,7 +631,7 @@ async _registerTariffCondition() {
 
             return result;
         } catch (error) {
-            this.homey.error('Chyba v tariff condition:', error);
+            this.logger.error('Chyba v tariff condition:', error);
             return false;
         }
     });
@@ -729,7 +646,7 @@ async _initializeActions() {
     try {
         await this._registerUpdateDataAction();
     } catch (error) {
-        this.homey.error('Chyba při inicializaci action karet:', error);
+        this.logger.error('Chyba při inicializaci action karet:', error);
         throw error;
     }
 }
@@ -739,7 +656,7 @@ async _initializeActions() {
  */
 async _registerUpdateDataAction() {
     if (this._flowCards.actions.has('update_data_via_api')) {
-        this.homey.log('Update data action již je registrována');
+        this.logger.debug('Update data action již je registrována');
         return;
     }
 
@@ -751,7 +668,7 @@ async _registerUpdateDataAction() {
             await this.device.setAvailable();
             return true;
         } catch (error) {
-            this.homey.error('Chyba při aktualizaci dat přes API:', error);
+            this.logger.error('Chyba při aktualizaci dat přes API:', error);
             return false;
         }
     });
@@ -770,9 +687,9 @@ async triggerCurrentPriceChanged(tokens) {
         }
 
         await card.trigger(this.device, tokens);
-        this.homey.log('Current price changed trigger spuštěn s tokeny:', tokens);
+        this.logger.debug('Current price changed trigger spuštěn s tokeny:', tokens);
     } catch (error) {
-        this.homey.error('Chyba při spouštění current price changed triggeru:', error);
+        this.logger.error('Chyba při spouštění current price changed triggeru:', error);
     }
 }
 
@@ -792,9 +709,9 @@ async triggerApiFailure(errorInfo) {
         };
 
         await card.trigger(this.device, tokens);
-        this.homey.log('API failure trigger spuštěn s tokeny:', tokens);
+        this.logger.debug('API failure trigger spuštěn s tokeny:', tokens);
     } catch (error) {
-        this.homey.error('Chyba při spouštění API failure triggeru:', error);
+        this.logger.error('Chyba při spouštění API failure triggeru:', error);
     }
 }
 
@@ -808,9 +725,9 @@ destroy() {
         this._flowCards.conditions.clear();
         this._flowCards.actions.clear();
 
-        this.homey.log('FlowCardManager byl úspěšně vyčištěn');
+        this.logger.debug('FlowCardManager byl úspěšně vyčištěn');
     } catch (error) {
-        this.homey.error('Chyba při čištění FlowCardManageru:', error);
+        this.logger.error('Chyba při čištění FlowCardManageru:', error);
     }
 }
 }

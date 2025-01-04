@@ -10,14 +10,23 @@ const PriceCalculator = require('../../helpers/PriceCalculator');
 const Logger = require('../../helpers/Logger');
 
 class SpotPriceAPI {
-    constructor(homey, deviceContext = 'SpotPriceAPI') {  // zde byl problém
+    // Statická proměnná pro uložení jediné instance
+    static instance = null;
+
+    // Statická metoda pro získání nebo vytvoření instance
+    static getInstance(homey) {
+        if (!SpotPriceAPI.instance) {
+            SpotPriceAPI.instance = new SpotPriceAPI(homey);
+        }
+        return SpotPriceAPI.instance;
+    }
+
+    constructor(homey, deviceContext = 'SpotPriceAPI') {
+        if (SpotPriceAPI.instance) {
+            throw new Error('Použijte SpotPriceAPI.getInstance() místo volání new SpotPriceAPI().');
+        }
         this.homey = homey;
-        // Vytvoříme vlastní instanci loggeru pro API
-        this.logger = new Logger(this.homey, deviceContext);  // používáme deviceContext, ne context
-        // Defaultně zapneme logging pro API
-        this.logger.setEnabled(true);
-        
-        
+        this.logger = Logger.getInstance(this.homey, deviceContext);
 
         this.baseUrl = 'https://spotovaelektrina.cz/api/v1/price';
         const today = new Date().toISOString().slice(0, 10); // získá datum ve formátu RRRR-MM-DD
@@ -25,18 +34,10 @@ class SpotPriceAPI {
         this.exchangeRateUrl = 'https://data.kurzy.cz/json/meny/b[6].json';
         this.exchangeRate = 25.25;
         this.homeyTimezone = this.homey.clock.getTimezone();
-        this.priceCalculator = new PriceCalculator(this.homey, 'PriceCalculator');
+        this.priceCalculator = PriceCalculator.getInstance(this.homey, 'PriceCalculator');
         
         this.logger.debug('SpotPriceAPI inicializován');
     }
-
-  setLogger(logger) {
-    this.logger = logger;
-  }
-
-  getLogger() {
-    return this.logger;
-  }
 
   async updateExchangeRate() {
     try {
@@ -307,9 +308,7 @@ async _fetchFromPrimaryAPI(timeoutMs) {
         const operationId = `update-${Date.now()}`;
         
         if (!this.initialized) {
-            // Jednorázová inicializace komponent
-            this.priceCalculator = new PriceCalculator(this.homey, 'PriceCalculator');
-            if (this.logger) this.priceCalculator.setLogger(this.logger);
+            this.priceCalculator = PriceCalculator.getInstance(this.homey, 'PriceCalculator');
             this.initialized = true;
         }
     

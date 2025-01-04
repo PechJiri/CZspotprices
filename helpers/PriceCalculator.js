@@ -3,9 +3,24 @@
 const Logger = require('./Logger');
 
 class PriceCalculator {
+    // Statická proměnná pro uložení jediné instance
+    static instance = null;
+
+    // Statická metoda pro získání nebo vytvoření instance
+    static getInstance(homey, deviceContext = 'PriceCalculator') {
+        if (!PriceCalculator.instance) {
+            PriceCalculator.instance = new PriceCalculator(homey, deviceContext);
+        }
+        return PriceCalculator.instance;
+    }
+
     constructor(homey, deviceContext = 'PriceCalculator') {
+        if (PriceCalculator.instance) {
+            throw new Error('Použijte PriceCalculator.getInstance() místo volání new PriceCalculator().');
+        }
         this.homey = homey;
-        this.logger = new Logger(this.homey, deviceContext);
+        this.logger = Logger.getInstance(this.homey, deviceContext);
+        this.logger.debug('PriceCalculator inicializován');
         this.logger.setEnabled(true);
         this.priceCache = new Map();
         this.averagePriceCache = new Map();
@@ -78,67 +93,106 @@ class PriceCalculator {
     }
 
     validatePriceData(data) {
-    if (!Array.isArray(data)) {
-        if (this.logger) {
-            this.logger.debug('Vstupní data pro validaci', { 
-                receivedType: typeof data,
-                receivedValue: data 
-            });
-        }
-        
-        if (this.logger) {
-            this.logger.error('Neplatná data - není pole', new Error('Invalid data type'));
-        }
-        return false;
-    }
-
-    if (data.length !== 24) {
-        if (this.logger) {
-            this.logger.error('Neplatná data - nesprávný počet hodin', new Error('Invalid data length'), {
-                expectedLength: 24,
-                actualLength: data.length
-            });
-        }
-        return false;
-    }
-
-    const validationResults = data.map((item, index) => {
-        // Kontrolujeme pouze povinné vlastnosti - hour a priceCZK
-        const hasValidPrice = typeof item.priceCZK === 'number' && !isNaN(item.priceCZK);
-        const hasValidHour = typeof item.hour === 'number' && item.hour >= 0 && item.hour < 24;
-        
-        // Level je volitelná vlastnost - přijde jen z primárního API
-        // Pokud není, dopočítáme ji později v setPriceIndexes
-        
-        if (!hasValidPrice || !hasValidHour) {
+        if (!Array.isArray(data)) {
             if (this.logger) {
-                this.logger.debug('Neplatná data pro hodinu', {
-                    index,
-                    item,
-                    validPrice: hasValidPrice,
-                    validHour: hasValidHour,
-                    hasLevel: Boolean(item.level) // jen pro logging
+                this.logger.debug('Vstupní data pro validaci', { 
+                    receivedType: typeof data,
+                    receivedValue: data 
                 });
             }
+            
+            if (this.logger) {
+                this.logger.error('Neplatná data - není pole', new Error('Invalid data type'));
+            }
+            return false;
         }
-        
-        return hasValidPrice && hasValidHour;
-    });
 
-    const isValid = validationResults.every(result => result);
-    
-    if (this.logger) {
-        this.logger.debug('Validace dat dokončena', {
-            isValid,
-            hasLevels: data.every(item => Boolean(item.level)), // pro logging
-            invalidHours: validationResults
-                .map((result, index) => ({ index, valid: result }))
-                .filter(item => !item.valid)
-                .map(item => item.index)
+        if (data.length !== 24) {
+            if (this.logger) {
+                this.logger.error('Neplatná data - nesprávný počet hodin', new Error('Invalid data length'), {
+                    expectedLength: 24,
+                    actualLength: data.length
+                });
+            }
+            return false;
+        }
+
+        const validationResults = data.map((item, index) => {
+            // Kontrolujeme pouze povinné vlastnosti - hour a priceCZK
+            const hasValidPrice = typeof item.priceCZK === 'number' && !isNaN(item.priceCZK);
+            const hasValidHour = typeof item.hour === 'number' && item.hour >= 0 && item.hour < 24;
+            
+            // Level je volitelná vlastnost - přijde jen z primárního API
+            // Pokud není, dopočítáme ji později v setPriceIndexes
+            
+            if (!hasValidPrice || !hasValidHour) {
+                if (this.logger) {
+                    this.logger.debug('Neplatná data pro hodinu', {
+                        index,
+                        item,
+                        validPrice: hasValidPrice,
+                        validHour: hasValidHour,
+                        hasLevel: Boolean(item.level) // jen pro logging
+                    });
+                }
+            }
+            
+            return hasValidPrice && hasValidHour;
         });
+
+        const isValid = validationResults.every(result => result);
+        
+        if (this.logger) {
+            this.logger.debug('Validace dat dokončena', {
+                isValid,
+                hasLevels: data.every(item => Boolean(item.level)), // pro logging
+                invalidHours: validationResults
+                    .map((result, index) => ({ index, valid: result }))
+                    .filter(item => !item.valid)
+                    .map(item => item.index)
+            });
+        }
+
+        return isValid;
     }
 
-    return isValid;
+    /**
+     * Přidání DPH k ceně
+     * @param {number} price - Základní cena bez DPH
+     * @param {boolean} applyVAT - Zda se má aplikovat DPH
+     * @returns {number} - Cena s nebo bez DPH podle nastavení
+     */
+    addVAT(price, applyVAT) {
+        try {
+            if (typeof price !== 'number' || isNaN(price)) {
+                const error = new Error('Neplatná cena pro výpočet DPH');
+                if (this.logger) {
+                    this.logger.error('Chyba při výpočtu DPH:', error, { price });
+                }
+                throw error;
+            }
+
+            if (!applyVAT) {
+                return price;
+            }
+
+            const priceWithVAT = price * 1.21; // 21% DPH
+
+            if (this.logger) {
+                this.logger.debug('Přidáno DPH k ceně', {
+                    původníCena: price,
+                    sDPH: priceWithVAT,
+                    sazba: '21%'
+                });
+            }
+
+            return priceWithVAT;
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Chyba při přidávání DPH:', error, { price, applyVAT });
+            }
+            return price;
+        }
     }
 
     /**
@@ -154,20 +208,21 @@ class PriceCalculator {
                 throw error;
             }
     
+            const priceWithVAT = this.addVAT(basePrice, settings.commodity_price_with_vat || false);
             const lowTariffPrice = parseFloat(settings.low_tariff_price) || 0;
             const highTariffPrice = parseFloat(settings.high_tariff_price) || 0;
             const isLowTariff = this.isLowTariff(hour, settings);
     
-            const finalPrice = basePrice + (isLowTariff ? lowTariffPrice : highTariffPrice);
+            const finalPrice = priceWithVAT + (isLowTariff ? lowTariffPrice : highTariffPrice);
     
             if (this.logger) {
-                this.logger.debug(`Výpočet distribuční ceny: hour: ${hour}, basePrice: ${basePrice}, tariffPrice: ${isLowTariff ? lowTariffPrice : highTariffPrice}, finalPrice: ${finalPrice}`);
+                this.logger.debug(`Výpočet cen: hour: ${hour}, basePrice: ${basePrice}, priceWithVAT: ${priceWithVAT}, tariffPrice: ${isLowTariff ? lowTariffPrice : highTariffPrice}, finalPrice: ${finalPrice}`);
             }
     
             return finalPrice;
         } catch (error) {
             if (this.logger) {
-                this.logger.error('Chyba při výpočtu distribuční ceny:', error, { basePrice, settings, hour });
+                this.logger.error('Chyba při výpočtu ceny:', error, { basePrice, settings, hour });
             }
             return basePrice;
         }
