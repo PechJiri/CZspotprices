@@ -39,10 +39,10 @@ class SpotPriceAPI {
         this.exchangeRate = 25.25;
         this.homeyTimezone = this.homey.clock.getTimezone();
         this.priceCalculator = PriceCalculator.getInstance(this.homey, 'PriceCalculator');
-        this.tariffCalculator = TariffCalculator.getInstance();
-        this.priceCalculationEngine = PriceCalculationEngine.getInstance();
-        this.dataValidator = DataValidator.getInstance();
-        this.cacheManager = CacheManager.getInstance();
+        this.tariffCalculator = TariffCalculator.getInstance(this.homey, 'TariffCalculator');
+        this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey, 'PriceCalculatorEngine');
+        this.dataValidator = DataValidator.getInstance(this.homey, 'DataValidator');
+        this.cacheManager = CacheManager.getInstance(this.homey, 'CacheManager');
         
         this.logger.debug('SpotPriceAPI inicializován');
     }
@@ -165,7 +165,7 @@ class SpotPriceAPI {
             // Úmyslně vynecháváme level z API
         }));
 
-        if (!this.priceCalculator.validatePriceData(data)) {
+        if (!this.dataValidator.validatePriceData(data)) {
             throw new Error('Neplatný formát dat z primárního API');
         }
 
@@ -205,7 +205,7 @@ class SpotPriceAPI {
                 // Opět vynecháváme jakékoliv levely
             }));
 
-            if (!this.priceCalculator.validatePriceData(backupData)) {
+            if (!this.dataValidator.validatePriceData(backupData)) {
                 throw new Error('Neplatný formát dat ze záložního API');
             }
 
@@ -336,10 +336,9 @@ async _fetchFromPrimaryAPI(timeoutMs) {
                 await device.setCapabilityValue('spot_price_update_status', false);
                 const dailyPrices = await this.getDailyPrices(device);
                 
-                // Zpracování dat s existujícím PriceCalculatorem
                 const processedPrices = dailyPrices.map(priceData => ({
                     ...priceData,
-                    priceCZK: this.priceCalculator.addDistributionPrice(
+                    priceCZK: this.priceCalculationEngine.addDistributionPrice(
                         priceData.priceCZK, 
                         device.getSettings(),
                         priceData.hour
@@ -424,7 +423,7 @@ async _fetchFromPrimaryAPI(timeoutMs) {
         const settings = device.getSettings();
         return dailyPrices.map(priceData => ({
             ...priceData,
-            priceCZK: this.addDistributionPrice(priceData.priceCZK, settings, priceData.hour)
+            priceCZK: this.priceCalculationEngine.addDistributionPrice(priceData.priceCZK, settings, priceData.hour)
         }));
     }
     

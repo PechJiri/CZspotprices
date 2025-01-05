@@ -23,14 +23,12 @@ class Logger {
         Logger.instance = this; // Uložíme novou instanci do statické proměnné
     }
 
-    // Nastavení rotace logů
     setupAutoRotation() {
         setInterval(() => {
             this.rotateLogsIfNeeded();
         }, 5 * 60 * 1000); // Kontrola každých 5 minut
     }
 
-    // Kontrola a provedení rotace logů
     rotateLogsIfNeeded() {
         const now = Date.now();
         if (now - this.lastRotation >= this.rotationInterval) {
@@ -39,7 +37,6 @@ class Logger {
         }
     }
 
-    // Rotace logů
     rotateLogs() {
         try {
             if (this.logHistory.length > this.maxLogSize) {
@@ -63,7 +60,6 @@ class Logger {
         }
     }
 
-    // Přidání záznamu do historie
     addToHistory(type, message, data = {}) {
         const logEntry = {
             timestamp: new Date().toISOString(),
@@ -79,28 +75,25 @@ class Logger {
         return logEntry;
     }
 
-    // Nastavení stavu logování
     setEnabled(enabled) {
         this.enabled = enabled;
         this.log(`Logování ${enabled ? 'zapnuto' : 'vypnuto'}`);
     }
 
-    // Standardní log
     log(message, data = {}) {
         if (!this.enabled) return;
-        
+
         const logEntry = this.addToHistory('info', message, data);
-        
-        this.homey.log(JSON.stringify({
+
+        this.homey.log({
             context: this.context,
             type: 'info',
             message,
             ...data,
             timestamp: logEntry.timestamp
-        }));
+        });
     }
 
-    // Error log - vždy se loguje bez ohledu na enabled
     error(message, error, data = {}) {
         const logEntry = this.addToHistory('error', message, {
             error: error?.message,
@@ -108,7 +101,7 @@ class Logger {
             ...data
         });
 
-        this.homey.error(JSON.stringify({
+        this.homey.error({
             context: this.context,
             type: 'error',
             message,
@@ -116,52 +109,47 @@ class Logger {
             stack: error?.stack,
             ...data,
             timestamp: logEntry.timestamp
-        }));
+        });
     }
 
-    // Debug log
     debug(message, data = {}) {
         if (!this.enabled) return;
-        
+
         const logEntry = this.addToHistory('debug', message, data);
-        
-        this.homey.log(JSON.stringify({
+
+        this.homey.log({
             context: this.context,
             type: 'debug',
             message,
             ...data,
             timestamp: logEntry.timestamp
-        }));
+        });
     }
 
-    // Warning log
     warn(message, data = {}) {
         if (!this.enabled) return;
-        
+
         const logEntry = this.addToHistory('warning', message, data);
-        
-        this.homey.log(JSON.stringify({
+
+        this.homey.log({
             context: this.context,
             type: 'warning',
             message,
             ...data,
             timestamp: logEntry.timestamp
-        }));
+        });
     }
 
-    // Získání historie logů
     getLogHistory() {
         return [...this.logHistory];
     }
 
-    // Vyčištění historie logů
     clearHistory() {
         const count = this.logHistory.length;
         this.logHistory = [];
         this.debug('Historie logů vyčištěna', { smazanýchZáznamů: count });
     }
 
-    // Získání statistik logů
     getLogStats() {
         const stats = {
             total: this.logHistory.length,
@@ -171,7 +159,6 @@ class Logger {
             lastRotation: new Date(this.lastRotation).toISOString()
         };
 
-        // Počítání logů podle typu
         this.logHistory.forEach(log => {
             stats.byType[log.type] = (stats.byType[log.type] || 0) + 1;
         });
@@ -179,12 +166,10 @@ class Logger {
         return stats;
     }
 
-    // Metoda pro získání instance Loggeru (pro případné použití např. bez `new Logger(...)`)
     static getInstance(homey, context = 'Default') {
         if (!Logger.instance) {
             Logger.instance = new Logger(homey, context);
         } else {
-            // Pokud už instance existuje, můžeme aktualizovat kontext
             Logger.instance.context = context;
         }
         return Logger.instance;

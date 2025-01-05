@@ -54,7 +54,7 @@ class PriceCalculator {
      */
     getDataValidator() {
         if (!this.components.dataValidator) {
-            const DataValidator = require('../helpers/DataValidator');
+            const DataValidator = require('../DataValidator');
             this.components.dataValidator = DataValidator.getInstance();
         }
         return this.components.dataValidator;
@@ -66,7 +66,7 @@ class PriceCalculator {
      */
     getCacheManager() {
         if (!this.components.cacheManager) {
-            const CacheManager = require('./helpers/CacheManager');
+            const CacheManager = require('../CacheManager');
             this.components.cacheManager = CacheManager.getInstance();
         }
         return this.components.cacheManager;

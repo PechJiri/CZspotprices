@@ -79,10 +79,10 @@ class CZSpotPricesDevice extends Homey.Device {
             this.intervalManager = IntervalManager.getInstance(this.homey);
             this.priceCalculator = PriceCalculator.getInstance(this.homey);
             this.lockManager = new LockManager(this.homey);
-            this.tariffCalculator = TariffCalculator.getInstance();
-            this.priceCalculationEngine = PriceCalculationEngine.getInstance();
-            this.dataValidator = DataValidator.getInstance();
-            this.cacheManager = CacheManager.getInstance();
+            this.tariffCalculator = TariffCalculator.getInstance(this.homey);
+            this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey);
+            this.dataValidator = DataValidator.getInstance(this.homey);
+            this.cacheManager = CacheManager.getInstance(this.homey);
             
             // Flow manažery
             this.actionsManager = ActionsManager.getInstance(this.homey, this);
@@ -139,23 +139,6 @@ class CZSpotPricesDevice extends Homey.Device {
         this.logger.debug('Validace helperů úspěšná');
     }
     
-    
-    async initializeBasicSettings() {
-        try {
-            this.logger.debug('Začátek inicializace základních nastavení');
-    
-            await this.initializeDeviceId();
-            await this.loadAndApplySettings();
-            await this.registerCapabilities();
-            await this.setInitialTariff();
-            
-            this.logger.log('Základní nastavení inicializována');
-        } catch (error) {
-            this.logger.error('Chyba při inicializaci základních nastavení', error);
-            throw error;
-        }
-    }
-    
     // Pomocná metoda pro načtení dat
     async _loadInitialData() {
         const lastUpdate = await this.getStoreValue('lastDataUpdate');
@@ -204,17 +187,20 @@ class CZSpotPricesDevice extends Homey.Device {
     async initializeBasicSettings() {
         try {
             this.logInitializationStart();
+    
             this.checkDependencies();
+    
             await this.initializeDeviceId();
             await this.loadAndApplySettings();
             await this.registerCapabilities();
             await this.setInitialTariff();
+    
             this.verifyCriticalMethods();
             this.logInitializationSuccess();
         } catch (error) {
             this.handleInitializationError(error);
         }
-    }
+    }    
     
     logInitializationStart() {
         if (this.logger) {
@@ -1053,7 +1039,7 @@ class CZSpotPricesDevice extends Homey.Device {
                     // Přepočet cen s novými nastaveními
                     const processedPrices = dailyPrices.map(priceData => ({
                         hour: priceData.hour,
-                        priceCZK: this.priceCalculator.addDistributionPrice(
+                        priceCZK: this.priceCalculationEngine.addDistributionPrice(
                             priceData.priceCZK,
                             newSettings,
                             priceData.hour
@@ -1126,7 +1112,7 @@ class CZSpotPricesDevice extends Homey.Device {
         // Získání cen z API
         const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
 
-        if (!this.priceCalculator.validatePriceData(dailyPrices)) {
+        if (!this.dataValidator.validatePriceData(dailyPrices)) {
             const errorMessage = 'Invalid daily prices data received from API';
             if (this.logger) {
                 this.logger.error(errorMessage, new Error(errorMessage));
@@ -1138,7 +1124,7 @@ class CZSpotPricesDevice extends Homey.Device {
         const settings = this.getSettings();
         const processedPrices = dailyPrices.map(priceData => ({
             ...priceData,
-            priceCZK: this.priceCalculator.addDistributionPrice(
+            priceCZK: this.priceCalculationEngine.addDistributionPrice(
                 priceData.priceCZK,
                 settings,
                 priceData.hour

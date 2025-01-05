@@ -1,17 +1,26 @@
 'use strict';
 
+const Homey = require('homey');
 const Logger = require('../Logger');
 const DataValidator = require('../DataValidator');
 
 class PriceCalculationEngine {
     static instance = null;
 
-    constructor() {
+    static getInstance(homey, deviceContext = 'PriceCalculatorEngine') {
+        if (!PriceCalculatorEngine.instance) {
+            PriceCalculatorEngine.instance = new PriceCalculatorEngine(homey, deviceContext);
+        }
+        return PriceCalculatorEngine.instance;
+    }
+
+    constructor(homeyInstance) {
         if (PriceCalculationEngine.instance) {
             throw new Error('Použijte PriceCalculationEngine.getInstance() místo volání new.');
         }
         this.logger = Logger.getInstance();
         this.validator = DataValidator.getInstance();
+        this.homey = homeyInstance;
     }
 
     static getInstance() {
@@ -68,7 +77,7 @@ class PriceCalculationEngine {
             const priceWithVAT = this.addVAT(basePrice, settings.commodity_price_with_vat || false);
             const lowTariffPrice = parseFloat(settings.low_tariff_price) || 0;
             const highTariffPrice = parseFloat(settings.high_tariff_price) || 0;
-            const isLowTariff = settings.low_tariff_hours.includes(hour);
+            const isLowTariff = this.isLowTariff(hour, settings);
 
             const finalPrice = priceWithVAT + (isLowTariff ? lowTariffPrice : highTariffPrice);
 
@@ -190,8 +199,8 @@ class PriceCalculationEngine {
         const currentHour = new Date().getHours();
         const cacheKey = `${hours}-${startFromHour}-${currentHour}-${device.getPriceInKWh()}`;
 
-        if (this.averagePriceCache.has(cacheKey) && this.lastCalculationHour === currentHour) {
-            const cachedData = this.averagePriceCache.get(cacheKey);
+        if (this.cacheManager.has(cacheKey) && this.lastCalculationHour === currentHour) {
+            const cachedData = this.cacheManager.get(cacheKey);
             if (this.isCacheValid(cachedData.timestamp)) {
                 this.logger?.debug('Použití dat z průměrné cache', { cacheKey });
                 return cachedData.data;
@@ -270,8 +279,8 @@ class PriceCalculationEngine {
     async checkRemainingDayCache(device, hours, currentHour) {
         const cacheKey = `remaining-${hours}-${currentHour}-${device.getPriceInKWh()}`;
 
-        if (this.averagePriceCache.has(cacheKey) && this.lastCalculationHour === currentHour) {
-            const cachedData = this.averagePriceCache.get(cacheKey);
+        if (this.cacheManager.has(cacheKey) && this.lastCalculationHour === currentHour) {
+            const cachedData = this.cacheManager.get(cacheKey);
             if (this.isCacheValid(cachedData.timestamp)) {
                 this.logger?.debug('Použití dat z remaining day cache', { cacheKey });
                 return cachedData.data;
@@ -294,7 +303,7 @@ class PriceCalculationEngine {
 
     updateRemainingDayCache(combinations, hours, currentHour, device) {
         const cacheKey = `remaining-${hours}-${currentHour}-${device.getPriceInKWh()}`;
-        this.averagePriceCache.set(cacheKey, {
+        this.cacheManager.set(cacheKey, {
             data: combinations,
             timestamp: Date.now()
         });
@@ -305,7 +314,7 @@ class PriceCalculationEngine {
         const currentHour = new Date().getHours();
         const cacheKey = `${hours}-${startFromHour}-${currentHour}-${device.getPriceInKWh()}`;
         
-        this.averagePriceCache.set(cacheKey, {
+        this.cacheManager.set(cacheKey, {
             data: combinations,
             timestamp: Date.now()
         });

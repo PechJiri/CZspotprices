@@ -1,7 +1,6 @@
 'use strict';
 
 const Homey = require('homey');
-const crypto = require('crypto');
 const SpotPriceAPI = require('./api');
 const IntervalManager = require('../../helpers/IntervalManager');
 const PriceCalculator = require('../../helpers/pricecalculation/PriceCalculator');
@@ -28,10 +27,10 @@ class CZSpotPricesDriver extends Homey.Driver {
             this.spotPriceApi = SpotPriceAPI.getInstance(this.homey, 'SpotPriceAPI');
             this.intervalManager = IntervalManager.getInstance(this.homey, 'IntervalManager');
             this.priceCalculator = PriceCalculator.getInstance(this.homey, 'PriceCalculator');
-            this.tariffCalculator = TariffCalculator.getInstance();
-            this.priceCalculationEngine = PriceCalculationEngine.getInstance();
-            this.dataValidator = DataValidator.getInstance();
-            this.cacheManager = CacheManager.getInstance();
+            this.tariffCalculator = TariffCalculator.getInstance(this.homey, 'TariffCalculator');
+            this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey, 'PriceCalculatorEngine');
+            this.dataValidator = DataValidator.getInstance(this.homey, 'DataValidator');
+            this.cacheManager = CacheManager.getInstance(this.homey, 'CacheManager');
 
             // Validace instancí
             this.validateInstances();
@@ -490,7 +489,7 @@ class CZSpotPricesDriver extends Homey.Driver {
                 // Zpracování cen
                 const processedPrices = dailyPrices.map(priceData => ({
                     hour: priceData.hour,
-                    priceCZK: device.priceCalculator.addDistributionPrice(
+                    priceCZK: this.priceCalculationEngine.addDistributionPrice(
                         priceData.priceCZK,
                         settings,
                         priceData.hour
@@ -526,24 +525,24 @@ class CZSpotPricesDriver extends Homey.Driver {
 
 
     async onPairListDevices() {
-    try {
-        const deviceId = crypto.randomUUID();
-        const deviceName = 'CZ Spot Prices Device';
+        try {
+            const deviceId = `cz-spot-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+            const deviceName = 'CZ Spot Prices Device';
 
-        if (this.logger) {
-            this.logger.log('Setting up device for pairing', { deviceName, deviceId });
-        }
+            if (this.logger) {
+                this.logger.log('Setting up device for pairing', { deviceName, deviceId });
+            }
 
-        return [{
-            name: deviceName,
-            data: { id: deviceId }
-        }];
-    } catch (error) {
-        if (this.logger) {
-            this.logger.error('Error during pairing', error);
+            return [{
+                name: deviceName,
+                data: { id: deviceId }
+            }];
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Error during pairing', error);
+            }
+            throw error;
         }
-        throw error;
-    }
     }
 
     async settingsChanged(data) {
