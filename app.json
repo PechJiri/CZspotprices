@@ -641,6 +641,82 @@
             "filter": "driver_id=cz-spot-prices"
           }
         ]
+      },
+      {
+        "id": "when-high-tariff-starts",
+        "title": {
+          "en": "High tariff starts",
+          "nl": "Hoog tarief begint",
+          "da": "Høj takst starter",
+          "de": "Hoher Tarif beginnt",
+          "es": "Empieza la tarifa alta",
+          "fr": "Le tarif élevé commence",
+          "it": "Inizia la tariffa alta",
+          "no": "Høy tariff starter",
+          "sv": "Hög tariff börjar",
+          "pl": "Rozpoczyna się wysoka taryfa",
+          "ru": "Начинается высокий тариф",
+          "ko": "고요금제 시작"
+        },
+        "titleFormatted": {
+          "en": "High tariff period starts",
+          "nl": "Hoog tariefperiode begint",
+          "da": "Høj takstperiode starter",
+          "de": "Der Zeitraum mit hohem Tarif beginnt",
+          "es": "Comienza el período de tarifa alta",
+          "fr": "La période de tarif élevé commence",
+          "it": "Inizia il periodo di tariffa alta",
+          "no": "Høy tariffperiode starter",
+          "sv": "Hög tariffperiod börjar",
+          "pl": "Rozpoczyna się okres wysokiej taryfy",
+          "ru": "Начинается период высокого тарифа",
+          "ko": "고요금제 기간이 시작됩니다"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          }
+        ]
+      },
+      {
+        "id": "when-low-tariff-starts",
+        "title": {
+          "en": "Low tariff starts",
+          "nl": "Laag tarief begint",
+          "da": "Lav takst starter",
+          "de": "Niedriger Tarif beginnt",
+          "es": "Empieza la tarifa baja",
+          "fr": "Le tarif bas commence",
+          "it": "Inizia la tariffa bassa",
+          "no": "Lav tariff starter",
+          "sv": "Låg tariff börjar",
+          "pl": "Rozpoczyna się niska taryfa",
+          "ru": "Начинается низкий тариф",
+          "ko": "저요금제 시작"
+        },
+        "titleFormatted": {
+          "en": "Low tariff period starts",
+          "nl": "Laag tariefperiode begint",
+          "da": "Lav takstperiode starter",
+          "de": "Der Zeitraum mit niedrigem Tarif beginnt",
+          "es": "Comienza el período de tarifa baja",
+          "fr": "La période de tarif bas commence",
+          "it": "Inizia il periodo di tariffa bassa",
+          "no": "Lav tariffperiode starter",
+          "sv": "Låg tariffperiod börjar",
+          "pl": "Rozpoczyna się okres niskiej taryfy",
+          "ru": "Начинается период низкого тарифа",
+          "ko": "저요금제 기간이 시작됩니다"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=cz-spot-prices"
+          }
+        ]
       }
     ],
     "conditions": [

@@ -6,7 +6,11 @@ const axiosInstance = axios.create({
         rejectUnauthorized: false
     })    
 });
-const PriceCalculator = require('../../helpers/PriceCalculator');
+const PriceCalculator = require('../../helpers/pricecalculation/PriceCalculator');
+const TariffCalculator = require('../../helpers/pricecalculation/TariffCalculator');
+const PriceCalculationEngine = require('../../helpers/pricecalculation/PriceCalculationEngine');
+const DataValidator = require('../../helpers/DataValidator');
+const CacheManager = require('../../helpers/CacheManager');
 const Logger = require('../../helpers/Logger');
 
 class SpotPriceAPI {
@@ -35,6 +39,10 @@ class SpotPriceAPI {
         this.exchangeRate = 25.25;
         this.homeyTimezone = this.homey.clock.getTimezone();
         this.priceCalculator = PriceCalculator.getInstance(this.homey, 'PriceCalculator');
+        this.tariffCalculator = TariffCalculator.getInstance();
+        this.priceCalculationEngine = PriceCalculationEngine.getInstance();
+        this.dataValidator = DataValidator.getInstance();
+        this.cacheManager = CacheManager.getInstance();
         
         this.logger.debug('SpotPriceAPI inicializován');
     }

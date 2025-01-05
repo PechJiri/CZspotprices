@@ -1,6 +1,6 @@
 'use strict';
 
-const Logger = require('./Logger');
+const Logger = require('../Logger');
 
 class PriceCalculator {
     // Statická proměnná pro uložení jediné instance
@@ -459,7 +459,7 @@ class PriceCalculator {
     }
 
     /**
-     * Hlavní metody pro výpočet cen
+     * Metody pro výpočet kolem průměrů cen
      */
     async calculateAveragePrices(device, hours, startFromHour = 0) {
         try {

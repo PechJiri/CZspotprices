@@ -4,7 +4,11 @@ const Homey = require('homey');
 const crypto = require('crypto');
 const SpotPriceAPI = require('./api');
 const IntervalManager = require('../../helpers/IntervalManager');
-const PriceCalculator = require('../../helpers/PriceCalculator');
+const PriceCalculator = require('../../helpers/pricecalculation/PriceCalculator');
+const TariffCalculator = require('../../helpers/pricecalculation/TariffCalculator');
+const PriceCalculationEngine = require('../../helpers/pricecalculation/PriceCalculationEngine');
+const DataValidator = require('../../helpers/DataValidator');
+const CacheManager = require('../../helpers/CacheManager');
 const Logger = require('../../helpers/Logger');
 
 class CZSpotPricesDriver extends Homey.Driver {
@@ -24,7 +28,10 @@ class CZSpotPricesDriver extends Homey.Driver {
             this.spotPriceApi = SpotPriceAPI.getInstance(this.homey, 'SpotPriceAPI');
             this.intervalManager = IntervalManager.getInstance(this.homey, 'IntervalManager');
             this.priceCalculator = PriceCalculator.getInstance(this.homey, 'PriceCalculator');
-
+            this.tariffCalculator = TariffCalculator.getInstance();
+            this.priceCalculationEngine = PriceCalculationEngine.getInstance();
+            this.dataValidator = DataValidator.getInstance();
+            this.cacheManager = CacheManager.getInstance();
 
             // Validace instancí
             this.validateInstances();
