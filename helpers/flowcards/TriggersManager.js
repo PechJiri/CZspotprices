@@ -171,7 +171,7 @@ class TriggersManager {
 
             const card = this.homey.flow.getDeviceTriggerCard(id);
 
-            card.registerRunListener(async (args, state) => {
+            card.registerRunListener(async (args) => {
                 try {
                     const { hours, condition } = args;
                     const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
@@ -291,7 +291,7 @@ class TriggersManager {
 
             const card = this.homey.flow.getDeviceTriggerCard(id);
 
-            card.registerRunListener(async (args, state) => {
+            card.registerRunListener(async () => {
                 try {
                     return true; // Spouštěno pouze při skutečné změně tarifu
                 } catch (error) {
