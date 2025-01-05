@@ -288,24 +288,13 @@ class TriggersManager {
             return;
         }
     
-        try {
-            const card = this.homey.flow.getDeviceTriggerCard(id);
+        const card = this.homey.flow.getDeviceTriggerCard(id);
+        
+        // Zjednodušená registrace run listeneru
+        card.registerRunListener(() => true);
     
-            card.registerRunListener(async () => {
-                try {
-                    return true;
-                } catch (error) {
-                    this.logger.error('Chyba v tariff change triggeru', error);
-                    return false;
-                }
-            });
-    
-            this._triggers.set(id, card);
-            this.logger.debug('Tariff change trigger registrován');
-        } catch (error) {
-            this.logger.error('Chyba při registraci tariff change triggeru', error);
-            throw error;
-        }
+        this._triggers.set(id, card);
+        this.logger.debug('Tariff change trigger registrován');
     }    
 
     async _initializeSystemTriggers() {
@@ -362,24 +351,13 @@ class TriggersManager {
             return;
         }
     
-        try {
-            const card = this.homey.flow.getDeviceTriggerCard(id);
+        const card = this.homey.flow.getDeviceTriggerCard(id);
+        
+        // Zjednodušená registrace run listeneru
+        card.registerRunListener(() => true);
     
-            card.registerRunListener(async () => {
-                try {
-                    return true;
-                } catch (error) {
-                    this.logger.error('Chyba v price update triggeru', error);
-                    return false;
-                }
-            });
-    
-            this._triggers.set(id, card);
-            this.logger.debug('Price update trigger registrován');
-        } catch (error) {
-            this.logger.error('Chyba při registraci price update triggeru', error);
-            throw error;
-        }
+        this._triggers.set(id, card);
+        this.logger.debug('Price update trigger registrován');
     }
 
     // Veřejné metody pro spouštění triggerů

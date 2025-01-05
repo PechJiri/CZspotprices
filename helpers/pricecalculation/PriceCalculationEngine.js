@@ -19,69 +19,60 @@ class PriceCalculationEngine {
         }
         this.logger = Logger.getInstance();
         this.validator = DataValidator.getInstance();
+        this.tariffCalculator = TariffCalculator.getInstance();
         this.homey = homeyInstance;
         this.deviceContext = deviceContext;
     }
 
     /**
-     * Přidání DPH k ceně
-     * @param {number} price - Základní cena bez DPH
-     * @param {boolean} applyVAT - Zda se má aplikovat DPH
-     * @returns {number} - Cena s nebo bez DPH podle nastavení
-     */
-    addVAT(price, applyVAT) {
-        try {
-            if (!this.validator.validatePriceForVAT(price)) {
-                return price;
-            }
-
-            if (!applyVAT) {
-                return price;
-            }
-
-            const priceWithVAT = price * 1.21;
-
-            this.logger?.debug('Přidáno DPH k ceně', {
-                původníCena: price,
-                sDPH: priceWithVAT,
-                sazba: '21%'
-            });
-
-            return priceWithVAT;
-        } catch (error) {
-            this.logger?.error('Chyba při přidávání DPH:', error);
-            return price;
-        }
-    }
-
-    /**
-     * Přidání distribučního tarifu k základní ceně
-     * @param {number} basePrice - Základní cena
-     * @param {object} settings - Nastavení obsahující tarifní ceny
-     * @param {number} hour - Aktuální hodina
-     * @returns {number} - Konečná cena s tarifem
+     * Přidání distribučního tarifu a případného DPH k základní ceně
+     * @param {number} basePrice - Základní cena komodity
+     * @param {object} settings - Nastavení zařízení
+     * @param {boolean} settings.commodity_price_with_vat - Zda se má k ceně komodity připočíst DPH
+     * @param {number} settings.low_tariff_price - Cena pro nízký tarif distribuce
+     * @param {number} settings.high_tariff_price - Cena pro vysoký tarif distribuce
+     * @param {number} hour - Aktuální hodina (0-23)
+     * @returns {number} - Konečná cena včetně distribuce a případného DPH
      */
     addDistributionPrice(basePrice, settings, hour) {
         try {
             if (!this.validator.validateBasePrice(basePrice)) {
                 return basePrice;
             }
-
-            const priceWithVAT = this.addVAT(basePrice, settings.commodity_price_with_vat || false);
+            
+            // Interní funkce pro přidání DPH
+            const addVAT = (price) => {
+                if (!settings.commodity_price_with_vat) {
+                    return price;  
+                }
+                const priceWithVAT = price * 1.21;
+                this.logger?.debug('Přidáno DPH k ceně', {
+                    původníCena: price,
+                    sDPH: priceWithVAT, 
+                    sazba: '21%'
+                });
+                return priceWithVAT;
+            }
+    
+            // Aplikace DPH na základní cenu
+            const priceWithVAT = addVAT(basePrice);
+    
+            // Distribuční tarif
             const lowTariffPrice = parseFloat(settings.low_tariff_price) || 0;
             const highTariffPrice = parseFloat(settings.high_tariff_price) || 0;
-            const isLowTariff = this.isLowTariff(hour, settings);
-
+            const isLowTariff = this.tariffCalculator.isLowTariff(hour, settings);
+            
             const finalPrice = priceWithVAT + (isLowTariff ? lowTariffPrice : highTariffPrice);
-
+    
             this.logger?.debug('Výpočet ceny s tarifem', {
                 hour,
                 basePrice,
                 priceWithVAT,
-                tariffPrice: isLowTariff ? lowTariffPrice : highTariffPrice,
+                distribuční_tarif: isLowTariff ? 'nízký' : 'vysoký',
+                cena_distribuce: isLowTariff ? lowTariffPrice : highTariffPrice,
                 finalPrice
             });
-
+    
             return finalPrice;
         } catch (error) {
             this.logger?.error('Chyba při výpočtu ceny:', error);
