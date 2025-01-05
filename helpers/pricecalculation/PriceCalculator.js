@@ -95,7 +95,6 @@ class PriceCalculator {
                 return null;
             }
     
-            const tariffCalculator = this.getTariffCalculator();
             const priceEngine = this.getPriceCalculationEngine();
     
             const finalPrice = priceEngine.addDistributionPrice(hourlyValidation.price, settings, hour);

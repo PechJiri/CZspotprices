@@ -1,6 +1,5 @@
 'use strict';
 
-const Homey = require('homey');
 const Logger = require('../Logger');
 const DataValidator = require('../DataValidator');
 

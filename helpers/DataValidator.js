@@ -46,10 +46,13 @@ class DataValidator {
                     this.logger.error('Neplatná data - nesprávný počet hodin', new Error('Invalid data length'), {
                         expectedLength: 24,
                         actualLength: data.length,
-                        data: data.map(item => ({
-                            hour: item?.hour,
-                            hasPrice: 'priceCZK' in item
-                        }))
+                        data: data.map(item => item ? { // Ověří, zda item existuje
+                            hour: item.hour || null, // Bezpečný přístup k item.hour
+                            hasPrice: 'priceCZK' in item // Kontrola existence vlastnosti priceCZK
+                        } : {
+                            hour: null, // Pokud item neexistuje, nastaví výchozí hodnoty
+                            hasPrice: false
+                        })
                     });
                 }
                 return false;
@@ -279,32 +282,46 @@ class DataValidator {
      */
     validateHourlyPrice(data, hour) {
         try {
-            const priceData = data.find(d => d.hour === hour);
-            
+            // Zajištění, že data jsou platná
+            if (!Array.isArray(data)) {
+                this.logger?.error('Data nejsou pole nebo jsou neplatná', {
+                    receivedType: typeof data,
+                    data: data || null
+                });
+                return { isValid: false, price: null };
+            }
+    
+            const priceData = data.find(d => d?.hour === hour);
+    
             if (!priceData || priceData.priceCZK === undefined) {
                 this.logger?.error('Základní cena pro danou hodinu nenalezena', { 
                     hour,
-                    dataLength: data?.length,
+                    dataLength: data.length,
                     foundData: priceData || null
                 });
                 return { isValid: false, price: null };
             }
-
+    
             // Validace hodnoty ceny
             if (!this.validatePriceForVAT(priceData.priceCZK)) {
+                this.logger?.error('Cena není platná pro výpočet DPH', {
+                    hour: priceData.hour,
+                    price: priceData.priceCZK
+                });
                 return { isValid: false, price: null };
             }
-
+    
             return { isValid: true, price: priceData.priceCZK };
             
         } catch (error) {
             this.logger?.error('Chyba při validaci hodinové ceny', error, {
                 hour,
-                dataLength: data?.length
+                dataLength: data?.length || 0
             });
             return { isValid: false, price: null };
         }
     }
+    
 
     /**
      * Validace ceny pro výpočet DPH

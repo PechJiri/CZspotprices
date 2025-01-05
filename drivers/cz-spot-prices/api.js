@@ -1,11 +1,6 @@
 'use strict';
 
 const axios = require('axios');
-const axiosInstance = axios.create({
-    httpsAgent: new (require('https').Agent)({
-        rejectUnauthorized: false
-    })    
-});
 const PriceCalculator = require('../../helpers/pricecalculation/PriceCalculator');
 const TariffCalculator = require('../../helpers/pricecalculation/TariffCalculator');
 const PriceCalculationEngine = require('../../helpers/pricecalculation/PriceCalculationEngine');
