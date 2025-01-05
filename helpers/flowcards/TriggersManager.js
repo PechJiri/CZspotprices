@@ -283,30 +283,30 @@ class TriggersManager {
 
     async _registerTariffChangeTrigger() {
         const id = 'when-distribution-tariff-changes';
+        if (this._triggers.has(id)) {
+            this.logger.debug('Tariff change trigger již existuje');
+            return;
+        }
+    
         try {
-            if (this._triggers.has(id)) {
-                this.logger.debug('Tariff change trigger již existuje');
-                return;
-            }
-
             const card = this.homey.flow.getDeviceTriggerCard(id);
-
+    
             card.registerRunListener(async () => {
                 try {
-                    return true; // Spouštěno pouze při skutečné změně tarifu
+                    return true;
                 } catch (error) {
                     this.logger.error('Chyba v tariff change triggeru', error);
                     return false;
                 }
             });
-
+    
             this._triggers.set(id, card);
             this.logger.debug('Tariff change trigger registrován');
         } catch (error) {
             this.logger.error('Chyba při registraci tariff change triggeru', error);
             throw error;
         }
-    }
+    }    
 
     async _initializeSystemTriggers() {
         try {
@@ -357,23 +357,23 @@ class TriggersManager {
 
     async _registerPriceUpdateTrigger() {
         const id = 'when-current-price-changes';
+        if (this._triggers.has(id)) {
+            this.logger.debug('Price update trigger již existuje');
+            return;
+        }
+    
         try {
-            if (this._triggers.has(id)) {
-                this.logger.debug('Price update trigger již existuje');
-                return;
-            }
-
             const card = this.homey.flow.getDeviceTriggerCard(id);
-
+    
             card.registerRunListener(async () => {
                 try {
-                    return true; // Spouštěno pouze při skutečné změně ceny
+                    return true;
                 } catch (error) {
                     this.logger.error('Chyba v price update triggeru', error);
                     return false;
                 }
             });
-
+    
             this._triggers.set(id, card);
             this.logger.debug('Price update trigger registrován');
         } catch (error) {

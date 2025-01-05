@@ -8,26 +8,20 @@ class PriceCalculationEngine {
     static instance = null;
 
     static getInstance(homey, deviceContext = 'PriceCalculatorEngine') {
-        if (!PriceCalculatorEngine.instance) {
-            PriceCalculatorEngine.instance = new PriceCalculatorEngine(homey, deviceContext);
+        if (!PriceCalculationEngine.instance) {
+            PriceCalculationEngine.instance = new PriceCalculationEngine(homey, deviceContext);
         }
-        return PriceCalculatorEngine.instance;
+        return PriceCalculationEngine.instance;
     }
 
-    constructor(homeyInstance) {
+    constructor(homeyInstance, deviceContext) {
         if (PriceCalculationEngine.instance) {
             throw new Error('Použijte PriceCalculationEngine.getInstance() místo volání new.');
         }
         this.logger = Logger.getInstance();
         this.validator = DataValidator.getInstance();
         this.homey = homeyInstance;
-    }
-
-    static getInstance() {
-        if (!PriceCalculationEngine.instance) {
-            PriceCalculationEngine.instance = new PriceCalculationEngine();
-        }
-        return PriceCalculationEngine.instance;
+        this.deviceContext = deviceContext;
     }
 
     /**
