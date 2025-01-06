@@ -232,7 +232,7 @@ class SpotPriceAPI {
                 validateStatus: status => status === 200
             });
     
-            if (!data?.hoursToday?.length === 24) {
+            if (data?.hoursToday?.length !== 24) {
                 throw new Error('Neplatná struktura dat z API');
             }
     
