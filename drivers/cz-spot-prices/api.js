@@ -21,7 +21,7 @@ class SpotPriceAPI {
         return SpotPriceAPI.instance;
     }
 
-    constructor(homeyInstance, deviceContext = SpotPriceAPI.CONTEXT) {
+    constructor(homeyInstance) {
         if (SpotPriceAPI.instance) {
             throw new Error('Použijte SpotPriceAPI.getInstance() místo volání new SpotPriceAPI().');
         }
@@ -61,13 +61,6 @@ class SpotPriceAPI {
         }
         
         this.logger.debug('SpotPriceAPI inicializován');
-    }
-    
-    static getInstance(homey) {
-        if (!SpotPriceAPI.instance) {
-            SpotPriceAPI.instance = new SpotPriceAPI(homey);
-        }
-        return SpotPriceAPI.instance;
     }
 
     static setHomeyInstance(homey) {

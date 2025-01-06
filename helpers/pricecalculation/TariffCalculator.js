@@ -37,13 +37,6 @@ class TariffCalculator {
         return TariffCalculator.instance;
     }
 
-    static setHomeyInstance(homey) {
-        if (!homey) {
-            throw new Error('Homey instance je vyžadována pro TariffCalculator');
-        }
-        TariffCalculator.homeyInstance = homey;
-    }
-
     /**
      * Získá hodiny s nízkým tarifem
      * @param {Object} settings - Nastavení tarifu

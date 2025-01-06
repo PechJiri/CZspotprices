@@ -35,13 +35,6 @@ class DataValidator {
         return DataValidator.instance;
     }
 
-    static setHomeyInstance(homey) {
-        if (!homey) {
-            throw new Error('Homey instance je vyžadována pro DataValidator');
-        }
-        DataValidator.homeyInstance = homey;
-    }
-
     /**
      * Validace cenových dat
      * @param {Array} data - Pole obsahující data o cenách
