@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "axios": "^1.7.7",
+    "crypto": "^1.0.1",
     "got": "^14.4.3",
     "homey": "^2.0.6",
     "node-fetch": "^3.3.2",

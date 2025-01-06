@@ -3,47 +3,84 @@
 const Logger = require('./Logger');
 
 class IntervalManager {
-    // Statická proměnná pro uchování jediné instance
-    static _instance = null;
+    static instance = null;
+    static CONTEXT = 'IntervalManager';
 
-    /**
-     * Statická metoda pro získání jediné instance IntervalManager
-     * @param {Homey} homey - Homey instance
-     * @returns {IntervalManager} - Singleton instance
-     */
     static getInstance(homey) {
-        if (!IntervalManager._instance) {
-            IntervalManager._instance = new IntervalManager(homey);
+        if (!IntervalManager.instance) {
+            IntervalManager.instance = new IntervalManager(homey);
         }
-        return IntervalManager._instance;
+        return IntervalManager.instance;
     }
 
     constructor(homey) {
-        if (IntervalManager._instance) {
+        if (IntervalManager.instance) {
             throw new Error('IntervalManager je singleton. Použijte IntervalManager.getInstance()');
         }
         
         this.homey = homey;
-        this.intervals = {
-            hourly: null,
-            average: null,
-            tariff: null,
-            midnight: null
-        };
-        this.timeouts = {
-            hourly: null,
-            average: null,
-            tariff: null,
-            midnight: null
-        };
-
-        // Inicializace loggeru
-        this.logger = Logger.getInstance(homey, 'IntervalManager');
+        this.intervals = new Map();
+        this.timeouts = new Map();
+        this.logger = Logger.getInstance()
         this.logger.debug('IntervalManager: Logger inicializován');
     }
 
-setScheduledInterval(key, callback, interval, initialDelay = 0) {
-    try {
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro IntervalManager');
+        }
+        IntervalManager.homeyInstance = homey;
+    }
+
+    scheduleMultipleIntervals(tasks, baseDelay = 0) {
+        try {
+            if (!Array.isArray(tasks)) {
+                throw new Error('Tasks musí být pole');
+            }
+
+            tasks.forEach((task, index) => {
+                const { key, callback, interval, offset = 0 } = task;
+                const totalDelay = baseDelay + offset;
+
+                this.logger.debug('Plánuji interval', {
+                    key,
+                    offset,
+                    totalDelay,
+                    index
+                });
+
+                this.setScheduledInterval(key, callback, interval, totalDelay);
+            });
+
+            return true;
+        } catch (error) {
+            this.logger.error('Chyba při plánování více intervalů', error);
+            throw error;
+        }
+    }
+
+    setScheduledInterval(key, callback, interval, initialDelay = 0) {
+        try {
+            this.validateIntervalParams(key, callback, interval);
+            this.clearExistingInterval(key);
+            
+            const timeInfo = this.calculateTimeInfo(initialDelay, interval);
+            this.logIntervalSetup(key, timeInfo);
+
+            if (initialDelay > 0) {
+                this.setupDelayedInterval(key, callback, interval, initialDelay);
+            } else {
+                this.setupImmediateInterval(key, callback, interval);
+            }
+
+            return true;
+        } catch (error) {
+            this.logger.error('Chyba při nastavování intervalu', error);
+            throw error;
+        }
+    }
+
+    validateIntervalParams(key, callback, interval) {
         if (!key || typeof key !== 'string') {
             throw new Error('Neplatný klíč intervalu');
         }
@@ -53,117 +90,75 @@ setScheduledInterval(key, callback, interval, initialDelay = 0) {
         if (typeof interval !== 'number' || interval <= 0) {
             throw new Error('Interval musí být kladné číslo');
         }
+    }
 
-        // Vyčištění existujícího intervalu
-        if (this.intervals[key] || this.timeouts[key]) {
-            if (this.logger) {
-                this.logger.debug('Nalezen existující interval/timeout, provádím vyčištění', {
-                    key,
-                    hasInterval: !!this.intervals[key],
-                    hasTimeout: !!this.timeouts[key]
-                });
-            }
+    clearExistingInterval(key) {
+        if (this.intervals.has(key) || this.timeouts.has(key)) {
+            this.logger.debug('Čištění existujícího intervalu/timeoutu', { key });
             this.clearScheduledInterval(key);
         }
+    }
 
+    calculateTimeInfo(initialDelay, interval) {
         const now = new Date();
         const nextRun = new Date(now.getTime() + initialDelay);
-
-        if (this.logger) {
-            this.logger.debug('Nastavuji nový interval', {
-                key,
-                currentTime: {
-                    system: now.toISOString(),
-                    systemHour: now.getHours(),
-                    local: now.toLocaleString('cs-CZ', { timeZone: 'Europe/Prague' })
-                },
-                interval: {
-                    ms: interval,
-                    hours: Math.floor(interval / (1000 * 60 * 60)),
-                    minutes: Math.floor((interval % (1000 * 60 * 60)) / (1000 * 60)),
-                    seconds: Math.floor((interval % (1000 * 60)) / 1000)
-                },
-                initialDelay: {
-                    ms: initialDelay,
-                    hours: Math.floor(initialDelay / (1000 * 60 * 60)),
-                    minutes: Math.floor((initialDelay % (1000 * 60 * 60)) / (1000 * 60)),
-                    seconds: Math.floor((initialDelay % (1000 * 60)) / 1000)
-                },
-                nextRun: {
-                    system: nextRun.toISOString(),
-                    local: nextRun.toLocaleString('cs-CZ', { timeZone: 'Europe/Prague' })
-                }
-            });
-        }
-
-        // Nastavení nového intervalu s initial delay
-        if (initialDelay > 0) {
-            this.timeouts[key] = this.homey.setTimeout(() => {
-                try {
-                    callback();
-                    // Nastavení pravidelného intervalu
-                    this.intervals[key] = this.homey.setInterval(callback, interval);
-
-                    if (this.logger) {
-                        this.logger.debug('Interval nastaven po initial delay', {
-                            key,
-                            nextRegularRun: new Date(Date.now() + interval).toISOString()
-                        });
-                    }
-                } catch (error) {
-                    if (this.logger) {
-                        this.logger.error('Chyba při spuštění callbacku', error);
-                    }
-                }
-            }, initialDelay);
-        } else {
-            this.intervals[key] = this.homey.setInterval(callback, interval);
-            if (this.logger) {
-                this.logger.debug('Interval nastaven okamžitě', { 
-                    key,
-                    nextRun: new Date(Date.now() + interval).toISOString()
-                });
-            }
-        }
-
-        return true;
-    } catch (error) {
-        if (this.logger) {
-            this.logger.error('Chyba při nastavování intervalu', error);
-        }
-        throw error;
+        
+        return {
+            current: {
+                time: now,
+                formatted: this.formatDateTime(now)
+            },
+            next: {
+                time: nextRun,
+                formatted: this.formatDateTime(nextRun)
+            },
+            delay: this.formatDuration(initialDelay),
+            interval: this.formatDuration(interval)
+        };
     }
-}
+
+    setupDelayedInterval(key, callback, interval, initialDelay) {
+        const timeoutId = this.homey.setTimeout(() => {
+            try {
+                callback();
+                const intervalId = this.homey.setInterval(callback, interval);
+                this.intervals.set(key, intervalId);
+                this.logIntervalStart(key, interval);
+            } catch (error) {
+                this.logger.error('Chyba při spuštění callbacku', error);
+            }
+        }, initialDelay);
+
+        this.timeouts.set(key, timeoutId);
+    }
+
+    setupImmediateInterval(key, callback, interval) {
+        const intervalId = this.homey.setInterval(callback, interval);
+        this.intervals.set(key, intervalId);
+        this.logIntervalStart(key, interval);
+    }
 
     clearScheduledInterval(key) {
-        if (this.intervals[key]) {
-            this.homey.clearInterval(this.intervals[key]);
-            this.intervals[key] = null;
-            if (this.logger) {
-                this.logger.debug('Interval vyčištěn', { key });
-            }
+        if (this.intervals.has(key)) {
+            this.homey.clearInterval(this.intervals.get(key));
+            this.intervals.delete(key);
+            this.logger.debug('Interval vyčištěn', { key });
         }
-        if (this.timeouts[key]) {
-            this.homey.clearTimeout(this.timeouts[key]);
-            this.timeouts[key] = null;
-            if (this.logger) {
-                this.logger.debug('Timeout vyčištěn', { key });
-            }
+        if (this.timeouts.has(key)) {
+            this.homey.clearTimeout(this.timeouts.get(key));
+            this.timeouts.delete(key);
+            this.logger.debug('Timeout vyčištěn', { key });
         }
     }
 
     clearAll() {
-        if (this.logger) {
-            this.logger.debug('Vyčišťuji všechny intervaly a timeouty');
-        }
-
-        Object.keys(this.intervals).forEach(key => {
+        this.logger.debug('Vyčišťuji všechny intervaly a timeouty');
+        
+        for (const key of this.intervals.keys()) {
             this.clearScheduledInterval(key);
-        });
-
-        if (this.logger) {
-            this.logger.debug('Všechny intervaly a timeouty vyčištěny');
         }
+        
+        this.logger.debug('Všechny intervaly a timeouty vyčištěny');
     }
 
     calculateDelayToNextHour() {
@@ -172,23 +167,52 @@ setScheduledInterval(key, callback, interval, initialDelay = 0) {
         nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
         const delay = nextHour.getTime() - now.getTime();
 
-        if (this.logger) {
-            this.logger.debug('Vypočítáno zpoždění do další hodiny', {
-                currentTime: now.toISOString(),
-                nextHour: nextHour.toISOString(),
-                delayInMs: delay,
-                delayFormatted: this._formatDelay(delay)
-            });
-        }
+        this.logger.debug('Vypočítáno zpoždění do další hodiny', {
+            currentTime: this.formatDateTime(now),
+            nextHour: this.formatDateTime(nextHour),
+            delay: this.formatDuration(delay)
+        });
 
         return delay;
     }
 
-    _formatDelay(delay) {
-        const hours = Math.floor(delay / (1000 * 60 * 60));
-        const minutes = Math.floor((delay % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((delay % (1000 * 60)) / 1000);
-        return `${hours} h ${minutes} m ${seconds} s`;
+    formatDateTime(date) {
+        return date.toLocaleString('cs-CZ', { 
+            timeZone: 'Europe/Prague',
+            dateStyle: 'medium',
+            timeStyle: 'medium'
+        });
+    }
+
+    formatDuration(ms) {
+        const hours = Math.floor(ms / (1000 * 60 * 60));
+        const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+        
+        return {
+            ms,
+            hours,
+            minutes,
+            seconds,
+            formatted: `${hours}h ${minutes}m ${seconds}s`
+        };
+    }
+
+    logIntervalSetup(key, timeInfo) {
+        this.logger.debug('Nastavení intervalu', {
+            key,
+            currentTime: timeInfo.current.formatted,
+            nextRun: timeInfo.next.formatted,
+            delay: timeInfo.delay.formatted,
+            interval: timeInfo.interval.formatted
+        });
+    }
+
+    logIntervalStart(key, interval) {
+        this.logger.debug('Interval spuštěn', {
+            key,
+            nextRun: this.formatDateTime(new Date(Date.now() + interval))
+        });
     }
 }
 

@@ -5,6 +5,7 @@ const Logger = require('../Logger');
 class ActionsManager {
     // Statická instance pro singleton
     static instance = null;
+    static CONTEXT = 'ActionsManager';
 
     /**
      * Získá nebo vytvoří instanci ActionsManageru
@@ -19,6 +20,13 @@ class ActionsManager {
         return ActionsManager.instance;
     }
 
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro ActionsManager');
+        }
+        ActionsManager.homeyInstance = homey;
+    }
+
     /**
      * Vytvoří novou instanci ActionsManageru
      * @param {Homey} homey - Instance Homey
@@ -31,10 +39,9 @@ class ActionsManager {
 
         this.homey = homey;
         this.device = device;
-        this.logger = Logger.getInstance(this.homey, 'ActionsManager');
-        this._actions = new Map();
-
+        this.logger = Logger.getInstance()
         this.logger.debug('ActionsManager inicializován');
+        this._actions = new Map();
     }
 
     /**

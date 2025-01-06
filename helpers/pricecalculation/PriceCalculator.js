@@ -4,13 +4,14 @@ const Logger = require('../Logger');
 
 class PriceCalculator {
     static instance = null;
+    static CONTEXT = 'PriceCalculator';
 
     constructor(homey) {
         if (PriceCalculator.instance) {
             throw new Error('Použijte PriceCalculator.getInstance() místo volání new.');
         }
 
-        this.logger = Logger.getInstance(); // Singleton logger
+        this.logger = Logger.getInstance()
         this.homey = homey;
         this.components = {}; // Lazy-loaded komponenty
 
@@ -24,6 +25,13 @@ class PriceCalculator {
         return PriceCalculator.instance;
     }
 
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro PriceCalculator');
+        }
+        PriceCalculator.homeyInstance = homey;
+    }
+
     /**
      * Lazy-load TariffCalculator
      * @returns {TariffCalculator}
@@ -31,7 +39,7 @@ class PriceCalculator {
     getTariffCalculator() {
         if (!this.components.tariffCalculator) {
             const TariffCalculator = require('./TariffCalculator');
-            this.components.tariffCalculator = TariffCalculator.getInstance();
+            this.components.tariffCalculator = TariffCalculator.getInstance(this.homey);
         }
         return this.components.tariffCalculator;
     }
@@ -43,7 +51,7 @@ class PriceCalculator {
     getPriceCalculationEngine() {
         if (!this.components.priceCalculationEngine) {
             const PriceCalculationEngine = require('./PriceCalculationEngine');
-            this.components.priceCalculationEngine = PriceCalculationEngine.getInstance();
+            this.components.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey);
         }
         return this.components.priceCalculationEngine;
     }
@@ -55,7 +63,7 @@ class PriceCalculator {
     getDataValidator() {
         if (!this.components.dataValidator) {
             const DataValidator = require('../DataValidator');
-            this.components.dataValidator = DataValidator.getInstance();
+            this.components.dataValidator = DataValidator.getInstance(this.homey);
         }
         return this.components.dataValidator;
     }
@@ -67,7 +75,7 @@ class PriceCalculator {
     getCacheManager() {
         if (!this.components.cacheManager) {
             const CacheManager = require('../CacheManager');
-            this.components.cacheManager = CacheManager.getInstance();
+            this.components.cacheManager = CacheManager.getInstance(this.homey);
         }
         return this.components.cacheManager;
     }

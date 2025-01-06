@@ -3,14 +3,32 @@
 const Logger = require('./Logger');
 
 class LockManager {
+    static instance = null;
+
+    static getInstance(homey) {
+        if (!LockManager.instance) {
+            LockManager.instance = new LockManager(homey);
+        }
+        return LockManager.instance;
+    }
+    
+    static CONTEXT = 'LockManager';
+
     constructor(homey) {
         this.homey = homey;
         this.locks = new Map();
         this.lockTimeout = 30000; // 30 sekund timeout pro zámek
 
         // Automatická inicializace loggeru jako singletonu
-        this.logger = Logger.getInstance(this.homey, 'LockManager');
+        this.logger = Logger.getInstance()
         this.logger.debug('LockManager: Inicializace dokončena');
+    }
+
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro LockManager');
+        }
+        LockManager.homeyInstance = homey;
     }
 
     /**

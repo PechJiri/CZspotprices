@@ -2,9 +2,12 @@
 
 const Logger = require('../Logger');
 const DataValidator = require('../DataValidator');
+const TariffCalculator = require('./TariffCalculator');
+const CacheManager = require('../CacheManager');
 
 class PriceCalculationEngine {
     static instance = null;
+    static CONTEXT = 'PriceCalculationEngine';
 
     static getInstance(homey, deviceContext = 'PriceCalculatorEngine') {
         if (!PriceCalculationEngine.instance) {
@@ -17,11 +20,24 @@ class PriceCalculationEngine {
         if (PriceCalculationEngine.instance) {
             throw new Error('Použijte PriceCalculationEngine.getInstance() místo volání new.');
         }
-        this.logger = Logger.getInstance();
-        this.validator = DataValidator.getInstance();
-        this.tariffCalculator = TariffCalculator.getInstance();
+        
+        // Logger, validator, a kalkulátor tarifu
+        this.logger = Logger.getInstance()
+        this.validator = DataValidator.getInstance(homeyInstance);
+        this.tariffCalculator = TariffCalculator.getInstance(homeyInstance);
+        
         this.homey = homeyInstance;
         this.deviceContext = deviceContext;
+
+        // Inicializace CacheManager
+        this.cacheManager = CacheManager.getInstance(homeyInstance);
+    }
+
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro PriceCalculationEngine');
+        }
+        PriceCalculationEngine.homeyInstance = homey;
     }
 
     /**
@@ -180,11 +196,16 @@ class PriceCalculationEngine {
     }
 
     async checkAveragePricesCache(device, hours, startFromHour) {
+        if (!this.cacheManager) {
+            this.logger?.error('CacheManager není inicializován');
+            return null;
+        }
+    
         const currentHour = new Date().getHours();
         const cacheKey = `${hours}-${startFromHour}-${currentHour}-${device.getPriceInKWh()}`;
-
+    
         if (this.cacheManager.has(cacheKey) && this.lastCalculationHour === currentHour) {
-            const cachedData = this.cacheManager.get(cacheKey);
+            const cachedData = this.cacheManager.getCache(cacheKey); // Použij správnou metodu
             if (this.isCacheValid(cachedData.timestamp)) {
                 this.logger?.debug('Použití dat z průměrné cache', { cacheKey });
                 return cachedData.data;
@@ -192,6 +213,7 @@ class PriceCalculationEngine {
         }
         return null;
     }
+    
 
     async calculatePriceCombinations(device, hours, startFromHour) {
         const combinations = [];
@@ -306,8 +328,11 @@ class PriceCalculationEngine {
     }
 
     isCacheValid(timestamp) {
-        return Date.now() - timestamp < this.AVERAGE_CACHE_TTL;
+        const now = Date.now();
+        const maxAge = this.cacheManager?.TTL.AVERAGE || 15 * 60 * 1000; // Fallback na 15 minut
+        return now - timestamp < maxAge;
     }
+    
 
     logCalculationError(methodName, error) {
         if (this.logger) {

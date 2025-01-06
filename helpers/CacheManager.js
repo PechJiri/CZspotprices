@@ -4,12 +4,14 @@ const Logger = require('./Logger');
 
 class CacheManager {
     static instance = null;
+    static CONTEXT = 'CacheManager';
 
-    constructor() {
+    constructor(homey) {
         if (CacheManager.instance) {
             throw new Error('Použijte CacheManager.getInstance() místo volání new.');
         }
-        this.logger = Logger.getInstance();
+        this.logger = Logger.getInstance()
+        this.homey = homey;
         
         // Hlavní úložiště cache
         this.caches = new Map();
@@ -29,11 +31,18 @@ class CacheManager {
         });
     }
 
-    static getInstance() {
+    static getInstance(homey) {
         if (!CacheManager.instance) {
-            CacheManager.instance = new CacheManager();
+            CacheManager.instance = new CacheManager(homey);
         }
         return CacheManager.instance;
+    }
+
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro CacheManager');
+        }
+        CacheManager.homeyInstance = homey;
     }
 
     /**

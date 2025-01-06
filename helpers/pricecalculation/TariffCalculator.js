@@ -5,20 +5,43 @@ const DataValidator = require('../DataValidator');
 
 class TariffCalculator {
     static instance = null;
+    static homeyInstance = null; // Přidán statický homeyInstance
+    static CONTEXT = 'TariffCalculator';
 
-    constructor() {
+    // Metoda pro nastavení HomeyInstance
+    static setHomeyInstance(homey) {
+        TariffCalculator.homeyInstance = homey;
+    }
+
+    constructor(homeyInstance) {
         if (TariffCalculator.instance) {
             throw new Error('Použijte TariffCalculator.getInstance() místo volání new.');
         }
-        this.logger = Logger.getInstance();
-        this.validator = DataValidator.getInstance();
+        
+        // Použij předaný homeyInstance nebo statický homeyInstance
+        const instanceToUse = homeyInstance || TariffCalculator.homeyInstance;
+        
+        if (!instanceToUse) {
+            throw new Error('HomeyInstance musí být poskytnut');
+        }
+
+        this.logger = Logger.getInstance()
+        this.homey = instanceToUse;
+        this.validator = DataValidator.getInstance(instanceToUse);
     }
 
-    static getInstance() {
+    static getInstance(homeyInstance) {
         if (!TariffCalculator.instance) {
-            TariffCalculator.instance = new TariffCalculator();
+            TariffCalculator.instance = new TariffCalculator(homeyInstance);
         }
         return TariffCalculator.instance;
+    }
+
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro TariffCalculator');
+        }
+        TariffCalculator.homeyInstance = homey;
     }
 
     /**

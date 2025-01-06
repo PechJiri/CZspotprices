@@ -11,6 +11,7 @@ const Logger = require('../../helpers/Logger');
 class SpotPriceAPI {
     // Statická proměnná pro uložení jediné instance
     static instance = null;
+    static CONTEXT = 'SpotPriceAPI';
 
     // Statická metoda pro získání nebo vytvoření instance
     static getInstance(homey) {
@@ -20,26 +21,60 @@ class SpotPriceAPI {
         return SpotPriceAPI.instance;
     }
 
-    constructor(homey, deviceContext = 'SpotPriceAPI') {
+    constructor(homeyInstance, deviceContext = SpotPriceAPI.CONTEXT) {
         if (SpotPriceAPI.instance) {
             throw new Error('Použijte SpotPriceAPI.getInstance() místo volání new SpotPriceAPI().');
         }
-        this.homey = homey;
-        this.logger = Logger.getInstance(this.homey, deviceContext);
-
+        
+        this.homey = homeyInstance;
+        
+        if (!this.homey) {
+            throw new Error('Homey instance není dostupná');
+        }
+    
+        // Inicializace loggeru
+        this.logger = Logger.getInstance()
+        
+        if (!this.logger) {
+            throw new Error('Logger inicializace selhala');
+        }
+    
         this.baseUrl = 'https://spotovaelektrina.cz/api/v1/price';
-        const today = new Date().toISOString().slice(0, 10); // získá datum ve formátu RRRR-MM-DD
+        const today = new Date().toISOString().slice(0, 10);
         this.backupUrl = `https://www.ote-cr.cz/cs/kratkodobe-trhy/elektrina/denni-trh/@@chart-data?date=${today}`;
         this.exchangeRateUrl = 'https://data.kurzy.cz/json/meny/b[6].json';
         this.exchangeRate = 25.25;
         this.homeyTimezone = this.homey.clock.getTimezone();
-        this.priceCalculator = PriceCalculator.getInstance(this.homey, 'PriceCalculator');
-        this.tariffCalculator = TariffCalculator.getInstance(this.homey, 'TariffCalculator');
-        this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey, 'PriceCalculatorEngine');
-        this.dataValidator = DataValidator.getInstance(this.homey, 'DataValidator');
-        this.cacheManager = CacheManager.getInstance(this.homey, 'CacheManager');
+    
+        // Inicializace ostatních pomocných tříd
+        try {
+            this.priceCalculator = PriceCalculator.getInstance(this.homey, 'PriceCalculator');
+            this.tariffCalculator = TariffCalculator.getInstance(this.homey, 'TariffCalculator');
+            this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey, 'PriceCalculatorEngine');
+            this.dataValidator = DataValidator.getInstance(this.homey, 'DataValidator');
+            this.cacheManager = CacheManager.getInstance(this.homey, 'CacheManager');
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Chyba při inicializaci pomocných tříd', error);
+            }
+            throw error;
+        }
         
         this.logger.debug('SpotPriceAPI inicializován');
+    }
+    
+    static getInstance(homey) {
+        if (!SpotPriceAPI.instance) {
+            SpotPriceAPI.instance = new SpotPriceAPI(homey);
+        }
+        return SpotPriceAPI.instance;
+    }
+
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro SpotPriceAPI');
+        }
+        SpotPriceAPI.homeyInstance = homey;
     }
 
   async updateExchangeRate() {

@@ -4,19 +4,42 @@ const Logger = require('./Logger');
 
 class DataValidator {
     static instance = null;
+    static homeyInstance = null; // Přidán statický homeyInstance
+    static CONTEXT = 'DataValidator';
 
-    constructor() {
+    // Metoda pro nastaveníHomeyInstance
+    static setHomeyInstance(homey) {
+        DataValidator.homeyInstance = homey;
+    }
+
+    constructor(homeyInstance) {
         if (DataValidator.instance) {
             throw new Error('Použijte DataValidator.getInstance() místo volání new.');
         }
-        this.logger = Logger.getInstance(); // Použití singletonu loggeru
+        
+        // Použij předaný homeyInstance nebo statický homeyInstance
+        const instanceToUse = homeyInstance || DataValidator.homeyInstance;
+        
+        if (!instanceToUse) {
+            throw new Error('HomeyInstance musí být poskytnut');
+        }
+
+        this.logger = Logger.getInstance()
+        this.homey = instanceToUse;
     }
 
-    static getInstance() {
+    static getInstance(homeyInstance) {
         if (!DataValidator.instance) {
-            DataValidator.instance = new DataValidator();
+            DataValidator.instance = new DataValidator(homeyInstance);
         }
         return DataValidator.instance;
+    }
+
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro DataValidator');
+        }
+        DataValidator.homeyInstance = homey;
     }
 
     /**

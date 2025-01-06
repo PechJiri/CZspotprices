@@ -4,12 +4,20 @@ const Logger = require('../Logger');
 
 class TriggersManager {
     static instance = null;
+    static CONTEXT = 'TriggersManager';
 
     static getInstance(homey, device = null) {
         if (!TriggersManager.instance) {
             TriggersManager.instance = new TriggersManager(homey, device);
         }
         return TriggersManager.instance;
+    }
+
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro TriggerManager');
+        }
+        TriggersManager.homeyInstance = homey;
     }
 
     constructor(homey, device) {
@@ -19,7 +27,7 @@ class TriggersManager {
 
         this.homey = homey;
         this.device = device;
-        this.logger = Logger.getInstance(this.homey, 'TriggersManager');
+        this.logger = Logger.getInstance()
         this._triggers = new Map();
 
         // Cenové triggery

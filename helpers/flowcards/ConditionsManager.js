@@ -4,6 +4,7 @@ const Logger = require('../Logger');
 
 class ConditionsManager {
     static instance = null;
+    static CONTEXT = 'ConditionsManager';
 
     /**
      * Získá nebo vytvoří instanci ConditionsManageru
@@ -18,6 +19,13 @@ class ConditionsManager {
         return ConditionsManager.instance;
     }
 
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro ConditionsManager');
+        }
+        ConditionsManager.homeyInstance = homey;
+    }
+
     /**
      * Vytvoří novou instanci ConditionsManageru
      * @param {Homey} homey - Instance Homey
@@ -30,7 +38,7 @@ class ConditionsManager {
 
         this.homey = homey;
         this.device = device;
-        this.logger = Logger.getInstance(this.homey, 'ConditionsManager');
+        this.logger = Logger.getInstance()
         this._conditions = new Map();
 
         // Základní typy podmínek

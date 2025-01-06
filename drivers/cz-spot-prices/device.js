@@ -16,16 +16,22 @@ const LockManager = require('../../helpers/LockManager');
 
 
 class CZSpotPricesDevice extends Homey.Device {
+    static CONTEXT = 'CZSpotPricesDevice';
+
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro Device');
+        }
+        CZSpotPricesDevice.homeyInstance = homey;
+    }
 
     async onInit() {
         try {
             this.isInitialized = false;
             
             // Inicializace loggeru jako první
-            this.logger = Logger.getInstance(this.homey, 'CZSpotPricesDevice');
-            const enableLogging = this.getSetting('enable_logging') || false;
-            this.logger.setEnabled(enableLogging);
-            this.logger.debug('Logger inicializován');
+            this.logger = Logger.getInstance()
+            this.logger.debug('Device Logger inicializován');
     
             // Inicializace všech helperů
             await this.initializeHelpers();
@@ -78,7 +84,7 @@ class CZSpotPricesDevice extends Homey.Device {
             this.spotPriceApi = SpotPriceAPI.getInstance(this.homey);
             this.intervalManager = IntervalManager.getInstance(this.homey);
             this.priceCalculator = PriceCalculator.getInstance(this.homey);
-            this.lockManager = new LockManager(this.homey);
+            this.lockManager = LockManager.getInstance(this.homey);
             this.tariffCalculator = TariffCalculator.getInstance(this.homey);
             this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey);
             this.dataValidator = DataValidator.getInstance(this.homey);
@@ -88,19 +94,8 @@ class CZSpotPricesDevice extends Homey.Device {
             this.actionsManager = ActionsManager.getInstance(this.homey, this);
             this.conditionsManager = ConditionsManager.getInstance(this.homey, this);
             this.triggersManager = TriggersManager.getInstance(this.homey, this);
-    
-            // Validace helperů
-            this.validateHelpers();
-    
-            // Inicializace flow manažerů
-            await Promise.all([
-                this.actionsManager.initialize(),
-                this.conditionsManager.initialize(),
-                this.triggersManager.initialize()
-            ]);
-    
-            this.logger.log('Všichni helpeři úspěšně inicializováni');
-        } catch (error) {
+
+            } catch (error) {
             this.logger.error('Chyba při inicializaci helperů', error);
             throw error;
         }
@@ -879,9 +874,13 @@ class CZSpotPricesDevice extends Homey.Device {
     }
 
     isCurrentHourMatch(combination) {
+        if (!combination || typeof combination !== 'object') {
+          this.logger.error('isCurrentHourMatch called with invalid combination:', combination);
+          return false;
+        }
         const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
         return combination.startHour === timeInfo.hour;
-    }
+      }      
 
     async triggerFlowForAveragePrice(triggerCard, combination, flow) {
         const tokens = {
@@ -959,10 +958,13 @@ class CZSpotPricesDevice extends Homey.Device {
  * Handler pro změnu nastavení zařízení
  */
     async onSettings({ oldSettings, newSettings, changedKeys }) {
-        // Zpracování nastavení loggeru jako první věc
+        // Pokud došlo ke změně nastavení 'enable_logging'
         if (changedKeys.includes('enable_logging')) {
-            this.logger.setEnabled(newSettings.enable_logging);
-            this.logger.log(`Logování ${newSettings.enable_logging ? 'zapnuto' : 'vypnuto'}`);
+            // Nastavení globálního logování pro všechny komponenty
+            Logger.setGlobalLogging(newSettings.enable_logging);
+    
+            // Logování stavu
+            logger.log(`Globální logování ${newSettings.enable_logging ? 'zapnuto' : 'vypnuto'}`);
         }
     
         const changedValues = changedKeys.reduce((acc, key) => {
@@ -972,12 +974,12 @@ class CZSpotPricesDevice extends Homey.Device {
             };
             return acc;
         }, {});
-        
+    
         this.logger.debug('Změna nastavení', { 
             changedKeys, 
             changes: changedValues 
         });
-        
+    
         try {
             // Kontrola změn v nastavení indexů nebo tarifu
             const needsRecalculation = changedKeys.some(key => 
@@ -1001,11 +1003,11 @@ class CZSpotPricesDevice extends Homey.Device {
                     ),
                     priceInKWhChanged: changedKeys.includes('price_in_kwh')
                 });
-                
+    
                 // Vyčištění cache pro zajištění čerstvého přepočtu
                 this.priceCalculator.clearCache();
                 this.logger.debug('Cache vyčištěna');
-                
+    
                 // Aktualizace interních proměnných před přepočtem
                 if (changedKeys.includes('low_index_hours')) {
                     this.lowIndexHours = newSettings.low_index_hours;
@@ -1028,14 +1030,14 @@ class CZSpotPricesDevice extends Homey.Device {
                         oldValue: oldSettings.price_in_kwh
                     });
                 }
-                
+    
                 try {
                     // Získání aktuálních cen
                     const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
                     this.logger.debug('Získána nová denní data', {
                         pricesCount: dailyPrices.length
                     });
-                    
+    
                     // Přepočet cen s novými nastaveními
                     const processedPrices = dailyPrices.map(priceData => ({
                         hour: priceData.hour,
@@ -1097,6 +1099,7 @@ class CZSpotPricesDevice extends Homey.Device {
             throw error;
         }
     }
+    
 
    /**
  * Hlavní metoda pro aktualizaci cen

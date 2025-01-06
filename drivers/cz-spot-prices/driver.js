@@ -1,6 +1,7 @@
 'use strict';
 
 const Homey = require('homey');
+const crypto = require('crypto');
 const SpotPriceAPI = require('./api');
 const IntervalManager = require('../../helpers/IntervalManager');
 const PriceCalculator = require('../../helpers/pricecalculation/PriceCalculator');
@@ -11,49 +12,67 @@ const CacheManager = require('../../helpers/CacheManager');
 const Logger = require('../../helpers/Logger');
 
 class CZSpotPricesDriver extends Homey.Driver {
+    static CONTEXT = 'CZSpotPricesDriver';
 
     async onInit() {
         try {
-            if (!this.homey) {
-                throw new Error('Homey instance není dostupná při inicializaci driveru.');
-            }
-            
-            // Inicializace loggeru jako první
-            this.logger = Logger.getInstance(this.homey, 'CZSpotPricesDriver');
-            this.logger.setEnabled(true);
-            this.logger.log('Inicializace CZSpotPricesDriver');
-            
-            // Inicializace všech helperů s jejich kontexty
-            this.spotPriceApi = SpotPriceAPI.getInstance(this.homey, 'SpotPriceAPI');
-            this.intervalManager = IntervalManager.getInstance(this.homey, 'IntervalManager');
-            this.priceCalculator = PriceCalculator.getInstance(this.homey, 'PriceCalculator');
-            this.tariffCalculator = TariffCalculator.getInstance(this.homey, 'TariffCalculator');
-            this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey, 'PriceCalculatorEngine');
-            this.dataValidator = DataValidator.getInstance(this.homey, 'DataValidator');
-            this.cacheManager = CacheManager.getInstance(this.homey, 'CacheManager');
+            // 1. Inicializace loggeru - předáváme this.homey
+            this.logger = Logger.getInstance(this.homey)
 
+            if (!this.homey) {
+            throw new Error('Homey instance není dostupná při inicializaci driveru.');
+            }
+
+            this.logger.log('Inicializace CZSpotPricesDriver');
+    
+            // Inicializace všech helperů
+            this.spotPriceApi = SpotPriceAPI.getInstance(this.homey);
+            this.intervalManager = IntervalManager.getInstance(this.homey);
+            this.priceCalculator = PriceCalculator.getInstance(this.homey);
+            this.tariffCalculator = TariffCalculator.getInstance(this.homey);
+            this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey);
+            this.dataValidator = DataValidator.getInstance(this.homey);
+            this.cacheManager = CacheManager.getInstance(this.homey);
+    
             // Validace instancí
             this.validateInstances();
-
+    
             // Společné plánování půlnoční aktualizace pro všechna zařízení
             await this.scheduleMidnightUpdate();
-
+    
             this.logger.log('Driver úspěšně inicializován');
-
+    
         } catch (error) {
-            this.logger.error('Chyba při inicializaci driveru', error, {
-                driverId: this.id
-            });
-            throw error; // Propagace chyby výš pro případné zachycení Homey
+            if (this.logger) {
+                this.logger.error('Chyba při inicializaci driveru', error, {
+                    driverId: this.id
+                });
+            } else {
+                console.error('Chyba při inicializaci driveru:', error);
+            }
+            throw error; 
         }
     }
 
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro Driver');
+        }
+        CZSpotPricesDriver.homeyInstance = homey;
+    }
+
     validateInstances() {
+        if (!this.logger) {
+            console.error('Logger není inicializován! Nelze validovat instance.');
+            throw new Error('Logger není inicializován');
+        }
+
         this.logger.debug('Validace instancí komponent');
         
         const validations = [
             { instance: this.spotPriceApi, name: 'SpotPriceAPI' },
             { instance: this.intervalManager, name: 'IntervalManager' }
+        
         ];
     
         // Kontrola, zda některá z instancí nechybí
@@ -526,13 +545,13 @@ class CZSpotPricesDriver extends Homey.Driver {
 
     async onPairListDevices() {
         try {
-            const deviceId = `cz-spot-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+            const deviceId = crypto.randomUUID();
             const deviceName = 'CZ Spot Prices Device';
-
+      
             if (this.logger) {
                 this.logger.log('Setting up device for pairing', { deviceName, deviceId });
             }
-
+      
             return [{
                 name: deviceName,
                 data: { id: deviceId }
@@ -543,7 +562,7 @@ class CZSpotPricesDriver extends Homey.Driver {
             }
             throw error;
         }
-    }
+      }
 
     async settingsChanged(data) {
     try {
