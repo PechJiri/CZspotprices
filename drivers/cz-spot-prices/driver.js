@@ -131,7 +131,7 @@ class CZSpotPricesDriver extends Homey.Driver {
 
                         await this.executeMidnightUpdate();
                         await device.setStoreValue('lastMidnightUpdate', now)
-                        
+
                     } catch (error) {
                         this.logger.error('Chyba při midnight update zařízení', error, {
                             deviceId: device.getData().id
@@ -573,8 +573,8 @@ class CZSpotPricesDriver extends Homey.Driver {
             }
         }
 
-        // Vyčistíme cache PriceCalculatoru při změně nastavení
-        this.priceCalculator.clearCache();
+        // Vyčistíme cache při změně nastavení
+        this.cacheManager.clearAll();
 
         if (this.logger) {
             this.logger.debug('PriceCalculator cache cleared after settings change');

@@ -110,7 +110,15 @@ class TriggersManager {
     async _initializePriceBasedTriggers() {
         try {
             this.logger.debug('Inicializace cenových triggerů');
+     
+            // Registrace triggeru pro změnu ceny
+            const priceChangeCard = this.homey.flow.getDeviceTriggerCard('when-current-price-changes');
+            if (priceChangeCard) {
+                this._triggers.set('when-current-price-changes', priceChangeCard);
+                this.logger.debug('Price change trigger registrován');
+            }
             
+            // Registrace ostatních cenových triggerů
             for (const trigger of this._priceBasedTriggers) {
                 switch (trigger.type) {
                     case 'PRICE_VALUE':

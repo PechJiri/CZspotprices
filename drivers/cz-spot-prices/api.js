@@ -85,39 +85,39 @@ class SpotPriceAPI {
         return this.exchangeRate;
     }
 
-  getCurrentTimeInfo() {
-    const now = new Date();
-    const options = { timeZone: this.homeyTimezone };
-    
-    let hour = parseInt(now.toLocaleString('en-US', { 
-        ...options, 
-        hour: 'numeric', 
-        hour12: false 
-    }));
-
-    if (hour === 24) hour = 0;
-    
-    if (hour < 0 || hour > 23) {
-        if (this.logger) this.logger.error('Neplatná hodina', { hour });
-        hour = new Date().getHours();
-    }
-
-    if (this.logger) this.logger.debug('Časové informace', {
-        hour,
-        systemHour: new Date().getHours(),
-        timezone: this.homeyTimezone
-    });
-
-    return {
-        hour,
-        date: now.toLocaleString('en-US', { 
+    getCurrentTimeInfo() {
+        const now = new Date();
+        const options = { timeZone: this.homeyTimezone };
+        
+        let hour = parseInt(now.toLocaleString('en-US', { 
             ...options, 
-            year: 'numeric', 
-            month: '2-digit', 
-            day: '2-digit' 
-        }).split('/').reverse().join('')
-    };
-  }
+            hour: 'numeric', 
+            hour12: false 
+        }));
+
+        if (hour === 24) hour = 0;
+        
+        if (hour < 0 || hour > 23) {
+            if (this.logger) this.logger.error('Neplatná hodina', { hour });
+            hour = new Date().getHours();
+        }
+
+        if (this.logger) this.logger.debug('Časové informace', {
+            hour,
+            systemHour: new Date().getHours(),
+            timezone: this.homeyTimezone
+        });
+
+        return {
+            hour,
+            date: now.toLocaleString('en-US', { 
+                ...options, 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit' 
+            }).split('/').reverse().join('')
+        };
+    }
 
     async handleApiError(error, device, context = 'API') {
         const errorMessage = error instanceof Error ? 

@@ -341,6 +341,32 @@ class DataValidator {
             return false;
         }
     }
+
+    validateBackupDataStructure(data) {
+        return data?.data?.dataLine?.some(line => 
+            line.title === "Cena (EUR/MWh)" && 
+            Array.isArray(line.point) && 
+            line.point.length >= 24
+        );
+    }
+    
+    validatePriceData(data) {
+        if (!Array.isArray(data)) {
+            return false;
+        }
+    
+        if (data.length !== 24) {
+            return false;
+        }
+    
+        return data.every(item => (
+            typeof item.hour === 'number' && 
+            item.hour >= 0 && 
+            item.hour < 24 &&
+            typeof item.priceCZK === 'number' && 
+            !isNaN(item.priceCZK)
+        ));
+    }
 }
 
 module.exports = DataValidator;

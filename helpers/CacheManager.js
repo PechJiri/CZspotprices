@@ -62,6 +62,40 @@ class CacheManager {
     }
 
     /**
+    * Kontrola existence platného záznamu v cache 
+    * @param {string} key - Klíč záznamu v cache
+    * @returns {boolean} True pokud existuje platný záznam, false pokud neexistuje nebo je expirovaný
+    * @example
+    * // Kontrola existence cache pro data
+    * if (cacheManager.has('my-cache-key')) {
+    *   // Cache existuje a není expirovaná
+    * }
+    */
+    has(key) {
+        const entry = this.caches.get(key);
+        if (!entry) {
+            this.logger?.debug('Cache nenalezena', { key });
+            return false;
+        }
+            
+        // Kontrola expirace
+        if (Date.now() > entry.expiresAt) {
+            this.logger?.debug('Cache expirovala', {
+                key,
+                expiredAt: new Date(entry.expiresAt).toISOString()
+            });
+            this.caches.delete(key);
+            return false;
+        }
+    
+        this.logger?.debug('Platná cache nalezena', { 
+            key,
+            expiresAt: new Date(entry.expiresAt).toISOString()
+        });
+        return true;
+    }
+    
+    /**
      * Přidání nebo aktualizace záznamu v cache
      * @param {string} key - Klíč cache
      * @param {any} data - Data k uložení

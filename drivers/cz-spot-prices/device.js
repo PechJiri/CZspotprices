@@ -61,8 +61,7 @@ class CZSpotPricesDevice extends Homey.Device {
             this.isInitialized = true;
             this.logger.log('Inicializace zařízení dokončena', {
                 deviceId: this.getData().id,
-                name: this.getName(),
-                loggingEnabled: this.logger.enabled
+                name: this.getName()
             });
     
         } catch (error) {
@@ -1005,7 +1004,7 @@ class CZSpotPricesDevice extends Homey.Device {
                 });
     
                 // Vyčištění cache pro zajištění čerstvého přepočtu
-                this.priceCalculator.clearCache();
+                this.cacheManager.clearAll();
                 this.logger.debug('Cache vyčištěna');
     
                 // Aktualizace interních proměnných před přepočtem
@@ -1395,7 +1394,6 @@ class CZSpotPricesDevice extends Homey.Device {
                 this.logger.debug('Zpracování dat před aktualizací', {
                     currentHour,
                     currentPrice: convertedCurrentPrice,
-                    rawLevel: currentHourData.level,
                     normalizedIndex: currentIndex,
                     nextHour,
                     nextPrice: convertedNextPrice,
@@ -1613,7 +1611,7 @@ class CZSpotPricesDevice extends Homey.Device {
 
         // Vyčištění cache priceCalculatoru
         if (this.priceCalculator) {
-            this.priceCalculator.clearCache();
+            this.cacheManager.clearAll();
             if (this.logger) {
                 this.logger.log('Price calculator cache cleared');
             }
@@ -1906,7 +1904,7 @@ class CZSpotPricesDevice extends Homey.Device {
             }
 
             // Vyčištění cache
-            this.priceCalculator.clearCache();
+            this.cacheManager.clearAll();
 
             // Reset všech capabilities na null
             const capabilities = this.getCapabilities();
