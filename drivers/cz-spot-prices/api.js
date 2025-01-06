@@ -54,9 +54,7 @@ class SpotPriceAPI {
             this.dataValidator = DataValidator.getInstance(this.homey, 'DataValidator');
             this.cacheManager = CacheManager.getInstance(this.homey, 'CacheManager');
         } catch (error) {
-            if (this.logger) {
                 this.logger.error('Chyba při inicializaci pomocných tříd', error);
-            }
             throw error;
         }
         
