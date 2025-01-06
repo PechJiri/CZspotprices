@@ -102,7 +102,7 @@ class CacheManager {
      * @param {string} type - Typ cache (PRICE, AVERAGE, DEFAULT)
      * @returns {boolean} - Úspěch operace
      */
-    setCache(key, data, type = 'DEFAULT') {
+    set(key, data, type = 'DEFAULT') {
         try {
             const ttl = this.TTL[type] || this.TTL.DEFAULT;
             const cacheEntry = {
@@ -132,7 +132,7 @@ class CacheManager {
      * @param {string} key - Klíč cache
      * @returns {any|null} - Cached data nebo null
      */
-    getCache(key) {
+    get(key) {
         try {
             const entry = this.caches.get(key);
             

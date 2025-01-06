@@ -874,12 +874,26 @@ class CZSpotPricesDevice extends Homey.Device {
 
     isCurrentHourMatch(combination) {
         if (!combination || typeof combination !== 'object') {
-          this.logger.error('isCurrentHourMatch called with invalid combination:', combination);
-          return false;
+            this.logger.info('isCurrentHourMatch: no combination object => returning false', {
+                receivedCombination: combination,
+                calledFrom: new Error().stack.split('\n')[2].trim() // Získání místa volání
+            });
+            return false;
         }
+    
         const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-        return combination.startHour === timeInfo.hour;
-      }      
+        const isMatch = combination.startHour === timeInfo.hour;
+    
+        // Přidání podrobného logování
+        this.logger.debug('isCurrentHourMatch: combination check', {
+            receivedCombination: combination,
+            currentTimeInfo: timeInfo,
+            isMatch,
+            calledFrom: new Error().stack.split('\n')[2].trim() // Získání místa volání
+        });
+    
+        return isMatch;
+    }      
 
     async triggerFlowForAveragePrice(triggerCard, combination, flow) {
         const tokens = {

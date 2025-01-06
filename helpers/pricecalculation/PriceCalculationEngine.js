@@ -203,7 +203,7 @@ class PriceCalculationEngine {
         const cacheKey = `${hours}-${startFromHour}-${currentHour}-${device.getPriceInKWh()}`;
     
         if (this.cacheManager.has(cacheKey) && this.lastCalculationHour === currentHour) {
-            const cachedData = this.cacheManager.getCache(cacheKey); // Použij správnou metodu
+            const cachedData = this.cacheManager.get(cacheKey); // Použij správnou metodu
             if (this.isCacheValid(cachedData.timestamp)) {
                 this.logger?.debug('Použití dat z průměrné cache', { cacheKey });
                 return cachedData.data;
