@@ -349,23 +349,25 @@ class DataValidator {
             line.point.length >= 24
         );
     }
+
+    validateBackupApiResponse(data) {
+        return Boolean(
+            data?.data?.dataLine &&
+            Array.isArray(data.data.dataLine)
+        );
+    }
     
-    validatePriceData(data) {
-        if (!Array.isArray(data)) {
-            return false;
-        }
-    
-        if (data.length !== 24) {
-            return false;
-        }
-    
-        return data.every(item => (
-            typeof item.hour === 'number' && 
-            item.hour >= 0 && 
-            item.hour < 24 &&
-            typeof item.priceCZK === 'number' && 
-            !isNaN(item.priceCZK)
-        ));
+    validatePriceLine(line) {
+        return Boolean(
+            line &&
+            Array.isArray(line.point) &&
+            line.point.length >= 24 &&
+            line.point.every(p => 
+                p.x && 
+                p.y && 
+                !isNaN(parseFloat(p.y))
+            )
+        );
     }
 }
 
