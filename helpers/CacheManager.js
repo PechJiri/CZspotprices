@@ -178,29 +178,6 @@ class CacheManager {
             deletedCount: count
         });
     }
-
-    /**
-     * Získání statistik cache
-     * @returns {Object} Statistiky cache
-     */
-    getCacheStats() {
-        const stats = {
-            totalEntries: this.caches.size,
-            byType: {},
-            expiredCount: 0
-        };
-
-        const now = Date.now();
-
-        for (const [_, entry] of this.caches.entries()) {
-            stats.byType[entry.type] = (stats.byType[entry.type] || 0) + 1;
-            if (now > entry.expiresAt) {
-                stats.expiredCount++;
-            }
-        }
-
-        return stats;
-    }
 }
 
 module.exports = CacheManager;

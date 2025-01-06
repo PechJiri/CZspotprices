@@ -1174,11 +1174,11 @@ class CZSpotPricesDevice extends Homey.Device {
         const operationId = `update-${Date.now()}`;
         try {
             this.logPriceUpdateStart(operationId, processedPrices);
-
+    
             await this.acquireUpdateLock(operationId);
             const pricesWithIndexes = this.validateAndPreparePrices(processedPrices);
             await this.updatePriceCapabilities(pricesWithIndexes);
-
+    
             this.logPriceUpdateSuccess(operationId, pricesWithIndexes);
             return true;
         } catch (error) {
@@ -1201,29 +1201,23 @@ class CZSpotPricesDevice extends Homey.Device {
     async acquireUpdateLock(operationId) {
         const lockAcquired = await this.lockManager.acquireLock(this.getData().id, operationId);
         if (!lockAcquired) {
-            const message = 'Nelze získat zámek pro aktualizaci - jiná operace právě probíhá';
-            if (this.logger) {
-                this.logger.warn(message, {
-                    operationId,
-                    lockInfo: this.lockManager.getLockInfo(this.getData().id)
-                });
-            }
-            throw new Error(message);
+            this.logger?.warn('Nelze získat zámek pro aktualizaci', { operationId });
+            throw new Error('Nelze získat zámek pro aktualizaci - jiná operace právě probíhá');
         }
     }
 
     validateAndPreparePrices(processedPrices) {
-        if (!Array.isArray(processedPrices) || processedPrices.length !== 24) {
+        if (!this.dataValidator.validatePriceData(processedPrices)) {
             throw new Error('Neplatná vstupní data pro updateAllPrices');
         }
-
+    
         const settings = this.getSettings();
         const pricesWithIndexes = this.priceCalculator.setPriceIndexes(
             processedPrices,
             settings.low_index_hours || 8,
             settings.high_index_hours || 8
         );
-
+    
         return pricesWithIndexes;
     }
 
@@ -1249,7 +1243,7 @@ class CZSpotPricesDevice extends Homey.Device {
             medium: pricesWithIndexes.filter(p => p.level === 'medium').length,
             high: pricesWithIndexes.filter(p => p.level === 'high').length
         };
-
+    
         if (this.logger) {
             this.logger.log('Všechny ceny a indexy úspěšně aktualizovány', {
                 operationId,

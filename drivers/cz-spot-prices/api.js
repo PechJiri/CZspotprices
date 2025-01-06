@@ -45,6 +45,7 @@ class SpotPriceAPI {
         this.exchangeRateUrl = 'https://data.kurzy.cz/json/meny/b[6].json';
         this.exchangeRate = 25.25;
         this.homeyTimezone = this.homey.clock.getTimezone();
+        this.lastRateUpdate = null;
     
         // Inicializace ostatních pomocných tříd
         try {
@@ -68,21 +69,21 @@ class SpotPriceAPI {
         SpotPriceAPI.homeyInstance = homey;
     }
 
-  async updateExchangeRate() {
-    try {
-        if (this.logger) this.logger.debug('Aktualizace směnného kurzu');
-        const response = await axios.get(this.exchangeRateUrl);
-        const data = response.data;
-        if (data && data.kurzy && data.kurzy.EUR) {
-            this.exchangeRate = data.kurzy.EUR.dev_stred;
-            if (this.logger) this.logger.log('Směnný kurz aktualizován', { 
-                newRate: this.exchangeRate 
-            });
+    async updateExchangeRate() {
+        if (!this.lastRateUpdate || Date.now() - this.lastRateUpdate > 24 * 60 * 60 * 1000) {
+            try {
+                const { data } = await axios.get(this.exchangeRateUrl);
+                if (data?.kurzy?.EUR?.dev_stred) {
+                    this.exchangeRate = data.kurzy.EUR.dev_stred;
+                    this.lastRateUpdate = Date.now();
+                    this.logger?.debug('Kurz aktualizován', { rate: this.exchangeRate });
+                }
+            } catch (error) {
+                this.logger?.warn('Použit výchozí kurz', { default: this.exchangeRate });
+            }
         }
-    } catch (error) {
-        if (this.logger) this.logger.error('Chyba při aktualizaci směnného kurzu', error);
+        return this.exchangeRate;
     }
-  }
 
   getCurrentTimeInfo() {
     const now = new Date();
@@ -118,219 +119,141 @@ class SpotPriceAPI {
     };
   }
 
-  getErrorMessage(error) {
-    if (typeof error === 'string') return error;
-    if (error instanceof Error) return `${error.name}: ${error.message}`;
-    if (typeof error === 'object' && error !== null) return JSON.stringify(error);
-    return 'Unknown error';
-  }
+    async handleApiError(error, device, context = 'API') {
+        const errorMessage = error instanceof Error ? 
+            `${error.name}: ${error.message}` : 
+            typeof error === 'string' ? error : 
+            typeof error === 'object' && error !== null ? JSON.stringify(error) : 
+            'Unknown error';
 
-  handleApiError(context, error, device) {
-    let errorMessage = this.getErrorMessage(error);
-    
-    // Logování chyby
-    if (this.logger) {
-        this.logger.error(`${context}: API chyba`, error, { 
-            errorMessage, 
-            deviceId: device ? device.id : 'N/A', 
-            deviceName: device ? device.name : 'N/A' 
+        this.logger?.error(`${context}: Chyba`, error, {
+            errorMessage,
+            deviceId: device?.id || 'N/A',
+            deviceName: device?.name || 'N/A',
+            stack: error?.stack
         });
-    } else {
-        this.homey.error(`${context}:`, errorMessage);
-    }
 
-    // Použití nové metody z device
-    if (device && typeof device.triggerAPIFailure === 'function') {
-        device.triggerAPIFailure({
-            primaryAPI: errorMessage,
-            backupAPI: '',
-            willRetry: false,
-            maxRetriesReached: true
-        });
-    }
-  }
-
-  // Nové metody využívající PriceCalculator
-  async getDailyPrices(device) {
-    if (!device || typeof device.triggerAPIFailure !== 'function') {
-        const errorMessage = 'Neplatná device instance pro getDailyPrices';
-        if (this.logger) {
-            this.logger.error(errorMessage, new Error(errorMessage));
-        }
-        throw new Error(errorMessage);
-    }
-
-    const timeoutMs = 10000;
-    let spotElektrinaError = null;
-    let oteError = null;
-
-    try {
-        // Výchozí stav - normálně získáváme data z primárního API
-        await device.setCapabilityValue('primary_api_fail', false);
-
-        if (this.logger) {
-            this.logger.debug('Pokus o získání dat z primárního API (spotovaelektrina.cz)');
-        }
-
-        const rawData = await this._fetchFromPrimaryAPI(timeoutMs);
-
-        if (!rawData) {
-            this.logger.error('Chyba: data jsou undefined po volání _fetchFromPrimaryAPI');
-            throw new Error('Data z primárního API jsou undefined');
-        }
-
-        // Transformace dat - pouze hour a priceCZK
-        const data = rawData.map(hourData => ({
-            hour: hourData.hour,
-            priceCZK: hourData.priceCZK
-            // Úmyslně vynecháváme level z API
-        }));
-
-        if (!this.dataValidator.validatePriceData(data)) {
-            throw new Error('Neplatný formát dat z primárního API');
-        }
-
-        if (this.logger) {
-            this.logger.log('Data úspěšně získána z primárního API', { 
-                source: 'Primary API',
-                sampleData: data[0] // Log prvního záznamu pro kontrolu
-            });
-        }
-
-        return data;
-
-    } catch (error) {
-        spotElektrinaError = error;
-        
-        if (this.logger) {
-            this.logger.error('Chyba primárního API', error, { 
-                context: 'getDailyPrices', 
-                deviceId: device.id 
-            });
-        }
-
-        // Primární API selhalo - přepneme na záložní API
-        await device.setCapabilityValue('primary_api_fail', true);
-
-        try {
-            if (this.logger) {
-                this.logger.debug('Pokus o získání dat ze záložního API (ote.cr)');
-            }
-
-            const rawBackupData = await this.getBackupDailyPrices(device);
-
-            // Transformace záložních dat - opět pouze hour a priceCZK
-            const backupData = rawBackupData.map(hourData => ({
-                hour: hourData.hour,
-                priceCZK: hourData.priceCZK
-                // Opět vynecháváme jakékoliv levely
-            }));
-
-            if (!this.dataValidator.validatePriceData(backupData)) {
-                throw new Error('Neplatný formát dat ze záložního API');
-            }
-
+        if (device?.triggerAPIFailure) {
             await device.triggerAPIFailure({
-                primaryAPI: this.getErrorMessage(spotElektrinaError),
-                backupAPI: 'Záložní API úspěšné',
-                willRetry: true,
-                retryCount: 0,
-                nextRetryIn: '60'
-            });
-
-            if (this.logger) {
-                this.logger.log('Data úspěšně získána ze záložního API', { 
-                    source: 'Backup API',
-                    sampleData: backupData[0] // Log prvního záznamu pro kontrolu
-                });
-            }
-
-            // Ponecháme primary_api_fail na true, protože stále používáme záložní API
-            return backupData;
-
-        } catch (backupError) {
-            oteError = backupError;
-
-            if (this.logger) {
-                this.logger.error('Selhání záložního API', backupError, { 
-                    context: 'getDailyPrices', 
-                    deviceId: device.id 
-                });
-            }
-
-            await device.triggerAPIFailure({
-                primaryAPI: this.getErrorMessage(spotElektrinaError),
-                backupAPI: this.getErrorMessage(oteError),
+                primaryAPI: errorMessage,
+                backupAPI: '',
                 willRetry: false,
                 maxRetriesReached: true
             });
-
-            // Ponecháme primary_api_fail na true, protože primární API stále nefunguje
-            throw new Error(`Selhání obou API: spotovaelektrina.cz: ${this.getErrorMessage(spotElektrinaError)}, ote.cr: ${this.getErrorMessage(oteError)}`);
         }
-    }
-}
 
-// Pomocná metoda pro volání primárního API
-async _fetchFromPrimaryAPI(timeoutMs) {
-    const url = `${this.baseUrl}/get-prices-json`;
-    let timeout;
-
-    if (this.logger) {
-        this.logger.debug('Volání primárního API pro získání cen', { url, timeoutMs });
+        return errorMessage;
     }
 
-    try {
-        const source = axios.CancelToken.source();
-        timeout = setTimeout(() => {
-            source.cancel(`Timeout při volání primárního API po ${timeoutMs}ms`);
-        }, timeoutMs);
-
-        const response = await axios.get(url, { cancelToken: source.token });
-        clearTimeout(timeout);
-
-        if (response.status !== 200) {
-            const errorMessage = `HTTP error! status: ${response.status}`;
+    async getDailyPrices(device) {
+        if (!device || typeof device.triggerAPIFailure !== 'function') {
+            const errorMessage = 'Neplatná device instance pro getDailyPrices';
             if (this.logger) {
-                this.logger.error('Chyba při volání primárního API', new Error(errorMessage), { url, status: response.status });
+                this.logger.error(errorMessage, new Error(errorMessage));
             }
             throw new Error(errorMessage);
         }
-
-        const data = response.data;
-
-        // Ověření struktury dat
-        if (!data.hoursToday || !Array.isArray(data.hoursToday) || data.hoursToday.length !== 24) {
-            const invalidDataError = new Error('Neplatná struktura dat z API');
-            if (this.logger) {
-                this.logger.error('Neplatná struktura dat z primárního API', invalidDataError, { 
-                    url,
-                    receivedData: data // Log celého objektu bez ořezání při chybě
+    
+        const timeoutMs = 10000;
+        let spotElektrinaError = null;
+        let oteError = null;
+    
+        try {
+            await device.setCapabilityValue('primary_api_fail', false);
+            const rawData = await this._fetchFromPrimaryAPI(timeoutMs);
+    
+            if (!rawData) {
+                this.logger.error('Chyba: data jsou undefined po volání _fetchFromPrimaryAPI');
+                throw new Error('Data z primárního API jsou undefined');
+            }
+    
+            const data = rawData.map(hourData => ({
+                hour: hourData.hour,
+                priceCZK: hourData.priceCZK
+            }));
+    
+            if (!this.dataValidator.validatePriceData(data)) {
+                throw new Error('Neplatný formát dat z primárního API');
+            }
+    
+            this.logger?.log('Data úspěšně získána z primárního API', { 
+                source: 'Primary API',
+                sampleData: data[0]
+            });
+    
+            return data;
+    
+        } catch (primaryError) {
+            await device.setCapabilityValue('primary_api_fail', true);
+            
+            try {
+                const rawBackupData = await this.getBackupDailyPrices(device);
+                const backupData = rawBackupData.map(({ hour, priceCZK }) => ({ hour, priceCZK }));
+    
+                if (!this.dataValidator.validatePriceData(backupData)) {
+                    throw new Error('Neplatný formát dat ze záložního API');
+                }
+    
+                await device.triggerAPIFailure({
+                    primaryAPI: await this.handleApiError(primaryError, device, 'Primary API'),
+                    backupAPI: 'Záložní API úspěšné',
+                    willRetry: true,
+                    retryCount: 0,
+                    nextRetryIn: '60'
                 });
+    
+                return backupData;
+    
+            } catch (backupError) {
+                const errorMessage = await this.handleApiError(backupError, device, 'Backup API');
+                
+                await device.triggerAPIFailure({
+                    primaryAPI: await this.handleApiError(primaryError, device, 'Primary API'),
+                    backupAPI: errorMessage,
+                    willRetry: false,
+                    maxRetriesReached: true
+                });
+    
+                throw new Error(`Selhání obou API: ${errorMessage}`);
             }
-            throw invalidDataError;
         }
-
-        // Vrátíme pouze pole `hoursToday`
-        return data.hoursToday;
-
-    } catch (error) {
-        if (axios.isCancel(error)) {
-            const timeoutError = new Error('Timeout při volání API');
-            if (this.logger) {
-                this.logger.error('Timeout při volání primárního API', timeoutError, { url, timeoutMs });
-            }
-            throw timeoutError;
-        }
-
-        if (this.logger) {
-            this.logger.error('Neočekávaná chyba při volání primárního API', error, { url });
-        }
-        throw error;
-
-    } finally {
-        if (timeout) clearTimeout(timeout);
     }
+
+    async _fetchFromPrimaryAPI(timeoutMs) {
+        const url = `${this.baseUrl}/get-prices-json`;
+        let timeout;
+    
+        try {
+            const source = axios.CancelToken.source();
+            timeout = setTimeout(() => source.cancel(`Timeout po ${timeoutMs}ms`), timeoutMs);
+    
+            const { data } = await axios.get(url, { 
+                cancelToken: source.token,
+                validateStatus: status => status === 200
+            });
+    
+            if (!data?.hoursToday?.length === 24) {
+                throw new Error('Neplatná struktura dat z API');
+            }
+    
+            this.logger?.debug('Data získána z primárního API', {
+                url,
+                sampleData: data.hoursToday[0]
+            });
+    
+            return data.hoursToday;
+        } catch (error) {
+            const errorMessage = axios.isCancel(error) ? 
+                'Timeout při volání API' : 
+                error.response ? 
+                    `HTTP error: ${error.response.status}` : 
+                    'Neočekávaná chyba API';
+    
+            this.logger?.error(errorMessage, error, { url });
+            throw new Error(errorMessage);
+        } finally {
+            if (timeout) clearTimeout(timeout);
+        }
     }
 
     async updateCurrentValues(device) {
@@ -343,15 +266,13 @@ async _fetchFromPrimaryAPI(timeoutMs) {
     
         try {
             const lockAcquired = await this.lockManager.acquireLock(device.getData().id, operationId);
-            if (!lockAcquired) {
-                if (this.logger) {
-                    this.logger.warn('Nelze získat zámek pro aktualizaci - jiná operace probíhá', {
+                if (!lockAcquired) {
+                    this.logger?.warn('Nelze získat zámek pro aktualizaci', {
                         operationId,
-                        lockInfo: this.lockManager.getLockInfo(device.getData().id)
+                        deviceId: device.getData().id
                     });
+                    return false;
                 }
-                return false;
-            }
     
             try {
                 await device.setCapabilityValue('spot_price_update_status', false);

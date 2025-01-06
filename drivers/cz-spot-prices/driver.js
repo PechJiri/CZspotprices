@@ -130,14 +130,8 @@ class CZSpotPricesDriver extends Homey.Driver {
                         }
 
                         await this.executeMidnightUpdate();
-                        await device.setStoreValue('lastMidnightUpdate', now);
-
-                        if (this.logger) {
-                            this.logger.log('Midnight update dokončen', { 
-                                deviceId: device.getData().id,
-                                timestamp: new Date().toISOString()
-                            });
-                        }
+                        await device.setStoreValue('lastMidnightUpdate', now)
+                        
                     } catch (error) {
                         this.logger.error('Chyba při midnight update zařízení', error, {
                             deviceId: device.getData().id

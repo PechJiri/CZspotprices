@@ -92,7 +92,7 @@ class PriceCalculator {
             const validator = this.getDataValidator();
             
             // Základní validace vstupních dat
-            if (!validator.validatePriceData(data)) {
+            if (!validator.validatePrice(data)) {
                 this.logger?.error('Neplatná vstupní data, výpočet přerušen');
                 return null;
             }

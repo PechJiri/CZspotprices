@@ -52,7 +52,8 @@ class PriceCalculationEngine {
      */
     addDistributionPrice(basePrice, settings, hour) {
         try {
-            if (!this.validator.validateBasePrice(basePrice)) {
+            // Změna: použití validatePrice místo validateBasePrice
+            if (!this.validator.validatePrice(basePrice, 'základní cena pro distribuci')) {
                 return basePrice;
             }
             
@@ -70,10 +71,7 @@ class PriceCalculationEngine {
                 return priceWithVAT;
             }
     
-            // Aplikace DPH na základní cenu
             const priceWithVAT = addVAT(basePrice);
-    
-            // Distribuční tarif
             const lowTariffPrice = parseFloat(settings.low_tariff_price) || 0;
             const highTariffPrice = parseFloat(settings.high_tariff_price) || 0;
             const isLowTariff = this.tariffCalculator.isLowTariff(hour, settings);
@@ -107,19 +105,19 @@ class PriceCalculationEngine {
             if (!priceInKWh) {
                 return price;
             }
-
-            if (!this.validator.validatePriceForConversion(price)) {
+    
+            if (!this.validator.validatePrice(price, 'cena pro konverzi')) {
                 return price;
             }
-
+    
             const result = price / 1000;
-
+    
             this.logger?.debug('Konverze ceny', {
                 vstupní: price,
                 výsledek: result,
                 jednotka: 'kWh'
             });
-
+    
             return result;
         } catch (error) {
             this.logger?.error('Chyba při konverzi ceny:', error);
