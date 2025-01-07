@@ -154,7 +154,7 @@ class CZSpotPricesDevice extends Homey.Device {
                     this.logger.debug(`Pokus o načtení dat #${retryCount + 1}`);
                     await this.initialDataFetch();
                     await this.setStoreValue('lastDataUpdate', now);
-                    this.logger.log('Data úspěšně načtena');
+                    this.logger.log('Data úspěšně načtena - _loadInitialData');
                     return true;
                 } catch (error) {
                     retryCount++;
@@ -239,7 +239,7 @@ class CZSpotPricesDevice extends Homey.Device {
     
     async setInitialTariff() {
         try {
-            await this.initializeInitialTariff();
+            await this.tariffCalculator.initializeInitialTariff(this);
             this.logger.log('Iniciální tarif nastaven');
         } catch (error) {
             this.logger.error('Chyba při nastavení počátečního tarifu', error);
@@ -294,22 +294,6 @@ class CZSpotPricesDevice extends Homey.Device {
                 highIndexHours: this.highIndexHours, 
                 priceInKWh: this.priceInKWh 
             });
-        }
-    }
-    
-  
-    async initializeInitialTariff() {
-        const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-        const currentHour = timeInfo.hour;
-    
-        // Získání instance TariffCalculator přes PriceCalculator
-        const tariffCalculator = this.priceCalculator.getTariffCalculator();
-    
-        const initialTariff = tariffCalculator.isLowTariff(currentHour, this.getSettings()) ? 'low' : 'high';
-        await this.setStoreValue('previousTariff', initialTariff);
-    
-        if (this.logger) {
-            this.logger.log('Initial tariff set', { initialTariff, currentHour });
         }
     }    
     
@@ -378,7 +362,7 @@ class CZSpotPricesDevice extends Homey.Device {
             await this.validateAndUpdatePrices(dailyPrices);
             
             if (this.logger) {
-                this.logger.debug('Data úspěšně načtena a zpracována', {
+                this.logger.debug('Data úspěšně načtena a zpracována - fetchAndProcessData', {
                     pricesCount: dailyPrices.length
                 });
             }
@@ -420,7 +404,7 @@ class CZSpotPricesDevice extends Homey.Device {
             this.setStoreValue('firstInit', true),
         ]);
         await this.setAvailable();
-        this.logger.log('Data úspěšně načtena a aktualizována');
+        this.logger.log('Data úspěšně načtena a aktualizována - updateLastDataTimestamp');
     }
     
     async handleDataFetchError(error) {
@@ -437,135 +421,21 @@ class CZSpotPricesDevice extends Homey.Device {
   
     async setupScheduledTasks(runImmediately = false) {
         try {
-            this.logTaskSetupStart();
-            this.validateRequiredInstances();
-            const initialDelay = this.intervalManager.calculateDelayToNextHour();
-            this.scheduleHourlyUpdates(initialDelay);
-            this.scheduleAveragePriceChecks(initialDelay);
-    
-            if (runImmediately) {
-                await this.executeImmediateTasks();
-            }
-    
-            this.logNextUpdate(initialDelay);
+            await this.intervalManager.scheduleDeviceUpdates(this, runImmediately);
         } catch (error) {
-            this.handleTaskSetupError(error);
+            this.logger?.error('Chyba při nastavování plánovaných úloh', error);
+            throw error;
         }
-    }
-    
-    logTaskSetupStart() {
-        if (this.logger) {
-            this.logger.log('Setting up scheduled tasks...');
-        }
-    }
-    
-    validateRequiredInstances() {
-        if (!this.intervalManager || !this.spotPriceApi || !this.priceCalculator) {
-            const errorMessage = 'Chybí potřebné instance pro scheduled tasks';
-            if (this.logger) {
-                this.logger.error(errorMessage, new Error(errorMessage));
-            }
-            throw new Error(errorMessage);
-        }
-    }
-    
-    scheduleHourlyUpdates(initialDelay) {
-        const hourlyCallback = async () => {
-            try {
-                await this.updateHourlyData();
-                await this.setStoreValue('lastHourlyUpdate', new Date().getTime());
-                if (this.logger) {
-                    this.logger.log('Hourly update completed successfully');
-                }
-            } catch (error) {
-                if (this.logger) {
-                    this.logger.error('Hourly update failed', error);
-                }
-            }
-        };
-    
-        this.intervalManager.setScheduledInterval(
-            'hourly',
-            hourlyCallback,
-            60 * 60 * 1000,
-            initialDelay
-        );
-    }
-    
-    scheduleAveragePriceChecks(initialDelay) {
-        const averagePriceCallback = async () => {
-            try {
-                await this.checkAveragePrice();
-                await this.setStoreValue('lastAverageUpdate', new Date().getTime());
-                if (this.logger) {
-                    this.logger.log('Average price check completed');
-                }
-            } catch (error) {
-                if (this.logger) {
-                    this.logger.error('Average price check failed', error);
-                }
-            }
-        };
-    
-        this.intervalManager.setScheduledInterval(
-            'average',
-            averagePriceCallback,
-            60 * 60 * 1000,
-            initialDelay
-        );
-    }
-    
-    async executeImmediateTasks() {
-        const now = new Date();
-        const currentHour = now.setMinutes(0, 0, 0);
-        const [lastHourlyUpdate, lastAverageUpdate] = await Promise.all([
-            this.getStoreValue('lastHourlyUpdate'),
-            this.getStoreValue('lastAverageUpdate')
-        ]);
-    
-        const tasks = [];
-    
-        if (!lastHourlyUpdate || new Date(lastHourlyUpdate).getTime() < currentHour) {
-            tasks.push(this.updateHourlyData());
-        } else if (this.logger) {
-            this.logger.log('Skipping initial hourly update - already done this hour');
-        }
-    
-        if (!lastAverageUpdate || new Date(lastAverageUpdate).getTime() < currentHour) {
-            tasks.push(this.checkAveragePrice());
-        } else if (this.logger) {
-            this.logger.log('Skipping initial average price check - already done this hour');
-        }
-    
-        if (tasks.length > 0) {
-            await Promise.all(tasks);
-        }
-    }
-    
-    logNextUpdate(initialDelay) {
-        const { hours, minutes, seconds } = this._formatDelay(initialDelay);
-        if (this.logger) {
-            this.logger.log(`Next update scheduled in ${hours ? hours + 'h ' : ''}${minutes}m ${seconds}s`);
-        }
-    }
-    
-    handleTaskSetupError(error) {
-        if (this.logger) {
-            this.logger.error('Error setting up scheduled tasks', error);
-        }
-    }       
+    } 
 
     async setupTariffCheck() {
         try {
-            const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-            const currentHour = timeInfo.hour;
+            const { hour: currentHour } = this.spotPriceApi.getCurrentTimeInfo();
     
-            if (this.logger) {
-                this.logger.debug('Počáteční kontrola tarifu', { currentHour });
-            }
+            this.logger?.debug('Počáteční kontrola tarifu', { currentHour });
     
             // První kontrola při startu
-            await this._checkTariffChange(currentHour);
+            await this.tariffCalculator.checkTariffChange(this, currentHour);
     
             // Nastavení hodinové kontroly
             const nextHour = new Date();
@@ -574,71 +444,17 @@ class CZSpotPricesDevice extends Homey.Device {
     
             this.intervalManager.setScheduledInterval(
                 'tariff',
-                () => this._checkTariffChange(currentHour),
+                () => {
+                    const { hour } = this.spotPriceApi.getCurrentTimeInfo();
+                    return this.tariffCalculator.checkTariffChange(this, hour);
+                },
                 60 * 60 * 1000,
                 initialDelay
             );
     
-            if (this.logger) {
-                this.logger.log('Kontrola tarifu nastavena', { initialDelay });
-            }
+            this.logger?.log('Kontrola tarifu nastavena', { initialDelay });
         } catch (error) {
-            if (this.logger) {
-                this.logger.error('Chyba při nastavování kontroly tarifu', error);
-            }
-        }
-    }    
-
-    /**
-    * Kontrola změny tarifu.
-    */
-    async _checkTariffChange(currentHour) {
-        try {
-            const settings = this.getSettings();
-            const previousTariff = await this.getStoreValue('previousTariff');
-            const currentTariff = this.tariffCalculator.isLowTariff(currentHour, settings) ? 'low' : 'high';
-    
-            if (previousTariff !== currentTariff) {
-                this.logger.debug('Detekována změna tarifu', {
-                    previousTariff,
-                    currentTariff,
-                    currentHour
-                });
-    
-                // Uložíme nový stav
-                await this.setStoreValue('previousTariff', currentTariff);
-    
-                const triggerData = { previousTariff, currentTariff };
-    
-                // Spouštění příslušných triggerů
-                if (currentTariff === 'high') {
-                    const highTariffTrigger = this.triggersManager.getTrigger('when-high-tariff-starts');
-                    if (highTariffTrigger) {
-                        await highTariffTrigger.trigger(this, {}, triggerData);
-                        this.logger.debug('High tariff start trigger spuštěn');
-                    }
-                } else {
-                    const lowTariffTrigger = this.triggersManager.getTrigger('when-low-tariff-starts');
-                    if (lowTariffTrigger) {
-                        await lowTariffTrigger.trigger(this, {}, triggerData);
-                        this.logger.debug('Low tariff start trigger spuštěn');
-                    }
-                }
-    
-                // Obecný trigger pro změnu tarifu
-                const changeTrigger = this.triggersManager.getTrigger('when-distribution-tariff-changes');
-                if (changeTrigger) {
-                    await changeTrigger.trigger(this, {}, triggerData);
-                    this.logger.debug('Tariff change trigger spuštěn');
-                }
-    
-                this.logger.log('Změna tarifu úspěšně zpracována', triggerData);
-            }
-        } catch (error) {
-            this.logger.error('Chyba při kontrole změny tarifu', error, {
-                hour: currentHour,
-                deviceId: this.getData().id
-            });
+            this.logger?.error('Chyba při nastavování kontroly tarifu', error);
         }
     }
 
@@ -673,8 +489,8 @@ class CZSpotPricesDevice extends Homey.Device {
 
     async updateHourlyData() {
         try {
-            const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-            const currentHour = timeInfo.hour;
+            // Načtení časových informací
+            const { hour: currentHour } = this.spotPriceApi.getCurrentTimeInfo();
     
             if (this.logger) {
                 this.logger.log('Začátek hodinové aktualizace', {
@@ -684,13 +500,13 @@ class CZSpotPricesDevice extends Homey.Device {
                 });
             }
     
-            // Získání aktuální ceny, indexu a next hour price
+            // Získání aktuální ceny, indexu a ceny následující hodiny
             const [currentPrice, currentIndex, nextHourPrice] = await Promise.all([
                 this.getCapabilityValue(`hour_price_CZK_${currentHour}`),
                 this.getCapabilityValue(`hour_price_index_${currentHour}`),
                 currentHour === 23 ? 
-                    this.getCapabilityValue(`hour_price_CZK_${currentHour}`) : // Pro 23. hodinu použijeme aktuální cenu
-                    this.getCapabilityValue(`hour_price_CZK_${currentHour + 1}`) // Pro ostatní hodiny cenu následující hodiny
+                    this.getCapabilityValue(`hour_price_CZK_${currentHour}`) :
+                    this.getCapabilityValue(`hour_price_CZK_${(currentHour + 1) % 24}`)
             ]);
     
             if (currentPrice === null || currentIndex === null) {
@@ -705,30 +521,26 @@ class CZSpotPricesDevice extends Homey.Device {
                 return false;
             }
     
-            // Paralelní provedení všech aktualizací
+            // Paralelní aktualizace dat
             await Promise.all([
-                // 1. Aktualizace capabilities a spuštění price change triggeru
+                // 1. Aktualizace capabilities
                 Promise.all([
                     this.setCapabilityValue('measure_current_spot_price_CZK', currentPrice),
                     this.setCapabilityValue('measure_current_spot_index', currentIndex),
                     this.setCapabilityValue('measure_next_hour_price', nextHourPrice)
-                ]).then(() => this.triggerCurrentPriceChanged({
-                    price: currentPrice,
-                    index: currentIndex,
-                    nextPrice: nextHourPrice,
-                    hour: currentHour,
-                    timestamp: new Date().toISOString()
-                })),
+                ]),
     
                 // 2. Kontrola změny tarifu
-                this._checkTariffChange(currentHour),
+                this.tariffCalculator.checkTariffChange(this, currentHour),
     
+                // 2. Kontrola změny tarifu
+                this.tariffCalculator.checkTariffChange(this, currentHour),
                 // 3. Kontrola average price triggerů
                 (async () => {
                     try {
                         const triggerCard = this.homey.flow.getDeviceTriggerCard('average-price-trigger');
                         const flows = await triggerCard.getArgumentValues(this);
-    
+
                         for (const flow of flows) {
                             const { hours, condition } = flow;
                             const combinations = await this.priceCalculationEngine.calculateAveragePrices(
@@ -736,19 +548,19 @@ class CZSpotPricesDevice extends Homey.Device {
                                 hours,
                                 0
                             );
-    
+
                             if (!combinations || combinations.length === 0) {
                                 continue;
                             }
-    
+
                             const sortedByAverage = combinations.sort((a, b) => 
                                 condition === 'lowest' ? 
                                     a.averagePrice - b.averagePrice : 
                                     b.averagePrice - a.averagePrice
                             );
-    
+
                             const bestCombination = sortedByAverage[0];
-    
+
                             if (currentHour === bestCombination.startHour) {
                                 await triggerCard.trigger(this, {
                                     average_price: parseFloat(bestCombination.averagePrice.toFixed(2))
@@ -765,7 +577,7 @@ class CZSpotPricesDevice extends Homey.Device {
                     }
                 })()
             ]);
-    
+
             if (this.logger) {
                 this.logger.log('Hodinová aktualizace dokončena', {
                     hour: currentHour,
@@ -774,9 +586,8 @@ class CZSpotPricesDevice extends Homey.Device {
                     nextPrice: nextHourPrice
                 });
             }
-    
+
             return true;
-    
         } catch (error) {
             if (this.logger) {
                 this.logger.error('Kritická chyba při hodinové aktualizaci', error);
@@ -795,7 +606,6 @@ class CZSpotPricesDevice extends Homey.Device {
 
     async checkAveragePrice() {
         try {
-            this.logAveragePriceCheckStart();
             const triggerCard = this.getTriggerCardOrThrow('average-price-trigger');
             const flows = await this.getFlowsForTrigger(triggerCard);
             this.logger.debug('Nalezené flows pro average price', { flowCount: flows.length });
@@ -809,15 +619,6 @@ class CZSpotPricesDevice extends Homey.Device {
             this.handleAveragePriceCheckError(error);
             return false;
         }
-    }
-
-    logAveragePriceCheckStart() {
-        const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-        this.logger.debug('Začátek kontroly average price', {
-            currentHour: timeInfo.hour,
-            systemHour: new Date().getHours(),
-            timezone: this.homey.clock.getTimezone()
-        });
     }
 
     getTriggerCardOrThrow(triggerCardName) {
@@ -841,59 +642,17 @@ class CZSpotPricesDevice extends Homey.Device {
     async processAveragePriceFlow(flow, triggerCard) {
         try {
             const { hours, condition } = flow;
-            const combinations = await this.calculateAveragePriceCombinations(hours);
-            const targetCombination = this.getTargetCombination(combinations, condition);
-
-            if (this.isCurrentHourMatch(targetCombination)) {
+            const combinations = await this.priceCalculationEngine.calculateAveragePriceCombinations(this, hours);
+            const currentHour = this.spotPriceApi.getCurrentTimeInfo().hour;
+            const targetCombination = this.priceCalculationEngine.getTargetCombination(combinations, condition);
+    
+            if (this.priceCalculationEngine.isCurrentHourMatch(targetCombination, currentHour)) {
                 await this.triggerFlowForAveragePrice(triggerCard, targetCombination, flow);
             }
         } catch (error) {
             this.logger.error(`Chyba při zpracování flow pro hours=${flow.hours}`, error);
         }
     }
-
-    async calculateAveragePriceCombinations(hours) {
-        const combinations = await this.priceCalculationEngine.calculateAveragePrices(this, hours, 0);
-        this.logger.debug('Vypočtené kombinace pro average price', {
-            hours,
-            combinationsCount: combinations.length,
-            firstThree: combinations.slice(0, 3).map(c => ({
-                startHour: c.startHour,
-                avgPrice: c.averagePrice.toFixed(2)
-            }))
-        });
-        return combinations;
-    }
-
-    getTargetCombination(combinations, condition) {
-        const sortedCombinations = combinations.sort((a, b) =>
-            condition === 'lowest' ? a.averagePrice - b.averagePrice : b.averagePrice - a.averagePrice
-        );
-        return sortedCombinations[0];
-    }
-
-    isCurrentHourMatch(combination) {
-        if (!combination || typeof combination !== 'object') {
-            this.logger.info('isCurrentHourMatch: no combination object => returning false', {
-                receivedCombination: combination,
-                calledFrom: new Error().stack.split('\n')[2].trim() // Získání místa volání
-            });
-            return false;
-        }
-    
-        const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-        const isMatch = combination.startHour === timeInfo.hour;
-    
-        // Přidání podrobného logování
-        this.logger.debug('isCurrentHourMatch: combination check', {
-            receivedCombination: combination,
-            currentTimeInfo: timeInfo,
-            isMatch,
-            calledFrom: new Error().stack.split('\n')[2].trim() // Získání místa volání
-        });
-    
-        return isMatch;
-    }      
 
     async triggerFlowForAveragePrice(triggerCard, combination, flow) {
         const tokens = {
@@ -1189,7 +948,7 @@ class CZSpotPricesDevice extends Homey.Device {
             this.logPriceUpdateStart(operationId, processedPrices);
     
             await this.acquireUpdateLock(operationId);
-            const pricesWithIndexes = this.validateAndPreparePrices(processedPrices);
+            this.dataValidator.validateAndPreparePrices(processedPrices, this.getSettings());
             await this.updatePriceCapabilities(pricesWithIndexes);
     
             this.logPriceUpdateSuccess(operationId, pricesWithIndexes);
@@ -1217,21 +976,6 @@ class CZSpotPricesDevice extends Homey.Device {
             this.logger?.warn('Nelze získat zámek pro aktualizaci', { operationId });
             throw new Error('Nelze získat zámek pro aktualizaci - jiná operace právě probíhá');
         }
-    }
-
-    validateAndPreparePrices(processedPrices) {
-        if (!this.dataValidator.validatePriceData(processedPrices)) {
-            throw new Error('Neplatná vstupní data pro updateAllPrices');
-        }
-    
-        const settings = this.getSettings();
-        const pricesWithIndexes = this.priceCalculator.setPriceIndexes(
-            processedPrices,
-            settings.low_index_hours || 8,
-            settings.high_index_hours || 8
-        );
-    
-        return pricesWithIndexes;
     }
 
     async updatePriceCapabilities(pricesWithIndexes) {
@@ -1354,8 +1098,7 @@ class CZSpotPricesDevice extends Homey.Device {
             }
 
             // Získání aktuálního času s respektováním časové zóny
-            const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-            const currentHour = timeInfo.hour;
+            const { hour: currentHour } = this.spotPriceApi.getCurrentTimeInfo();
             const nextHour = (currentHour + 1) % 24;
 
             // Použití uložené hodnoty priceInKWh pro konzistenci
@@ -1782,8 +1525,7 @@ class CZSpotPricesDevice extends Homey.Device {
      */
     async getCurrentHourData() {
         try {
-            const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
-            const currentHour = timeInfo.hour === 24 ? 0 : timeInfo.hour;
+            const { hour } = this.spotPriceApi.getCurrentTimeInfo();
 
             const hourData = {
                 hour: currentHour,
@@ -1951,49 +1693,6 @@ class CZSpotPricesDevice extends Homey.Device {
                 this.logger.error('Error resetting device state', error);
             }
             return false;
-        }
-    }
-
-    /**
-    * Helper pro výpočet statistik
-    */
-    async calculateStatistics() {
-        try {
-            const prices = [];
-            for (let hour = 0; hour < 24; hour++) {
-                const price = await this.getCapabilityValue(`hour_price_CZK_${hour}`);
-                if (price !== null && price !== undefined) {
-                    prices.push(price);
-                }
-            }
-
-            if (prices.length === 0) {
-                const errorMessage = 'No price data available';
-                if (this.logger) {
-                    this.logger.error(errorMessage, new Error(errorMessage));
-                }
-                throw new Error(errorMessage);
-            }
-
-            const stats = {
-                min: Math.min(...prices),
-                max: Math.max(...prices),
-                avg: prices.reduce((a, b) => a + b) / prices.length,
-                count: prices.length,
-                currentPrice: await this.getCapabilityValue('measure_current_spot_price_CZK'),
-                currentIndex: await this.getCapabilityValue('measure_current_spot_index')
-            };
-
-            if (this.logger) {
-                this.logger.debug('Device statistics calculated', stats);
-            }
-
-            return stats;
-        } catch (error) {
-            if (this.logger) {
-                this.logger.error('Error calculating statistics', error);
-            }
-            return null;
         }
     }
 

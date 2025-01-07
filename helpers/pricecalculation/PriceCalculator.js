@@ -92,7 +92,7 @@ class PriceCalculator {
         const cacheManager = this.getCacheManager();
         const cacheKey = `${hoursToday.map(h => h.priceCZK).join('-')}-${lowIndexHours}-${highIndexHours}`;
         
-        const cachedData = cacheManager.getCache(cacheKey);
+        const cachedData = cacheManager.get(cacheKey);
         if (cachedData) return cachedData;
 
         if (!validator.validatePriceIndexData(hoursToday, lowIndexHours, highIndexHours).isValid) {

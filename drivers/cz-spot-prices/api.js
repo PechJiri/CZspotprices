@@ -17,6 +17,10 @@ class SpotPriceAPI {
     static getInstance(homey) {
         if (!SpotPriceAPI.instance) {
             SpotPriceAPI.instance = new SpotPriceAPI(homey);
+            // Po vytvoření instance nastavíme závislost na tariffCalculator
+            if (SpotPriceAPI.instance.tariffCalculator) {
+                SpotPriceAPI.instance.tariffCalculator.setSpotPriceApi(SpotPriceAPI.instance);
+            }
         }
         return SpotPriceAPI.instance;
     }

@@ -366,6 +366,40 @@ class PriceCalculationEngine {
             });
         }
     }
+
+    async calculateAveragePriceCombinations(device, hours) {
+        const combinations = await this.calculatePriceCombinations(device, hours, 0);
+        this.logger.debug('Vypočtené kombinace pro average price', {
+            hours,
+            combinationsCount: combinations.length,
+            firstThree: combinations.slice(0, 3).map(c => ({
+                startHour: c.startHour,
+                avgPrice: c.averagePrice.toFixed(2),
+            }))
+        });
+        return combinations;
+    }
+    
+    getTargetCombination(combinations, condition) {
+        const sortedCombinations = combinations.sort((a, b) =>
+            condition === 'lowest' ? a.averagePrice - b.averagePrice : b.averagePrice - a.averagePrice
+        );
+        return sortedCombinations[0];
+    }
+    
+    isCurrentHourMatch(combination, currentHour) {
+        if (!combination || typeof combination !== 'object') {
+            this.logger.info('isCurrentHourMatch: no combination object => returning false', { combination });
+            return false;
+        }
+        const isMatch = combination.startHour === currentHour;
+        this.logger.debug('isCurrentHourMatch: combination check', {
+            combination,
+            currentHour,
+            isMatch
+        });
+        return isMatch;
+    }    
 }
 
 module.exports = PriceCalculationEngine;

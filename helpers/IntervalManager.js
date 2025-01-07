@@ -214,6 +214,133 @@ class IntervalManager {
             nextRun: this.formatDateTime(new Date(Date.now() + interval))
         });
     }
+
+    async scheduleDeviceUpdates(device, runImmediately = false) {
+        try {
+            this.logger?.debug('Začátek nastavení plánovaných úloh pro zařízení');
+            
+            const initialDelay = this.calculateDelayToNextHour();
+            
+            // Plánování hodinových updatů
+            await this.scheduleHourlyDeviceUpdate(device, initialDelay);
+            
+            // Plánování kontroly průměrných cen
+            await this.scheduleAveragePriceCheck(device, initialDelay);
+            
+            // Plánování kontroly tarifu
+            await this.scheduleTariffCheck(device, initialDelay);
+            
+            // Okamžité spuštění pokud požadováno
+            if (runImmediately) {
+                await this.executeImmediateUpdates(device);
+            }
+            
+            this.logger?.log('Plánované úlohy nastaveny', {
+                deviceId: device.getData().id,
+                nextUpdateIn: Math.round(initialDelay / 60000)
+            });
+            
+            return true;
+        } catch (error) {
+            this.logger?.error('Chyba při nastavování plánovaných úloh', error);
+            throw error;
+        }
+    }
+
+    async scheduleHourlyDeviceUpdate(device, initialDelay) {
+        const hourlyCallback = async () => {
+            try {
+                await device.updateHourlyData();
+                await device.setStoreValue('lastHourlyUpdate', Date.now());
+                this.logger?.debug('Hourly update completed', {
+                    deviceId: device.getData().id
+                });
+            } catch (error) {
+                this.logger?.error('Hourly update failed', error);
+            }
+        };
+    
+        this.setScheduledInterval(
+            `hourly_${device.getData().id}`, // Unikátní ID pro každé zařízení
+            hourlyCallback,
+            60 * 60 * 1000,
+            initialDelay
+        );
+    }
+    
+    async scheduleAveragePriceCheck(device, initialDelay) {
+        const averagePriceCallback = async () => {
+            try {
+                await device.checkAveragePrice();
+                await device.setStoreValue('lastAverageUpdate', Date.now());
+                this.logger?.debug('Average price check completed', {
+                    deviceId: device.getData().id
+                });
+            } catch (error) {
+                this.logger?.error('Average price check failed', error);
+            }
+        };
+    
+        this.setScheduledInterval(
+            `average_${device.getData().id}`,
+            averagePriceCallback,
+            60 * 60 * 1000,
+            initialDelay
+        );
+    }
+    
+    async scheduleTariffCheck(device, initialDelay) {
+        const tariffCallback = async () => {
+            try {
+                const { hour } = device.spotPriceApi.getCurrentTimeInfo();
+                await device.tariffCalculator.checkTariffChange(device, hour);
+            } catch (error) {
+                this.logger?.error('Tariff check failed', error);
+            }
+        };
+    
+        this.setScheduledInterval(
+            `tariff_${device.getData().id}`,
+            tariffCallback,
+            60 * 60 * 1000,
+            initialDelay
+        );
+    }
+    
+    async executeImmediateUpdates(device) {
+        try {
+            const now = new Date();
+            const currentHour = now.setMinutes(0, 0, 0);
+            const [lastHourlyUpdate, lastAverageUpdate] = await Promise.all([
+                device.getStoreValue('lastHourlyUpdate'),
+                device.getStoreValue('lastAverageUpdate')
+            ]);
+    
+            const tasks = [];
+    
+            if (!lastHourlyUpdate || new Date(lastHourlyUpdate).getTime() < currentHour) {
+                tasks.push(device.updateHourlyData());
+            } else {
+                this.logger?.debug('Skipping immediate hourly update - already done this hour', {
+                    deviceId: device.getData().id
+                });
+            }
+    
+            if (!lastAverageUpdate || new Date(lastAverageUpdate).getTime() < currentHour) {
+                tasks.push(device.checkAveragePrice());
+            } else {
+                this.logger?.debug('Skipping immediate average price check - already done this hour', {
+                    deviceId: device.getData().id
+                });
+            }
+    
+            if (tasks.length > 0) {
+                await Promise.all(tasks);
+            }
+        } catch (error) {
+            this.logger?.error('Error executing immediate updates', error);
+        }
+    }
 }
 
 module.exports = IntervalManager;

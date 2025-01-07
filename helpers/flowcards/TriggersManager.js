@@ -75,12 +75,10 @@ class TriggersManager {
         // Systémové triggery
         this._systemTriggers = [
             {
-                id: 'when-api-call-fails-trigger',
-                type: 'API_FAILURE'
+                id: 'when-api-call-fails-trigger'
             },
             {
-                id: 'when-current-price-changes',
-                type: 'PRICE_UPDATE'
+                id: 'when-current-price-changes'
             }
         ];
 
@@ -316,22 +314,22 @@ class TriggersManager {
     async _initializeSystemTriggers() {
         try {
             this.logger.debug('Inicializace systémových triggerů');
-            
+    
             for (const trigger of this._systemTriggers) {
-                switch (trigger.type) {
-                    case 'API_FAILURE':
-                        await this._registerApiFailureTrigger();
-                        break;
-                    case 'PRICE_UPDATE':
-                        await this._registerPriceUpdateTrigger();
-                        break;
+                if (typeof trigger.register !== 'function') {
+                    this.logger.error(`Trigger ${trigger.id} nemá registrační metodu`);
+                    throw new Error(`Trigger ${trigger.id} nemá registrační metodu`);
                 }
+    
+                this.logger.debug(`Inicializuji trigger: ${trigger.id}`);
+                await trigger.register();
             }
         } catch (error) {
             this.logger.error('Chyba při inicializaci systémových triggerů', error);
             throw error;
         }
     }
+    
 
     async _registerApiFailureTrigger() {
         const id = 'when-api-call-fails-trigger';
@@ -362,18 +360,20 @@ class TriggersManager {
 
     async _registerPriceUpdateTrigger() {
         const id = 'when-current-price-changes';
-        if (this._triggers.has(id)) {
-            this.logger.debug('Price update trigger již existuje');
-            return;
+        try {
+            const card = this.homey.flow.getDeviceTriggerCard(id);
+            if (!card) {
+                throw new Error(`Trigger karta ${id} není k dispozici`);
+            }
+            
+            card.registerRunListener(() => true);
+            this._triggers.set(id, card);
+            this.logger.debug('Price update trigger registrován');
+            
+        } catch (error) {
+            this.logger.error('Chyba při registraci price update triggeru', error);
+            throw error;
         }
-    
-        const card = this.homey.flow.getDeviceTriggerCard(id);
-        
-        // Zjednodušená registrace run listeneru
-        card.registerRunListener(() => true);
-    
-        this._triggers.set(id, card);
-        this.logger.debug('Price update trigger registrován');
     }
 
     // Veřejné metody pro spouštění triggerů

@@ -369,6 +369,21 @@ class DataValidator {
             )
         );
     }
+
+    validateAndPreparePrices(processedPrices) {
+        if (!this.dataValidator.validatePriceData(processedPrices)) {
+            throw new Error('Neplatná vstupní data pro updateAllPrices');
+        }
+    
+        const settings = this.getSettings();
+        const pricesWithIndexes = this.priceCalculator.setPriceIndexes(
+            processedPrices,
+            settings.low_index_hours || 8,
+            settings.high_index_hours || 8
+        );
+    
+        return pricesWithIndexes;
+    }
 }
 
 module.exports = DataValidator;

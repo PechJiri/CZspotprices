@@ -5,10 +5,9 @@ const DataValidator = require('../DataValidator');
 
 class TariffCalculator {
     static instance = null;
-    static homeyInstance = null; // Přidán statický homeyInstance
+    static homeyInstance = null;
     static CONTEXT = 'TariffCalculator';
 
-    // Metoda pro nastavení HomeyInstance
     static setHomeyInstance(homey) {
         TariffCalculator.homeyInstance = homey;
     }
@@ -18,7 +17,6 @@ class TariffCalculator {
             throw new Error('Použijte TariffCalculator.getInstance() místo volání new.');
         }
         
-        // Použij předaný homeyInstance nebo statický homeyInstance
         const instanceToUse = homeyInstance || TariffCalculator.homeyInstance;
         
         if (!instanceToUse) {
@@ -28,6 +26,10 @@ class TariffCalculator {
         this.logger = Logger.getInstance()
         this.homey = instanceToUse;
         this.validator = DataValidator.getInstance(instanceToUse);
+    }
+
+    setSpotPriceApi(spotPriceApi) {
+        this.spotPriceApi = spotPriceApi;
     }
 
     static getInstance(homeyInstance) {
@@ -101,6 +103,65 @@ class TariffCalculator {
                 settings
             });
             return false;
+        }
+    }
+
+    async initializeInitialTariff(device) {
+        const { hour: currentHour } = this.spotPriceApi.getCurrentTimeInfo();
+        
+        const initialTariff = this.isLowTariff(currentHour, device.getSettings()) ? 'low' : 'high';
+        await device.setStoreValue('previousTariff', initialTariff);
+    
+        if (this.logger) {
+            this.logger.log('Initial tariff set', { initialTariff, currentHour });
+        }
+    }
+
+    async checkTariffChange(device, currentHour) {
+        try {
+            const settings = device.getSettings();
+            const previousTariff = await device.getStoreValue('previousTariff');
+            const currentTariff = this.isLowTariff(currentHour, settings) ? 'low' : 'high';
+    
+            if (previousTariff !== currentTariff) {
+                this.logger?.debug('Detekována změna tarifu', {
+                    previousTariff,
+                    currentTariff,
+                    currentHour
+                });
+    
+                await device.setStoreValue('previousTariff', currentTariff);
+                const triggerData = { previousTariff, currentTariff };
+    
+                // Spouštění příslušných triggerů
+                if (currentTariff === 'high') {
+                    const highTariffTrigger = device.triggersManager.getTrigger('when-high-tariff-starts');
+                    if (highTariffTrigger) {
+                        await highTariffTrigger.trigger(device, {}, triggerData);
+                        this.logger?.debug('High tariff start trigger spuštěn');
+                    }
+                } else {
+                    const lowTariffTrigger = device.triggersManager.getTrigger('when-low-tariff-starts');
+                    if (lowTariffTrigger) {
+                        await lowTariffTrigger.trigger(device, {}, triggerData);
+                        this.logger?.debug('Low tariff start trigger spuštěn');
+                    }
+                }
+    
+                // Obecný trigger pro změnu tarifu
+                const changeTrigger = device.triggersManager.getTrigger('when-distribution-tariff-changes');
+                if (changeTrigger) {
+                    await changeTrigger.trigger(device, {}, triggerData);
+                    this.logger?.debug('Tariff change trigger spuštěn');
+                }
+    
+                this.logger?.log('Změna tarifu úspěšně zpracována', triggerData);
+            }
+        } catch (error) {
+            this.logger?.error('Chyba při kontrole změny tarifu', error, {
+                hour: currentHour,
+                deviceId: device.getData().id
+            });
         }
     }
 }
