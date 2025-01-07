@@ -1,6 +1,8 @@
 'use strict';
 
 const Logger = require('./Logger');
+const PriceCalculationEngine = require('./pricecalculation/PriceCalculationEngine');
+
 
 class IntervalManager {
     static instance = null;
@@ -22,6 +24,7 @@ class IntervalManager {
         this.intervals = new Map();
         this.timeouts = new Map();
         this.logger = Logger.getInstance()
+        this.PriceCalculationEngine = PriceCalculationEngine.getInstance()
         this.logger.debug('IntervalManager: Logger inicializován');
     }
 
@@ -271,7 +274,7 @@ class IntervalManager {
     async scheduleAveragePriceCheck(device, initialDelay) {
         const averagePriceCallback = async () => {
             try {
-                await device.checkAveragePrice();
+                await PriceCalculationEngine.checkAveragePriceAndTrigger();
                 await device.setStoreValue('lastAverageUpdate', Date.now());
                 this.logger?.debug('Average price check completed', {
                     deviceId: device.getData().id
@@ -327,7 +330,7 @@ class IntervalManager {
             }
     
             if (!lastAverageUpdate || new Date(lastAverageUpdate).getTime() < currentHour) {
-                tasks.push(device.checkAveragePrice());
+                tasks.push(PriceCalculationEngine.checkAveragePriceAndTrigger());
             } else {
                 this.logger?.debug('Skipping immediate average price check - already done this hour', {
                     deviceId: device.getData().id

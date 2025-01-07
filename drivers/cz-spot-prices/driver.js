@@ -237,14 +237,6 @@ class CZSpotPricesDriver extends Homey.Driver {
         }
     }
 
-    // Helper pro formátování času
-    _formatDelay(delay) {
-        const hours = Math.floor(delay / (1000 * 60 * 60));
-        const minutes = Math.floor((delay % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((delay % (1000 * 60)) / 1000);
-        return { hours, minutes, seconds };
-    }
-
     async executeMidnightUpdate(retryCount = 0) {
         const MAX_RETRIES = 5;
         const BASE_DELAY = 5 * 60 * 1000;

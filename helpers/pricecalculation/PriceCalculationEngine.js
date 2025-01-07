@@ -399,7 +399,37 @@ class PriceCalculationEngine {
             isMatch
         });
         return isMatch;
-    }    
+    }
+
+    async checkAveragePriceAndTrigger(device, triggerCard) {
+        try {
+            const flows = await triggerCard.getArgumentValues(device);
+            const currentHour = new Date().getHours();
+    
+            for (const flow of flows) {
+                const { hours, condition } = flow;
+                const combinations = await this.calculatePriceCombinations(device, hours, 0);
+                const targetCombination = this.getTargetCombination(combinations, condition);
+    
+                if (this.isCurrentHourMatch(targetCombination, currentHour)) {
+                    await triggerCard.trigger(device, {
+                        average_price: parseFloat(targetCombination.averagePrice.toFixed(2))
+                    }, flow);
+                    
+                    this.logger?.debug('Average price trigger activated', {
+                        hours,
+                        condition, 
+                        averagePrice: targetCombination.averagePrice
+                    });
+                }
+            }
+    
+            return true;
+        } catch (error) {
+            this.logger?.error('Error in checkAveragePriceAndTrigger', error);
+            return false;
+        }
+    }
 }
 
 module.exports = PriceCalculationEngine;
