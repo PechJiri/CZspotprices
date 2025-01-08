@@ -209,6 +209,50 @@ class CapabilityManager {
            throw error;
        }
    }
+
+   async registerDeviceCapabilities(device) {
+    const capabilities = [
+        'measure_current_spot_price_CZK',
+        'measure_current_spot_index',
+        'measure_today_min_price',
+        'measure_today_max_price',
+        'measure_next_hour_price',
+        'daily_average_price',
+        'primary_api_fail',
+        'spot_price_update_status',
+        ...Array.from({ length: 24 }, (_, i) => [
+            `hour_price_CZK_${i}`, 
+            `hour_price_index_${i}`
+        ]).flat()
+        ];
+
+        for (const capability of capabilities) {
+            if (!device.hasCapability(capability)) {
+            try {
+                await device.addCapability(capability);
+                this.logger?.log(`Capability ${capability} added successfully.`);
+            } catch (error) {
+                this.logger?.error(`Failed to add capability ${capability}`, error);
+            }
+            }
+        }
+    }
+
+    async resetDeviceCapabilities(device) {
+        try {
+            const capabilities = device.getCapabilities();
+            await Promise.all(capabilities.map(capability => 
+                device.setCapabilityValue(capability, null)
+            ));
+            await device.setCapabilityValue('spot_price_update_status', false);
+            await device.setCapabilityValue('primary_api_fail', true);
+            
+            return true;
+        } catch (error) {
+            this.logger?.error('Error resetting capabilities', error);
+            return false;
+        }
+    }
 }
 
 module.exports = CapabilityManager;

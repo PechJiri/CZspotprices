@@ -75,10 +75,12 @@ class TriggersManager {
         // Systémové triggery
         this._systemTriggers = [
             {
-                id: 'when-api-call-fails-trigger'
+                id: 'when-api-call-fails-trigger',
+                register: () => this._registerApiFailureTrigger() // Přidána registrační metoda
             },
             {
-                id: 'when-current-price-changes'
+                id: 'when-current-price-changes',
+                register: () => this._registerPriceUpdateTrigger() // Přidána registrační metoda
             }
         ];
 
@@ -316,17 +318,21 @@ class TriggersManager {
             this.logger.debug('Inicializace systémových triggerů');
     
             for (const trigger of this._systemTriggers) {
-                if (typeof trigger.register !== 'function') {
-                    this.logger.error(`Trigger ${trigger.id} nemá registrační metodu`);
-                    throw new Error(`Trigger ${trigger.id} nemá registrační metodu`);
+                try {
+                    if (typeof trigger.register === 'function') {
+                        await trigger.register();
+                        this.logger.debug(`Trigger ${trigger.id} úspěšně inicializován`);
+                    } else {
+                        this.logger.warn(`Pro trigger ${trigger.id} nebyla nalezena registrační metoda`);
+                    }
+                } catch (triggerError) {
+                    this.logger.error(`Chyba při inicializaci triggeru ${trigger.id}`, triggerError);
+                    // Pokračujeme i přes chybu, aby se mohly inicializovat ostatní triggery
                 }
-    
-                this.logger.debug(`Inicializuji trigger: ${trigger.id}`);
-                await trigger.register();
             }
         } catch (error) {
             this.logger.error('Chyba při inicializaci systémových triggerů', error);
-            throw error;
+            // Zde už neodhazujeme chybu, aby nepadala celá inicializace
         }
     }
     

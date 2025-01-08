@@ -93,8 +93,13 @@ class CZSpotPricesDevice extends Homey.Device {
             
             // Flow manažery
             this.actionsManager = ActionsManager.getInstance(this.homey, this);
+            await this.actionsManager.initialize();
+
             this.conditionsManager = ConditionsManager.getInstance(this.homey, this);
+            await this.conditionsManager.initialize();
+
             this.triggersManager = TriggersManager.getInstance(this.homey, this);
+            await this.triggersManager.initialize();
 
             } catch (error) {
             this.logger.error('Chyba při inicializaci helperů', error);
@@ -115,7 +120,10 @@ class CZSpotPricesDevice extends Homey.Device {
             { name: 'priceCalculationEngine', instance: this.priceCalculationEngine },
             { name: 'dataValidator', instance: this.dataValidator },
             { name: 'cacheManager', instance: this.cacheManager },
-            { name: 'capabilityManager', instance: this.capabilityManager }
+            { name: 'capabilityManager', instance: this.capabilityManager },
+            { name: 'triggersManager', instance: this.triggersManager },
+            { name: 'conditionsManager', instance: this.conditionsManager },
+            { name: 'actionsManager', instance: this.actionsManager }
         ];
     
         for (const helper of requiredHelpers) {
@@ -232,7 +240,7 @@ class CZSpotPricesDevice extends Homey.Device {
     
     async registerCapabilities() {
         try {
-            await this._registerCapabilities();
+            await this.capabilityManager.registerDeviceCapabilities(this);
             this.logger.log('Capabilities úspěšně registrovány');
         } catch (error) {
             this.logger.error('Chyba při registraci capabilities', error);
@@ -524,41 +532,6 @@ class CZSpotPricesDevice extends Homey.Device {
             return false;
         }
     }
-
-  /**
-   * Registrace capabilities
-   */
-  async _registerCapabilities() {
-    const capabilities = [
-        'measure_current_spot_price_CZK',
-        'measure_current_spot_index',
-        'measure_today_min_price',
-        'measure_today_max_price',
-        'measure_next_hour_price',
-        'daily_average_price',
-        'primary_api_fail',
-        'spot_price_update_status',
-        ...Array.from({ length: 24 }, (_, i) => [
-            `hour_price_CZK_${i}`, 
-            `hour_price_index_${i}`
-        ]).flat()
-    ];
-
-    for (const capability of capabilities) {
-        if (!this.hasCapability(capability)) {
-            try {
-                await this.addCapability(capability);
-                if (this.logger) {
-                    this.logger.log(`Capability ${capability} added successfully.`);
-                }
-            } catch (error) {
-                if (this.logger) {
-                    this.logger.error(`Failed to add capability ${capability}`, error);
-                }
-            }
-        }
-    }
-}
   
   /**
    * Gettery pro nastavení
@@ -931,7 +904,7 @@ class CZSpotPricesDevice extends Homey.Device {
             this.logInitialCleanup();
             await this.cleanupComponents();
             await this.cleanupStoreValues();
-            await this.resetCapabilities();
+            await this.capabilityManager.resetDeviceCapabilities(this);
             this.cleanupEventListeners();
             this.cleanupReferences();
             this.logFinalCleanup();
@@ -1044,29 +1017,6 @@ class CZSpotPricesDevice extends Homey.Device {
     }
 
     /**
-     * Reset capabilities
-     */
-    async resetCapabilities() {
-        try {
-            const capabilities = this.getCapabilities();
-            await Promise.all(capabilities.map(capability => 
-                this.setCapabilityValue(capability, null).catch(err => {
-                    if (this.logger) {
-                        this.logger.warn(`Failed to reset capability ${capability}`, err);
-                    }
-                })
-            ));
-            if (this.logger) {
-                this.logger.log('All capabilities reset');
-            }
-        } catch (error) {
-            if (this.logger) {
-                this.logger.error('Error resetting capabilities', error);
-            }
-        }
-    }
-
-    /**
      * Vyčištění event listenerů
      */
     cleanupEventListeners() {
@@ -1118,136 +1068,6 @@ class CZSpotPricesDevice extends Homey.Device {
             });
         }
     }
-
-    /**
-     * Helper pro získání aktuální hodiny a její data
-     */
-    async getCurrentHourData() {
-        try {
-            const { hour } = this.spotPriceApi.getCurrentTimeInfo();
-
-            const hourData = {
-                hour: currentHour,
-                price: await this.getCapabilityValue(`hour_price_CZK_${currentHour}`),
-                index: await this.getCapabilityValue(`hour_price_index_${currentHour}`),
-                isLowTariff: this.tariffCalculator.isLowTariff(currentHour, this.getSettings())
-            };
-
-            if (this.logger) {
-                this.logger.debug('Current hour data retrieved', hourData);
-            }
-
-            return hourData;
-        } catch (error) {
-            if (this.logger) {
-                this.logger.error('Error getting current hour data', error);
-            }
-            return null;
-        }
-    }
-
-    /**
-    * Helper pro získání stavu všech capabilities najednou
-    */
-    async getDeviceState() {
-        try {
-            const currentHourData = await this.getCurrentHourData();
-            const dailyAverage = await this.getCapabilityValue('daily_average_price');
-            const updateStatus = await this.getCapabilityValue('spot_price_update_status');
-            const settings = this.getSettings();
-
-            const deviceState = {
-                currentHour: currentHourData,
-                dailyAverage,
-                updateStatus,
-                settings,
-                deviceId: this.getData().id
-            };
-
-            if (this.logger) {
-                this.logger.debug('Device state retrieved', deviceState);
-            }
-
-            return deviceState;
-        } catch (error) {
-            if (this.logger) {
-                this.logger.error('Error getting device state', error);
-            }
-            return null;
-        }
-    }
-
-    /**
-    * Debug helper pro výpis stavů všech capabilities
-    */
-    async logDeviceState() {
-        try {
-            const state = await this.getDeviceState();
-            
-            if (this.logger) {
-                this.logger.debug('Current device state', state);
-            }
-        } catch (error) {
-            if (this.logger) {
-                this.logger.error('Error logging device state', error);
-            }
-        }
-    }
-
-    /**
-    * Helper pro validaci capability hodnot
-    */
-    async validateCapabilityValues() {
-        const issues = [];
-
-        try {
-            // Kontrola základních capabilities
-            const basicCapabilities = [
-                'measure_current_spot_price_CZK',
-                'measure_current_spot_index',
-                'daily_average_price',
-                'spot_price_update_status'
-            ];
-
-            for (const capability of basicCapabilities) {
-                const value = await this.getCapabilityValue(capability);
-                if (value === null || value === undefined) {
-                    issues.push(`Missing value for ${capability}`);
-                }
-            }
-
-            // Kontrola hodinových capabilities
-            for (let hour = 0; hour < 24; hour++) {
-                const price = await this.getCapabilityValue(`hour_price_CZK_${hour}`);
-                const index = await this.getCapabilityValue(`hour_price_index_${hour}`);
-
-                if (price === null || price === undefined) {
-                    issues.push(`Missing price for hour ${hour}`);
-                }
-                if (index === null || index === undefined) {
-                    issues.push(`Missing index for hour ${hour}`);
-                }
-            }
-
-            if (issues.length > 0) {
-                if (this.logger) {
-                    this.logger.warn('Capability validation issues found', { issues });
-                }
-                return false;
-            }
-
-            if (this.logger) {
-                this.logger.log('All capabilities validated successfully');
-            }
-            return true;
-        } catch (error) {
-            if (this.logger) {
-                this.logger.error('Error validating capabilities', error);
-            }
-            return false;
-        }
-    }
-
 
     /**
     * Helper pro reset stavu zařízení
