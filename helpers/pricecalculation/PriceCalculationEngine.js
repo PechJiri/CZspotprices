@@ -307,7 +307,7 @@ class PriceCalculationEngine {
         return combinations;
     }
 
-    updateRemainingDayCache(combinations, hours, currentHour, device) {
+    updateRemainingDayCache(combinations, hours, currentHour) {
         const cacheKey = `remaining-${hours}-${currentHour}-${SettingsManager.getPriceInKWh()}`;
         this.cacheManager.set(cacheKey, {
             data: combinations,
@@ -316,7 +316,7 @@ class PriceCalculationEngine {
         this.lastCalculationHour = currentHour;
     }
 
-    updateAveragePricesCache(combinations, hours, startFromHour, device) {
+    updateAveragePricesCache(combinations, hours, startFromHour) {
         const currentHour = new Date().getHours();
         const cacheKey = `${hours}-${startFromHour}-${currentHour}-${SettingsManager.getPriceInKWh()}`;
         
