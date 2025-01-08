@@ -15,6 +15,7 @@ const Logger = require('../../helpers/Logger');
 const LockManager = require('../../helpers/LockManager');
 const CapabilityManager = require('../../helpers/CapabilityManager');
 const DeviceStateManager = require('../../helpers/DeviceStateManager');
+const SettingsManager = require('../../helpers/SettingsManager');
 
 
 class CZSpotPricesDevice extends Homey.Device {
@@ -109,6 +110,7 @@ class CZSpotPricesDevice extends Homey.Device {
             this.dataValidator = DataValidator.getInstance(this.homey);
             this.cacheManager = CacheManager.getInstance(this.homey);
             this.capabilityManager = CapabilityManager.getInstance(this.homey);
+            this.settingsManager = SettingsManager.getInstance(this.homey);
             
             // Flow manažery
             this.actionsManager = ActionsManager.getInstance(this.homey, this);
@@ -142,7 +144,9 @@ class CZSpotPricesDevice extends Homey.Device {
             { name: 'capabilityManager', instance: this.capabilityManager },
             { name: 'triggersManager', instance: this.triggersManager },
             { name: 'conditionsManager', instance: this.conditionsManager },
-            { name: 'actionsManager', instance: this.actionsManager }
+            { name: 'actionsManager', instance: this.actionsManager },
+            { name: 'capabilityManager', instance: this.capabilityManager },
+            { name: 'settingsManager', instance: this.settingsManager }
         ];
     
         for (const helper of requiredHelpers) {

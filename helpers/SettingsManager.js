@@ -1,0 +1,180 @@
+'use strict';
+
+const Logger = require('./Logger');
+
+class SettingsManager {
+    static instance = null;
+    static CONTEXT = 'SettingsManager';
+
+    static getInstance(homey) {
+        if (!SettingsManager.instance) {
+            SettingsManager.instance = new SettingsManager(homey);
+        }
+        return SettingsManager.instance;
+    }
+
+    constructor(homey) {
+        if (SettingsManager.instance) {
+            throw new Error('Použijte SettingsManager.getInstance()');
+        }
+        
+        this.homey = homey;
+        this.logger = Logger.getInstance();
+    }
+
+    static setHomeyInstance(homey) {
+        if (!homey) {
+            throw new Error('Homey instance je vyžadována pro SettingsManager');
+        }
+        SettingsManager.homeyInstance = homey;
+    }
+
+    async handleSettingsUpdate(device, { oldSettings, newSettings, changedKeys }) {
+        try {
+            if (changedKeys.includes('enable_logging')) {
+                Logger.setGlobalLogging(newSettings.enable_logging);
+                this.logger.log(`Globální logování ${newSettings.enable_logging ? 'zapnuto' : 'vypnuto'}`);
+            }
+
+            this.logSettingsChange(changedKeys, oldSettings, newSettings);
+
+            if (this.needsRecalculation(changedKeys)) {
+                await this.handlePriceRecalculation(device, oldSettings, newSettings, changedKeys);
+            }
+
+            await this.homey.emit('settings_changed');
+            this.logger.log('Aktualizace nastavení dokončena', {
+                changedSettings: changedKeys.join(', ')
+            });
+
+            return true;
+
+        } catch (error) {
+            this.logger.error('Chyba při aktualizaci nastavení', error, {
+                changedKeys,
+                deviceId: device.getData().id
+            });
+            throw error;
+        }
+    }
+
+    logSettingsChange(changedKeys, oldSettings, newSettings) {
+        const changedValues = changedKeys.reduce((acc, key) => {
+            acc[key] = {
+                oldValue: oldSettings[key],
+                newValue: newSettings[key]
+            };
+            return acc;
+        }, {});
+
+        this.logger.debug('Změna nastavení', { changedKeys, changes: changedValues });
+    }
+
+    needsRecalculation(changedKeys) {
+        return changedKeys.some(key => 
+            key === 'low_index_hours' || 
+            key === 'high_index_hours' ||
+            key.startsWith('hour_') || 
+            key === 'high_tariff_price' || 
+            key === 'low_tariff_price' ||
+            key === 'price_in_kwh' ||
+            key === 'commodity_price_with_vat'
+        );
+    }
+
+    async handlePriceRecalculation(device, oldSettings, newSettings, changedKeys) {
+        this.logger.debug('Zahájení přepočtu cen a indexů', {
+            changedSettings: changedKeys.filter(key => 
+                key === 'low_index_hours' || 
+                key === 'high_index_hours' ||
+                key.startsWith('hour_') || 
+                key === 'high_tariff_price' || 
+                key === 'low_tariff_price'
+            ),
+            priceInKWhChanged: changedKeys.includes('price_in_kwh')
+        });
+
+        device.cacheManager.clearAll();
+        this.logger.debug('Cache vyčištěna');
+        
+        await this.updateDeviceSettings(device, oldSettings, newSettings, changedKeys);
+        const prices = await this.recalculatePrices(device, newSettings);
+        
+        await this.updateDeviceCapabilities(device, prices);
+
+        const indexStats = prices.reduce((acc, curr) => {
+            acc[curr.level] = (acc[curr.level] || 0) + 1;
+            return acc;
+        }, {});
+
+        this.logger.log('Přepočet cen a indexů dokončen', {
+            processedPrices: prices.length,
+            indexStats,
+            priceInKWh: device.priceInKWh
+        });
+    }
+
+    async updateDeviceSettings(device, oldSettings, newSettings, changedKeys) {
+        if (changedKeys.includes('low_index_hours')) {
+            device.lowIndexHours = newSettings.low_index_hours;
+            this.logger.debug('Aktualizován lowIndexHours', {
+                newValue: device.lowIndexHours,
+                oldValue: oldSettings.low_index_hours
+            });
+        }
+        if (changedKeys.includes('high_index_hours')) {
+            device.highIndexHours = newSettings.high_index_hours;
+            this.logger.debug('Aktualizován highIndexHours', {
+                newValue: device.highIndexHours,
+                oldValue: oldSettings.high_index_hours
+            });
+        }
+        if (changedKeys.includes('price_in_kwh')) {
+            device.priceInKWh = newSettings.price_in_kwh;
+            this.logger.debug('Aktualizován priceInKWh', {
+                newValue: device.priceInKWh,
+                oldValue: oldSettings.price_in_kwh
+            });
+        }
+    }
+
+    async recalculatePrices(device, newSettings) {
+        const dailyPrices = await device.spotPriceApi.getDailyPrices(device);
+        this.logger.debug('Získána nová denní data', {
+            pricesCount: dailyPrices.length
+        });
+        
+        const processedPrices = dailyPrices.map(priceData => ({
+            hour: priceData.hour,
+            priceCZK: device.priceCalculationEngine.addDistributionPrice(
+                priceData.priceCZK,
+                newSettings,
+                priceData.hour
+            )
+        }));
+
+        return device.priceCalculator.setPriceIndexes(
+            processedPrices,
+            newSettings.low_index_hours,
+            newSettings.high_index_hours
+        );
+    }
+
+    async updateDeviceCapabilities(device, pricesWithIndexes) {
+        try {
+            await Promise.all([
+                device.capabilityManager.updateHourlyCapabilities(device, pricesWithIndexes),
+                device.capabilityManager.updateCurrentAndNextHourPrices(device, pricesWithIndexes),
+                device.capabilityManager.updateMinMaxPrices(device, pricesWithIndexes),
+                device.capabilityManager.updateDailyAverage(device, pricesWithIndexes)
+            ]);
+        } catch (error) {
+            this.logger.error('Chyba při aktualizaci capabilities', error, {
+                deviceId: device.getData().id
+            });
+            throw error;
+        }
+    }
+}
+
+module.exports = SettingsManager;
