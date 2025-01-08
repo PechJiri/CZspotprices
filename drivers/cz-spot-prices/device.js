@@ -14,6 +14,7 @@ const TriggersManager = require('../../helpers/flowcards/TriggersManager');
 const Logger = require('../../helpers/Logger');
 const LockManager = require('../../helpers/LockManager');
 const CapabilityManager = require('../../helpers/CapabilityManager');
+const DeviceStateManager = require('../../helpers/DeviceStateManager');
 
 
 class CZSpotPricesDevice extends Homey.Device {
@@ -30,47 +31,65 @@ class CZSpotPricesDevice extends Homey.Device {
         try {
             this.isInitialized = false;
             
-            // Inicializace loggeru jako první
-            this.logger = Logger.getInstance()
+            // Inicializace loggeru jako první (stále musí být první pro logování)
+            this.logger = Logger.getInstance();
             this.logger.debug('Device Logger inicializován');
     
-            // Inicializace všech helperů
+            // Inicializace DeviceStateManageru hned po loggeru
+            this.deviceStateManager = DeviceStateManager.getInstance(this.homey);
+            this.logger.debug('DeviceStateManager inicializován');
+            
+            // Inicializace všech helperů - necháme v device.js protože je důležité pro business logiku
             await this.initializeHelpers();
-                
-            // Inicializace základních nastavení
-            await this.initializeBasicSettings();
-            this.logger.log('Základní nastavení inicializována');
-    
-            // Nastavení timeoutu pro inicializaci
+            
+            // Nastavení timeoutu pro celou inicializaci
             const initTimeoutPromise = new Promise((_, reject) => {
                 setTimeout(() => {
                     reject(new Error('Device initialization timeout after 30s'));
                 }, 30000);
             });
     
-            // Načtení dat s retry mechanismem
-            const dataPromise = this._loadInitialData();
+            // Hlavní inicializační proces
+            const initializationPromise = (async () => {
+                try {
+                    // Inicializace základního stavu přes DeviceStateManager
+                    await this.deviceStateManager.initializeDeviceState(this);
+                    
+                    // Nastavení plánovaných úloh - necháme v device.js kvůli business logice
+                    this.logger.debug('Nastavování plánovaných úloh');
+                    await this.setupScheduledTasks(true);
+                    this.logger.log('Plánované úlohy nastaveny');
     
-            // Použití Promise.race pro handling timeoutu
-            await Promise.race([dataPromise, initTimeoutPromise]);
+                    return true;
+                } catch (error) {
+                    this.logger.error('Chyba během inicializace', error);
+                    throw error;
+                }
+            })();
     
-            // Nastavení plánovaných úloh
-            this.logger.debug('Nastavování plánovaných úloh');
-            await this.setupScheduledTasks(false);
-            this.logger.log('Plánované úlohy nastaveny');
-    
+            // Race mezi inicializací a timeoutem
+            await Promise.race([initializationPromise, initTimeoutPromise]);
+            
             this.isInitialized = true;
-            this.logger.log('Inicializace zařízení dokončena', {
+            this.logger.log('Inicializace zařízení úspěšně dokončena', {
                 deviceId: this.getData().id,
                 name: this.getName()
             });
     
         } catch (error) {
             this.isInitialized = false;
-            this.logger.error('Selhání inicializace zařízení', error, {
+            this.logger.error('Kritické selhání inicializace zařízení', error, {
                 deviceId: this.getData().id,
                 name: this.getName()
             });
+            
+            // Cleanup v případě chyby
+            try {
+                await this.deviceStateManager.cleanupDeviceState(this);
+            } catch (cleanupError) {
+                this.logger.error('Chyba při cleanup po selhání inicializace', cleanupError);
+            }
+    
             await this.setUnavailable(`Initialization failed: ${error.message}`);
             throw error;
         }
@@ -900,219 +919,11 @@ class CZSpotPricesDevice extends Homey.Device {
      * Cleanup při odstranění zařízení
      */
     async onDeleted() {
-        try {
-            this.logInitialCleanup();
-            await this.cleanupComponents();
-            await this.cleanupStoreValues();
-            await this.capabilityManager.resetDeviceCapabilities(this);
-            this.cleanupEventListeners();
-            this.cleanupReferences();
-            this.logFinalCleanup();
-        } catch (error) {
-            this.logCleanupError(error);
-        }
+        await this.deviceStateManager.cleanupDeviceState(this);
     }
 
-    /**
-     * Logování začátku čištění
-     */
-    logInitialCleanup() {
-        if (this.logger) {
-            this.logger.log('Cleaning up device resources...', {
-                deviceId: this.getData().id
-            });
-        }
-    }
-
-    /**
-     * Vyčištění hlavních komponent
-     */
-    async cleanupComponents() {
-        this.isInitialized = false;
-
-        // Vyčištění všech intervalů
-        if (this.intervalManager) {
-            this.intervalManager.clearAll();
-            if (this.logger) {
-                this.logger.log('All intervals cleared');
-            }
-        }
-
-        // Vyčištění cache priceCalculatoru
-        if (this.priceCalculator) {
-            this.cacheManager.clearAll();
-            if (this.logger) {
-                this.logger.log('Price calculator cache cleared');
-            }
-        }
-
-        // Vyčištění ActionsManageru
-        if (this.actionsManager) {
-            this.actionsManager.destroy();
-            this.actionsManager = null;
-            if (this.logger) {
-                this.logger.log('Actions manager destroyed');
-            }
-        }
-
-        // Vyčištění ConditionsManageru
-        if (this.conditionsManager) {
-            this.conditionsManager.destroy();
-            this.conditionsManager = null;
-            if (this.logger) {
-                this.logger.log('Conditions manager destroyed');
-            }
-        }
-
-        // Vyčištění TriggersManageru
-        if (this.triggersManager) {
-            this.triggersManager.destroy();
-            this.triggersManager = null;
-            if (this.logger) {
-                this.logger.log('Triggers manager destroyed');
-            }
-        }
-
-        // Vyčištění LockManageru
-        if (this.lockManager) {
-            this.lockManager.clearAllLocks();
-            if (this.logger) {
-                this.logger.log('Lock manager cleared');
-            }
-        }
-    }
-
-    /**
-     * Vyčištění hodnot v úložišti
-     */
-    async cleanupStoreValues() {
-        const storeKeys = [
-            'device_id', 
-            'previousTariff',
-            'lastDataUpdate',
-            'lastMidnightUpdate',
-            'lastHourlyUpdate',
-            'lastAverageUpdate',
-            'firstInit'
-        ];
-
-        for (const key of storeKeys) {
-            try {
-                await this.unsetStoreValue(key);
-                if (this.logger) {
-                    this.logger.log(`Store value ${key} unset successfully`);
-                }
-            } catch (error) {
-                if (error.statusCode === 404) {
-                    if (this.logger) {
-                        this.logger.log(`Store value ${key} already deleted or device not found.`);
-                    }
-                } else {
-                    if (this.logger) {
-                        this.logger.error(`Failed to unset store value ${key}`, error);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Vyčištění event listenerů
-     */
-    cleanupEventListeners() {
-        this.homey.removeAllListeners('spot_prices_updated');
-        this.homey.removeAllListeners('settings_changed');
-        if (this.logger) {
-            this.logger.log('Event listeners removed');
-        }
-    }
-
-    /**
-     * Vyčištění referencí na komponenty
-     */
-    cleanupReferences() {
-        this.spotPriceApi = null;
-        this.priceCalculator = null;
-        this.intervalManager = null;
-        this.actionsManager = null;
-        this.conditionsManager = null;
-        this.triggersManager = null;
-        this.lockManager = null;
-    
-        if (this.logger) {
-            this.logger.log('Component references cleared');
-        }
-    }
-
-    /**
-     * Logování finálního vyčištění
-     */
-    logFinalCleanup() {
-        if (this.logger) {
-            this.logger.log('Device cleanup completed successfully', {
-                deviceId: this.getData().id,
-                timestamp: new Date().toISOString()
-            });
-            this.logger = null;
-        }
-    }
-
-    /**
-     * Logování chyby při čištění
-     */
-    logCleanupError(error) {
-        if (this.logger) {
-            this.logger.error('Error during device cleanup', error, {
-                deviceId: this.getData().id,
-                timestamp: new Date().toISOString()
-            });
-        }
-    }
-
-    /**
-    * Helper pro reset stavu zařízení
-    */
     async resetDeviceState() {
-        try {
-            if (this.logger) {
-                this.logger.log('Starting device state reset...');
-            }
-
-            // Vyčištění cache
-            this.cacheManager.clearAll();
-
-            // Reset všech capabilities na null
-            const capabilities = this.getCapabilities();
-            await Promise.all(
-                capabilities.map(async capability => {
-                    try {
-                        await this.setCapabilityValue(capability, null);
-                    } catch (error) {
-                        if (this.logger) {
-                            this.logger.error(`Error resetting capability ${capability}`, error);
-                        }
-                    }
-                })
-            );
-
-            // Nastavení status flags
-            await this.setCapabilityValue('spot_price_update_status', false);
-            await this.setCapabilityValue('primary_api_fail', true);
-
-            // Vynucení nové aktualizace dat
-            await this.fetchAndUpdateSpotPrices();
-
-            if (this.logger) {
-                this.logger.log('Device state reset completed');
-            }
-
-            return true;
-        } catch (error) {
-            if (this.logger) {
-                this.logger.error('Error resetting device state', error);
-            }
-            return false;
-        }
+        return await this.deviceStateManager.resetDeviceState(this);
     }
 
 }
