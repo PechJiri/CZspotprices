@@ -40,9 +40,6 @@ class CZSpotPricesDriver extends Homey.Driver {
             this.spotPriceApi = SpotPriceAPI.getInstance(this.homey);
             this.intervalManager = IntervalManager.getInstance(this.homey);
     
-            // Validace instancí
-            this.validateInstances();
-    
             // Inicializace
             await this.scheduleMidnightUpdate();
     
@@ -62,37 +59,6 @@ class CZSpotPricesDriver extends Homey.Driver {
         }
         CZSpotPricesDriver.homeyInstance = homey;
     }
-
-    validateInstances() {
-        if (!this.logger) {
-            console.error('Logger není inicializován! Nelze validovat instance.');
-            throw new Error('Logger není inicializován');
-        }
-
-        this.logger.debug('Validace instancí komponent');
-        
-        const validations = [
-            { instance: this.spotPriceApi, name: 'SpotPriceAPI' },
-            { instance: this.intervalManager, name: 'IntervalManager' }
-        
-        ];
-    
-        // Kontrola, zda některá z instancí nechybí
-        const missingInstances = validations
-            .filter(({ instance }) => !instance)
-            .map(({ name }) => name);
-    
-        if (missingInstances.length > 0) {
-            const error = new Error(`Chybí instance: ${missingInstances.join(', ')}`);
-            this.logger.error('Chyba validace instancí', error, { 
-                missing: missingInstances 
-            });
-            throw error;
-        }
-    
-        this.logger.debug('Validace instancí úspěšná');
-        return true;
-    }    
 
   async scheduleMidnightUpdate() {
     try {
