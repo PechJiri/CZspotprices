@@ -205,56 +205,6 @@ class CZSpotPricesDevice extends Homey.Device {
             this.logger.log('Použití nedávných dat - přeskakuji načítání');
             return true;
         }
-    } 
-    
-    // inicializace základních nastavení
-    async initializeBasicSettings() {
-        try {
-            this.logInitializationStart();
-    
-            this.checkDependencies();
-    
-            await this.initializeDeviceId();
-            await this.loadAndApplySettings();
-            await this.registerCapabilities();
-            await this.setInitialTariff();
-    
-            this.verifyCriticalMethods();
-            this.logInitializationSuccess();
-        } catch (error) {
-            this.handleInitializationError(error);
-        }
-    }    
-    
-    logInitializationStart() {
-        if (this.logger) {
-            this.logger.log('Začátek inicializace základních nastavení');
-        }
-    }
-    
-    checkDependencies() {
-        const requiredDependencies = [
-            { name: 'SpotPriceAPI', instance: this.spotPriceApi },
-            { name: 'IntervalManager', instance: this.intervalManager },
-            { name: 'LockManager', instance: this.lockManager },
-        ];
-    
-        this.logger.debug('Kontrola inicializace závislostí a jejich loggerů');
-        requiredDependencies.forEach(({ name, instance }) => {
-            if (!instance) {
-                throw new Error(`Komponenta ${name} není inicializována`);
-            }
-        });
-    }
-    
-    async loadAndApplySettings() {
-        try {
-            await this.initializeSettings();
-            this.logger.log('Nastavení zařízení inicializováno', this.getSettings());
-        } catch (error) {
-            this.logger.error('Chyba při načítání nastavení zařízení', error);
-            throw error;
-        }
     }
     
     async registerCapabilities() {
@@ -277,55 +227,10 @@ class CZSpotPricesDevice extends Homey.Device {
         }
     }
     
-    verifyCriticalMethods() {
-        if (!this.spotPriceApi.getCurrentTimeInfo) {
-            throw new Error('Metoda getCurrentTimeInfo není dostupná v SpotPriceAPI');
-        }
-    }
-    
-    logInitializationSuccess() {
-        this.logger.log('Inicializace základních nastavení dokončena úspěšně');
-    }
-    
     handleInitializationError(error) {
         this.logger.error('Kritická chyba při inicializaci základních nastavení', error);
         throw error;
     }
-  
-    async initializeDeviceId() {
-        const deviceId = this.getData().id || this.getStoreValue('device_id');
-    
-        if (this.logger) {
-            this.logger.debug('Current Device ID', { deviceId });
-        }
-    
-        if (!deviceId) {
-            const newDeviceId = this.generateDeviceId();
-            await this.setStoreValue('device_id', newDeviceId);
-    
-            if (this.logger) {
-                this.logger.log('Generated new device ID', { newDeviceId });
-            }
-        } else {
-            if (this.logger) {
-                this.logger.log('Device initialized with existing ID', { deviceId });
-            }
-        }
-    }    
-  
-    async initializeSettings() {
-        this.lowIndexHours = this.getLowIndexHours();
-        this.highIndexHours = this.getHighIndexHours();
-        this.priceInKWh = this.getSetting('price_in_kwh') || false;
-    
-        if (this.logger) {
-            this.logger.debug('Device settings initialized', { 
-                lowIndexHours: this.lowIndexHours, 
-                highIndexHours: this.highIndexHours, 
-                priceInKWh: this.priceInKWh 
-            });
-        }
-    }    
     
     //Spuštění stahování dat
     async initialDataFetch() {
@@ -552,30 +457,31 @@ class CZSpotPricesDevice extends Homey.Device {
         }
     }
   
-  /**
-   * Gettery pro nastavení
-   */
-  getLowIndexHours() {
-      return this.getSetting('low_index_hours') || 8;
-  }
-  
-  getHighIndexHours() {
-      return this.getSetting('high_index_hours') || 8;
-  }
-  
-  getPriceInKWh() {
-      return this.getSetting('price_in_kwh') || false;
-  }
-  
-  /**
-   * Generování ID zařízení
-   */
-  generateDeviceId() {
-      return this.homey.util.generateUniqueId();
-}
     /**
- * Handler pro změnu nastavení zařízení
- */
+     * Gettery pro nastavení
+     */
+    getLowIndexHours() {
+        return this.getSetting('low_index_hours') || 8;
+    }
+    
+    getHighIndexHours() {
+        return this.getSetting('high_index_hours') || 8;
+    }
+    
+    getPriceInKWh() {
+        return this.getSetting('price_in_kwh') || false;
+    }
+  
+    /**
+     * Generování ID zařízení
+     */
+    generateDeviceId() {
+      return this.homey.util.generateUniqueId();
+    }
+
+    /**
+     * Handler pro změnu nastavení zařízení
+     */
     async onSettings({ oldSettings, newSettings, changedKeys }) {
         // Pokud došlo ke změně nastavení 'enable_logging'
         if (changedKeys.includes('enable_logging')) {
@@ -721,68 +627,68 @@ class CZSpotPricesDevice extends Homey.Device {
     
 
    /**
- * Hlavní metoda pro aktualizaci cen
- */
-   async fetchAndUpdateSpotPrices() {
-    await this.setCapabilityValue('spot_price_update_status', false);
+     * Hlavní metoda pro aktualizaci cen
+     */
+    async fetchAndUpdateSpotPrices() {
+        await this.setCapabilityValue('spot_price_update_status', false);
 
-    if (this.logger) {
-        this.logger.log('Fetching and updating spot prices');
-    }
+        if (this.logger) {
+            this.logger.log('Fetching and updating spot prices');
+        }
 
-    try {
-        // Získání cen z API
-        const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
+        try {
+            // Získání cen z API
+            const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
 
-        if (!this.dataValidator.validatePriceData(dailyPrices)) {
-            const errorMessage = 'Invalid daily prices data received from API';
-            if (this.logger) {
-                this.logger.error(errorMessage, new Error(errorMessage));
+            if (!this.dataValidator.validatePriceData(dailyPrices)) {
+                const errorMessage = 'Invalid daily prices data received from API';
+                if (this.logger) {
+                    this.logger.error(errorMessage, new Error(errorMessage));
+                }
+                throw new Error(errorMessage);
             }
-            throw new Error(errorMessage);
+
+            // Přidání distribučního tarifu k cenám
+            const settings = this.getSettings();
+            const processedPrices = dailyPrices.map(priceData => ({
+                ...priceData,
+                priceCZK: this.priceCalculationEngine.addDistributionPrice(
+                    priceData.priceCZK,
+                    settings,
+                    priceData.hour
+                )
+            }));
+
+            // Aktualizace všech cen
+            await this.updateAllPrices(processedPrices);
+
+            // Nastavení dostupnosti a status flagu
+            await this.setAvailable();
+            await this.setCapabilityValue('spot_price_update_status', true);
+
+            // Emit události pro aktualizaci UI
+            await this.homey.emit('spot_prices_updated', {
+                deviceId: this.getData().id,
+                currentPrice: await this.getCapabilityValue('measure_current_spot_price_CZK'),
+                currentIndex: await this.getCapabilityValue('measure_current_spot_index'),
+                averagePrice: await this.getCapabilityValue('daily_average_price')
+            });
+
+            if (this.logger) {
+                this.logger.log('Spot prices fetched and updated successfully');
+            }
+
+            return true;
+
+        } catch (error) {
+            if (this.logger) {
+                this.logger.error('Error fetching spot prices', error);
+            }
+            await this.homey.notifications.createNotification({
+                excerpt: `Error fetching spot prices: ${error.message}`
+            });
+            return false;
         }
-
-        // Přidání distribučního tarifu k cenám
-        const settings = this.getSettings();
-        const processedPrices = dailyPrices.map(priceData => ({
-            ...priceData,
-            priceCZK: this.priceCalculationEngine.addDistributionPrice(
-                priceData.priceCZK,
-                settings,
-                priceData.hour
-            )
-        }));
-
-        // Aktualizace všech cen
-        await this.updateAllPrices(processedPrices);
-
-        // Nastavení dostupnosti a status flagu
-        await this.setAvailable();
-        await this.setCapabilityValue('spot_price_update_status', true);
-
-        // Emit události pro aktualizaci UI
-        await this.homey.emit('spot_prices_updated', {
-            deviceId: this.getData().id,
-            currentPrice: await this.getCapabilityValue('measure_current_spot_price_CZK'),
-            currentIndex: await this.getCapabilityValue('measure_current_spot_index'),
-            averagePrice: await this.getCapabilityValue('daily_average_price')
-        });
-
-        if (this.logger) {
-            this.logger.log('Spot prices fetched and updated successfully');
-        }
-
-        return true;
-
-    } catch (error) {
-        if (this.logger) {
-            this.logger.error('Error fetching spot prices', error);
-        }
-        await this.homey.notifications.createNotification({
-            excerpt: `Error fetching spot prices: ${error.message}`
-        });
-        return false;
-    }
     }
 
 
