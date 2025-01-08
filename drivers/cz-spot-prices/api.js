@@ -1,48 +1,36 @@
 'use strict';
 
 const axios = require('axios');
-const PriceCalculator = require('../../helpers/pricecalculation/PriceCalculator');
-const TariffCalculator = require('../../helpers/pricecalculation/TariffCalculator');
-const PriceCalculationEngine = require('../../helpers/pricecalculation/PriceCalculationEngine');
-const DataValidator = require('../../helpers/DataValidator');
-const CacheManager = require('../../helpers/CacheManager');
 const Logger = require('../../helpers/Logger');
 
 class SpotPriceAPI {
-    // Statická proměnná pro uložení jediné instance
     static instance = null;
     static CONTEXT = 'SpotPriceAPI';
 
-    // Statická metoda pro získání nebo vytvoření instance
     static getInstance(homey) {
         if (!SpotPriceAPI.instance) {
             SpotPriceAPI.instance = new SpotPriceAPI(homey);
-            // Po vytvoření instance nastavíme závislost na tariffCalculator
-            if (SpotPriceAPI.instance.tariffCalculator) {
-                SpotPriceAPI.instance.tariffCalculator.setSpotPriceApi(SpotPriceAPI.instance);
-            }
         }
         return SpotPriceAPI.instance;
     }
 
     constructor(homeyInstance) {
         if (SpotPriceAPI.instance) {
-            throw new Error('Použijte SpotPriceAPI.getInstance() místo volání new SpotPriceAPI().');
+            throw new Error('Použijte SpotPriceAPI.getInstance()');
         }
         
         this.homey = homeyInstance;
-        
         if (!this.homey) {
             throw new Error('Homey instance není dostupná');
         }
     
-        // Inicializace loggeru
-        this.logger = Logger.getInstance()
-        
+        // Inicializace loggeru jako první
+        this.logger = Logger.getInstance();
         if (!this.logger) {
             throw new Error('Logger inicializace selhala');
         }
     
+        // Základní konfigurace
         this.baseUrl = 'https://spotovaelektrina.cz/api/v1/price';
         const today = new Date().toISOString().slice(0, 10);
         this.backupUrl = `https://www.ote-cr.cz/cs/kratkodobe-trhy/elektrina/denni-trh/@@chart-data?date=${today}`;
@@ -50,20 +38,57 @@ class SpotPriceAPI {
         this.exchangeRate = 25.25;
         this.homeyTimezone = this.homey.clock.getTimezone();
         this.lastRateUpdate = null;
-    
-        // Inicializace ostatních pomocných tříd
-        try {
-            this.priceCalculator = PriceCalculator.getInstance(this.homey, 'PriceCalculator');
-            this.tariffCalculator = TariffCalculator.getInstance(this.homey, 'TariffCalculator');
-            this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey, 'PriceCalculatorEngine');
-            this.dataValidator = DataValidator.getInstance(this.homey, 'DataValidator');
-            this.cacheManager = CacheManager.getInstance(this.homey, 'CacheManager');
-        } catch (error) {
-                this.logger.error('Chyba při inicializaci pomocných tříd', error);
-            throw error;
-        }
-        
+
         this.logger.debug('SpotPriceAPI inicializován');
+    }
+
+    // Metody pro lazy inicializaci závislostí
+    getPriceCalculator() {
+        if (!this._priceCalculator) {
+            const PriceCalculator = require('../../helpers/pricecalculation/PriceCalculator');
+            this._priceCalculator = PriceCalculator.getInstance(this.homey);
+        }
+        return this._priceCalculator;
+    }
+
+    getTariffCalculator() {
+        if (!this._tariffCalculator) {
+            const TariffCalculator = require('../../helpers/pricecalculation/TariffCalculator');
+            this._tariffCalculator = TariffCalculator.getInstance(this.homey);
+        }
+        return this._tariffCalculator;
+    }
+
+    getPriceCalculationEngine() {
+        if (!this._priceCalculationEngine) {
+            const PriceCalculationEngine = require('../../helpers/pricecalculation/PriceCalculationEngine');
+            this._priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey);
+        }
+        return this._priceCalculationEngine;
+    }
+
+    getDataValidator() {
+        if (!this._dataValidator) {
+            const DataValidator = require('../../helpers/DataValidator');
+            this._dataValidator = DataValidator.getInstance(this.homey);
+        }
+        return this._dataValidator;
+    }
+
+    getCacheManager() {
+        if (!this._cacheManager) {
+            const CacheManager = require('../../helpers/CacheManager');
+            this._cacheManager = CacheManager.getInstance(this.homey);
+        }
+        return this._cacheManager;
+    }
+
+    getLockManager() {
+        if (!this._lockManager) {
+            const LockManager = require('../../helpers/LockManager');
+            this._lockManager = LockManager.getInstance(this.homey);
+        }
+        return this._lockManager;
     }
 
     static setHomeyInstance(homey) {
@@ -176,7 +201,7 @@ class SpotPriceAPI {
                 priceCZK: hourData.priceCZK
             }));
     
-            if (!this.dataValidator.validatePriceData(data)) {
+            if (!this.getDataValidator().validatePriceData(data)) {
                 throw new Error('Neplatný formát dat z primárního API');
             }
     
@@ -262,14 +287,9 @@ class SpotPriceAPI {
 
     async updateCurrentValues(device) {
         const operationId = `update-${Date.now()}`;
-        
-        if (!this.initialized) {
-            this.priceCalculator = PriceCalculator.getInstance(this.homey, 'PriceCalculator');
-            this.initialized = true;
-        }
     
         try {
-            const lockAcquired = await this.lockManager.acquireLock(device.getData().id, operationId);
+            const lockAcquired = await this.getLockManager().acquireLock(device.getData().id, operationId);
                 if (!lockAcquired) {
                     this.logger?.warn('Nelze získat zámek pro aktualizaci', {
                         operationId,
@@ -369,7 +389,7 @@ class SpotPriceAPI {
         const settings = device.getSettings();
         return dailyPrices.map(priceData => ({
             ...priceData,
-            priceCZK: this.priceCalculationEngine.addDistributionPrice(priceData.priceCZK, settings, priceData.hour)
+            priceCZK: this.getPriceCalculationEngine().addDistributionPrice(priceData.priceCZK, settings, priceData.hour)
         }));
     }
     

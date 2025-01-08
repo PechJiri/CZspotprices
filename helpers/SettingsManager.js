@@ -20,6 +20,10 @@ class SettingsManager {
         
         this.homey = homey;
         this.logger = Logger.getInstance();
+
+        if (!this.homey) {
+            throw new Error('Homey instance je vyžadována pro SettingsManager');
+        }
     }
 
     static setHomeyInstance(homey) {

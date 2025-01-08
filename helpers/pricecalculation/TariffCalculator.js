@@ -2,6 +2,7 @@
 
 const Logger = require('../Logger');
 const DataValidator = require('../DataValidator');
+const SpotPriceAPI = require('../../drivers/cz-spot-prices/api');
 
 class TariffCalculator {
     static instance = null;
@@ -28,8 +29,11 @@ class TariffCalculator {
         this.validator = DataValidator.getInstance(instanceToUse);
     }
 
-    setSpotPriceApi(spotPriceApi) {
-        this.spotPriceApi = spotPriceApi;
+    getSpotPriceAPI() {
+        if (!this._spotPriceApi) {
+            this._spotPriceApi = SpotPriceAPI.getInstance(this.homey);
+        }
+        return this._spotPriceApi;
     }
 
     static getInstance(homeyInstance) {
@@ -107,7 +111,7 @@ class TariffCalculator {
     }
 
     async initializeInitialTariff(device) {
-        const { hour: currentHour } = this.spotPriceApi.getCurrentTimeInfo();
+        const { hour: currentHour } = this.getSpotPriceAPI().getCurrentTimeInfo();
         
         const initialTariff = this.isLowTariff(currentHour, device.getSettings()) ? 'low' : 'high';
         await device.setStoreValue('previousTariff', initialTariff);

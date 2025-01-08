@@ -98,32 +98,37 @@ class CZSpotPricesDevice extends Homey.Device {
     
     async initializeHelpers() {
         try {
-            this.logger.debug('Začátek inicializace helperů');
+            this.logger?.debug('Začátek inicializace helperů');
     
-            // Základní helpery
+            // Inicializace všech singletonů
             this.spotPriceApi = SpotPriceAPI.getInstance(this.homey);
             this.intervalManager = IntervalManager.getInstance(this.homey);
             this.priceCalculator = PriceCalculator.getInstance(this.homey);
-            this.lockManager = LockManager.getInstance(this.homey);
             this.tariffCalculator = TariffCalculator.getInstance(this.homey);
             this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey);
             this.dataValidator = DataValidator.getInstance(this.homey);
             this.cacheManager = CacheManager.getInstance(this.homey);
-            this.capabilityManager = CapabilityManager.getInstance(this.homey);
             this.settingsManager = SettingsManager.getInstance(this.homey);
-            
-            // Flow manažery
+            this.capabilityManager = CapabilityManager.getInstance(this.homey);
+            this.lockManager = LockManager.getInstance(this.homey);
+    
+            // Flow manažery (tyto NEJSOU singletony pro device)
             this.actionsManager = ActionsManager.getInstance(this.homey, this);
             await this.actionsManager.initialize();
-
+    
             this.conditionsManager = ConditionsManager.getInstance(this.homey, this);
             await this.conditionsManager.initialize();
-
+    
             this.triggersManager = TriggersManager.getInstance(this.homey, this);
             await this.triggersManager.initialize();
-
-            } catch (error) {
-            this.logger.error('Chyba při inicializaci helperů', error);
+    
+            this.logger?.debug('Helpery úspěšně inicializovány');
+            
+            // Validace že všechny instance existují
+            this.validateHelpers();
+    
+        } catch (error) {
+            this.logger?.error('Chyba při inicializaci helperů', error);
             throw error;
         }
     }
@@ -586,18 +591,23 @@ class CZSpotPricesDevice extends Homey.Device {
      */
     async triggerAPIFailure(errorInfo) {
         try {
+            if (!errorInfo) {
+                this.logger?.warn('triggerAPIFailure: chybí errorInfo');
+                return;
+            }
+    
             const tokens = {
-                error_message: `Primary API: ${errorInfo.primaryAPI}, Backup API: ${errorInfo.backupAPI}`,
-                will_retry: errorInfo.willRetry || false,
+                error_message: `Primary API: ${errorInfo.primaryAPI || 'N/A'}, Backup API: ${errorInfo.backupAPI || 'N/A'}`,
+                will_retry: Boolean(errorInfo.willRetry),
                 retry_count: errorInfo.retryCount || 0,
                 next_retry: errorInfo.nextRetryIn ? `${errorInfo.nextRetryIn} minutes` : 'No retry scheduled',
-                max_retries_reached: errorInfo.maxRetriesReached || false
+                max_retries_reached: Boolean(errorInfo.maxRetriesReached)
             };
-
+    
             await this.triggersManager.triggerApiFailure(tokens);
-            this.logger.log('API failure trigger spuštěn s tokeny', tokens);
+            this.logger?.debug('API failure trigger spuštěn s tokeny', tokens);
         } catch (error) {
-            this.logger.error('Chyba při spouštění API failure triggeru', error);
+            this.logger?.error('Chyba při spouštění API failure triggeru', error);
         }
     }
 

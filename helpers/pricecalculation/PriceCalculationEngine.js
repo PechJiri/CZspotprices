@@ -5,6 +5,7 @@ const DataValidator = require('../DataValidator');
 const TariffCalculator = require('./TariffCalculator');
 const CacheManager = require('../CacheManager');
 const SettingsManager = require('../SettingsManager');
+const SpotPriceAPI = require('../../drivers/cz-spot-prices/api');
 
 class PriceCalculationEngine {
     static instance = null;
@@ -28,9 +29,13 @@ class PriceCalculationEngine {
         this.tariffCalculator = TariffCalculator.getInstance(homeyInstance);
         this.SettingsManager = SettingsManager.getInstance(homeyInstance);
         
+        if (!this.SettingsManager) {
+            throw new Error('SettingsManager není inicializován');
+        }
+    
         this.homey = homeyInstance;
         this.deviceContext = deviceContext;
-
+    
         // Inicializace CacheManager
         this.cacheManager = CacheManager.getInstance(homeyInstance);
     }
@@ -40,6 +45,13 @@ class PriceCalculationEngine {
             throw new Error('Homey instance je vyžadována pro PriceCalculationEngine');
         }
         PriceCalculationEngine.homeyInstance = homey;
+    }
+
+    getSpotPriceAPI() {
+        if (!this._spotPriceApi) {
+            this._spotPriceApi = SpotPriceAPI.getInstance(this.homey);
+        }
+        return this._spotPriceApi;
     }
 
     /**
@@ -201,11 +213,11 @@ class PriceCalculationEngine {
             return null;
         }
     
-        const currentHour = new Date().getHours();
-        const cacheKey = `${hours}-${startFromHour}-${currentHour}-${SettingsManager.getPriceInKWh()}`;
+        const { hour: currentHour } = this.getSpotPriceAPI().getCurrentTimeInfo();
+        const cacheKey = `${hours}-${startFromHour}-${currentHour}-${this.SettingsManager.getPriceInKWh(device)}`;
     
         if (this.cacheManager.has(cacheKey) && this.lastCalculationHour === currentHour) {
-            const cachedData = this.cacheManager.get(cacheKey); // Použij správnou metodu
+            const cachedData = this.cacheManager.get(cacheKey);
             if (this.isCacheValid(cachedData.timestamp)) {
                 this.logger?.debug('Použití dat z průměrné cache', { cacheKey });
                 return cachedData.data;
@@ -213,7 +225,10 @@ class PriceCalculationEngine {
         }
         return null;
     }
-    
+
+    determineStartHour(startFromHour) {
+        return startFromHour !== null ? startFromHour : this.getSpotPriceAPI().getCurrentTimeInfo().hour;
+    }
 
     async calculatePriceCombinations(device, hours, startFromHour) {
         const combinations = [];
@@ -283,8 +298,8 @@ class PriceCalculationEngine {
     }
 
     async checkRemainingDayCache(device, hours, currentHour) {
-        const cacheKey = `remaining-${hours}-${currentHour}-${SettingsManager.getPriceInKWh()}`;
-
+        const cacheKey = `remaining-${hours}-${currentHour}-${this.SettingsManager.getPriceInKWh(device)}`;
+    
         if (this.cacheManager.has(cacheKey) && this.lastCalculationHour === currentHour) {
             const cachedData = this.cacheManager.get(cacheKey);
             if (this.isCacheValid(cachedData.timestamp)) {
@@ -307,8 +322,8 @@ class PriceCalculationEngine {
         return combinations;
     }
 
-    updateRemainingDayCache(combinations, hours, currentHour) {
-        const cacheKey = `remaining-${hours}-${currentHour}-${SettingsManager.getPriceInKWh()}`;
+    updateRemainingDayCache(combinations, hours, currentHour, device) {
+        const cacheKey = `remaining-${hours}-${currentHour}-${this.SettingsManager.getPriceInKWh(device)}`;
         this.cacheManager.set(cacheKey, {
             data: combinations,
             timestamp: Date.now()
@@ -316,9 +331,9 @@ class PriceCalculationEngine {
         this.lastCalculationHour = currentHour;
     }
 
-    updateAveragePricesCache(combinations, hours, startFromHour) {
-        const currentHour = new Date().getHours();
-        const cacheKey = `${hours}-${startFromHour}-${currentHour}-${SettingsManager.getPriceInKWh()}`;
+    updateAveragePricesCache(combinations, hours, startFromHour, device) {
+        const { hour: currentHour } = this.getSpotPriceAPI().getCurrentTimeInfo();
+        const cacheKey = `${hours}-${startFromHour}-${currentHour}-${this.SettingsManager.getPriceInKWh(device)}`;
         
         this.cacheManager.set(cacheKey, {
             data: combinations,
@@ -406,7 +421,7 @@ class PriceCalculationEngine {
     async checkAveragePriceAndTrigger(device, triggerCard) {
         try {
             const flows = await triggerCard.getArgumentValues(device);
-            const currentHour = new Date().getHours();
+            const { hour: currentHour } = this.getSpotPriceAPI().getCurrentTimeInfo();
     
             for (const flow of flows) {
                 const { hours, condition } = flow;

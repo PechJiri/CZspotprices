@@ -9,6 +9,7 @@ const TariffCalculator = require('../../helpers/pricecalculation/TariffCalculato
 const PriceCalculationEngine = require('../../helpers/pricecalculation/PriceCalculationEngine');
 const DataValidator = require('../../helpers/DataValidator');
 const CacheManager = require('../../helpers/CacheManager');
+const SettingsManager = require('../../helpers/SettingsManager');
 const Logger = require('../../helpers/Logger');
 
 class CZSpotPricesDriver extends Homey.Driver {
@@ -16,41 +17,42 @@ class CZSpotPricesDriver extends Homey.Driver {
 
     async onInit() {
         try {
-            // 1. Inicializace loggeru - předáváme this.homey
+            // 1. Nejdříve Logger
             this.logger = Logger.getInstance(this.homey)
-
+    
             if (!this.homey) {
-            throw new Error('Homey instance není dostupná při inicializaci driveru.');
+                throw new Error('Homey instance není dostupná při inicializaci driveru.');
             }
-
+    
             this.logger.log('Inicializace CZSpotPricesDriver');
     
-            // Inicializace všech helperů
-            this.spotPriceApi = SpotPriceAPI.getInstance(this.homey);
-            this.intervalManager = IntervalManager.getInstance(this.homey);
-            this.priceCalculator = PriceCalculator.getInstance(this.homey);
+            // 2. Základní pomocné třídy
+            this.cacheManager = CacheManager.getInstance(this.homey);
+            this.dataValidator = DataValidator.getInstance(this.homey);
+            this.settingsManager = SettingsManager.getInstance(this.homey);
+    
+            // 3. Hlavní business logika
             this.tariffCalculator = TariffCalculator.getInstance(this.homey);
             this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey);
-            this.dataValidator = DataValidator.getInstance(this.homey);
-            this.cacheManager = CacheManager.getInstance(this.homey);
+            this.priceCalculator = PriceCalculator.getInstance(this.homey);
+    
+            // 4. API a správa intervalů
+            this.spotPriceApi = SpotPriceAPI.getInstance(this.homey);
+            this.intervalManager = IntervalManager.getInstance(this.homey);
     
             // Validace instancí
             this.validateInstances();
     
-            // Společné plánování půlnoční aktualizace pro všechna zařízení
+            // Inicializace
             await this.scheduleMidnightUpdate();
     
             this.logger.log('Driver úspěšně inicializován');
     
         } catch (error) {
-            if (this.logger) {
-                this.logger.error('Chyba při inicializaci driveru', error, {
-                    driverId: this.id
-                });
-            } else {
-                console.error('Chyba při inicializaci driveru:', error);
-            }
-            throw error; 
+            this.logger?.error('Chyba při inicializaci driveru', error, {
+                driverId: this.id
+            });
+            throw error;
         }
     }
 
@@ -284,25 +286,27 @@ class CZSpotPricesDriver extends Homey.Driver {
     return Object.values(devices)[0];
   }
 
-  async _tryUpdatePrices(device) {
-    try {
-        await device.setCapabilityValue('spot_price_update_status', false);
-        
-        const updateResult = await this.tryUpdateDevice(device);
-        
-        if (updateResult) {
-            await device.setCapabilityValue('spot_price_update_status', true);
-            if (this.logger) {
-                this.logger.log(`Aktualizace zařízení ${device.getName()} proběhla úspěšně`);
+    async _tryUpdatePrices(device) {
+        try {
+            if (!device) {
+                this.logger?.error('Device není definován pro _tryUpdatePrices');
+                return false;
             }
-        }
+            
+            // Nastavíme status jen jednou zde
+            await device.setCapabilityValue('spot_price_update_status', false);
+            
+            const updateResult = await this.tryUpdateDevice(device);
+            
+            if (updateResult) {
+                await device.setCapabilityValue('spot_price_update_status', true);
+                this.logger?.log(`Aktualizace zařízení ${device.getName()} proběhla úspěšně`);
+            }
 
-        return updateResult;
+            return updateResult;
         } catch (error) {
-        if (this.logger) {
-            this.logger.error(`Chyba při aktualizaci zařízení ${device.getName()}`, error);
-        }
-        return false;
+            this.logger?.error(`Chyba při aktualizaci zařízení ${device.getName()}`, error);
+            return false;
         }
     }
 
@@ -338,7 +342,7 @@ class CZSpotPricesDriver extends Homey.Driver {
     }
     }
 
-    async _scheduleRetry(device, retryCount, baseDelay) {
+    async _scheduleRetry(device, retryCount, baseDelay = 5 * 60 * 1000) {
         try {
             this.validateRetryParams(device, baseDelay);
             const delay = this.calculateRetryDelay(retryCount, baseDelay);
@@ -347,7 +351,7 @@ class CZSpotPricesDriver extends Homey.Driver {
             await this.scheduleRetryInterval(device, retryCount, delay);
             return true;
         } catch (error) {
-            this.logRetryError(error, device, retryCount);
+            this.logRetryError(error, device, retryCount, baseDelay);
             throw error;
         }
     }
@@ -375,15 +379,22 @@ class CZSpotPricesDriver extends Homey.Driver {
     }
  
     async triggerRetryNotification(device, retryCount, delay) {
-        if (device?.triggerAPIFailure) {
+        try {
+            if (!device?.triggerAPIFailure) {
+                this.logger?.warn('Device instance není dostupná pro API failure trigger');
+                return;
+            }
+    
             await device.triggerAPIFailure({
                 primaryAPI: 'Aktualizace selhala',
-                backupAPI: 'Aktualizace selhala',
+                backupAPI: 'Čekání na další pokus',
                 willRetry: true,
                 retryCount: retryCount + 1,
                 nextRetryIn: Math.round(delay / 60000),
                 maxRetriesReached: false
             });
+        } catch (error) {
+            this.logger?.error('Chyba při spouštění API failure triggeru', error);
         }
     }
  
@@ -416,7 +427,7 @@ class CZSpotPricesDriver extends Homey.Driver {
         
     }
  
-    logRetryError(error, device, retryCount) {
+    logRetryError(error, device, retryCount, baseDelay = 5 * 60 * 1000) {
         if (this.logger) {
             this.logger.error('Chyba při plánování dalšího pokusu', error, {
                 deviceId: device?.getData()?.id,
@@ -468,66 +479,67 @@ class CZSpotPricesDriver extends Homey.Driver {
     async tryUpdateDevice(device) {
         try {
             if (!device || !device.updateAllPrices) {
-                this.logger.error('Neplatné zařízení pro tryUpdateDevice');
+                this.logger?.error('Neplatné zařízení pro tryUpdateDevice');
                 return false;
             }
-
+    
             // Kontrola, zda je zařízení plně inicializováno
             if (!device.isInitialized) {
-                this.logger.warn('Zařízení není plně inicializováno, přeskakuji update');
+                this.logger?.warn('Zařízení není plně inicializováno, přeskakuji update');
                 return false;
             }
-
+    
             // Přidání kontroly závislostí
             if (!device.priceCalculator || !device.spotPriceApi) {
-                this.logger.error('Chybí required dependencies pro tryUpdateDevice');
+                this.logger?.error('Chybí required dependencies pro tryUpdateDevice');
                 return false;
             }
-
-            await device.setCapabilityValue('spot_price_update_status', false);
-            
+                
             // Získání a zpracování dat
             try {
                 const dailyPrices = await device.spotPriceApi.getDailyPrices(device);
                 const settings = device.getSettings();
                 
-                // Zpracování cen
+                // Zpracování cen - použijeme device.priceCalculationEngine místo this
                 const processedPrices = dailyPrices.map(priceData => ({
                     hour: priceData.hour,
-                    priceCZK: this.priceCalculationEngine.addDistributionPrice(
+                    priceCZK: device.priceCalculationEngine.addDistributionPrice(
                         priceData.priceCZK,
                         settings,
                         priceData.hour
                     )
                 }));
-
+    
                 // Aktualizace zařízení s zpracovanými cenami
                 const updateResult = await device.updateAllPrices(processedPrices);
                 
+                // Status flag se nastavuje v _tryUpdatePrices, tak ho tu nebudeme měnit
                 if (updateResult) {
-                    await device.setCapabilityValue('spot_price_update_status', true);
-                    if (this.logger) {
-                        this.logger.log(`Aktualizace zařízení ${device.getName()} proběhla úspěšně`);
-                    }
+                    this.logger?.log(`Aktualizace zařízení ${device.getName()} proběhla úspěšně`, {
+                        deviceId: device.getData().id,
+                        processedPrices: processedPrices.length
+                    });
                 }
-
+    
                 return updateResult;
+    
             } catch (error) {
-                if (this.logger) {
-                    this.logger.error(`Chyba při aktualizaci zařízení ${device.getName()}`, error);
-                }
+                this.logger?.error(`Chyba při aktualizaci dat zařízení ${device.getName()}`, error, {
+                    deviceId: device.getData().id,
+                    step: 'data_processing'
+                });
                 return false;
             }
-
+    
         } catch (error) {
-            if (this.logger) {
-                this.logger.error(`Chyba při aktualizaci zařízení ${device.getName()}`, error);
-            }
+            this.logger?.error(`Chyba při tryUpdateDevice`, error, {
+                deviceId: device?.getData()?.id,
+                name: device?.getName(),
+                step: 'initialization'
+            });
             return false;
         }
     }
-
-
 
     async onPairListDevices() {
         try {

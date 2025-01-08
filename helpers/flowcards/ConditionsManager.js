@@ -185,7 +185,7 @@ class ConditionsManager {
                     return false;
                 }
 
-                const combinations = await this.device.priceCalculator.calculateAveragePrices(
+                const combinations = await this.device.priceCalculationEngine.calculateAveragePrices(
                     this.device,
                     hours,
                     0
@@ -287,7 +287,7 @@ class ConditionsManager {
                 const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
                 const currentHour = timeInfo.hour;
                 const settings = this.device.getSettings();
-                const isLowTariff = this.device.priceCalculator.isLowTariff(currentHour, settings);
+                const isLowTariff = device.tariffCalculator.isLowTariff(currentHour, settings);
                 const result = args.tariff === (isLowTariff ? 'low' : 'high');
 
                 this.logger.debug('Distribution tariff condition vyhodnocena:', {

@@ -1,6 +1,7 @@
 'use strict';
 
 const Logger = require('../Logger');
+const PriceCalculationEngine = require('./PriceCalculationEngine');
 
 class PriceCalculator {
     static instance = null;
@@ -10,11 +11,13 @@ class PriceCalculator {
         if (PriceCalculator.instance) {
             throw new Error('Použijte PriceCalculator.getInstance()');
         }
-
+        
         this.logger = Logger.getInstance();
         this.homey = homey;
-        this.components = {}; 
-
+        
+        // Automaticky získáme instanci engine jako singleton
+        this.priceCalculationEngine = PriceCalculationEngine.getInstance(homey);
+        
         this.logger?.debug('PriceCalculator inicializován');
     }
 

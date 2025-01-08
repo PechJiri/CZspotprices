@@ -29,6 +29,14 @@ class DeviceStateManager {
         DeviceStateManager.homeyInstance = homey;
     }
 
+    getCapabilityManager() {
+        if (!this._capabilityManager) {
+            const CapabilityManager = require('./CapabilityManager');
+            this._capabilityManager = CapabilityManager.getInstance(this.homey);
+        }
+        return this._capabilityManager;
+    }
+
     async initializeDeviceState(device) {
         try {
             await this.initializeBasicSettings(device);
@@ -172,10 +180,12 @@ class DeviceStateManager {
             
             await this.cleanupComponents(device);
             await this.cleanupStoreValues(device);
-            await device.capabilityManager.resetDeviceCapabilities(device);
+            if (this.getCapabilityManager()) {
+                await this.getCapabilityManager().resetDeviceCapabilities(device);
+            }
             this.cleanupEventListeners(device);
             this.cleanupReferences(device);
-
+    
             this.logger.log('Úklid zařízení dokončen', {
                 deviceId: device.getData().id
             });
