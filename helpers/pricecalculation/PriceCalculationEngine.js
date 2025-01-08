@@ -293,10 +293,6 @@ class PriceCalculationEngine {
         }
     }
 
-    determineStartHour(startFromHour) {
-        return startFromHour !== null ? startFromHour : new Date().getHours();
-    }
-
     async checkRemainingDayCache(device, hours, currentHour) {
         const cacheKey = `remaining-${hours}-${currentHour}-${this.SettingsManager.getPriceInKWh(device)}`;
     

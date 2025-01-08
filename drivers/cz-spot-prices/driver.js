@@ -512,14 +512,6 @@ class CZSpotPricesDriver extends Homey.Driver {
     
                 // Aktualizace zařízení s zpracovanými cenami
                 const updateResult = await device.updateAllPrices(processedPrices);
-                
-                // Status flag se nastavuje v _tryUpdatePrices, tak ho tu nebudeme měnit
-                if (updateResult) {
-                    this.logger?.log(`Aktualizace zařízení ${device.getName()} proběhla úspěšně`, {
-                        deviceId: device.getData().id,
-                        processedPrices: processedPrices.length
-                    });
-                }
     
                 return updateResult;
     
