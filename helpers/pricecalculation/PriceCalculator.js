@@ -1,6 +1,7 @@
 'use strict';
 
 const Logger = require('../Logger');
+const DataValidator = require('../DataValidator');
 const PriceCalculationEngine = require('./PriceCalculationEngine');
 
 class PriceCalculator {
@@ -17,6 +18,8 @@ class PriceCalculator {
         
         // Automaticky získáme instanci engine jako singleton
         this.priceCalculationEngine = PriceCalculationEngine.getInstance(homey);
+        this.dataValidator = DataValidator.getInstance(homey);
+            this.components = {}; // Pro lazy-load komponenty
         
         this.logger?.debug('PriceCalculator inicializován');
     }
@@ -113,7 +116,7 @@ class PriceCalculator {
             level: indexMap.get(data.hour) || 'medium'
         }));
 
-        cacheManager.setCache(cacheKey, vysledek);
+        cacheManager.set(cacheKey, vysledek);
         return vysledek;
     }
 }

@@ -261,6 +261,8 @@ class SpotPriceAPI {
                 validateStatus: status => status === 200
             });
     
+            this.logger?.debug('Kompletní odpověď z API', { data });
+    
             if (data?.hoursToday?.length !== 24) {
                 throw new Error('Neplatná struktura dat z API');
             }
@@ -283,7 +285,7 @@ class SpotPriceAPI {
         } finally {
             if (timeout) clearTimeout(timeout);
         }
-    }
+    }    
 
     async updateCurrentValues(device) {
         const operationId = `update-${Date.now()}`;

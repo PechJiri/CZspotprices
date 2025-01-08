@@ -406,7 +406,7 @@ class PriceCalculationEngine {
     
     isCurrentHourMatch(combination, currentHour) {
         if (!combination || typeof combination !== 'object') {
-            this.logger.info('isCurrentHourMatch: no combination object => returning false', { combination });
+            this.logger.debug('isCurrentHourMatch: no combination object => returning false', { combination });
             return false;
         }
         const isMatch = combination.startHour === currentHour;

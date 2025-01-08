@@ -31,67 +31,37 @@ class CZSpotPricesDevice extends Homey.Device {
     async onInit() {
         try {
             this.isInitialized = false;
+            this.logger = Logger.getInstance(this.homey);
             
-            // Inicializace loggeru jako první (stále musí být první pro logování)
-            this.logger = Logger.getInstance();
-            this.logger.debug('Device Logger inicializován');
-    
-            // Inicializace DeviceStateManageru hned po loggeru
-            this.deviceStateManager = DeviceStateManager.getInstance(this.homey);
-            this.logger.debug('DeviceStateManager inicializován');
-            
-            // Inicializace všech helperů - necháme v device.js protože je důležité pro business logiku
+            // Inicializace všech helperů
             await this.initializeHelpers();
             
-            // Nastavení timeoutu pro celou inicializaci
-            const initTimeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => {
-                    reject(new Error('Device initialization timeout after 30s'));
-                }, 30000);
+            // Registrace capabilities
+            await this.capabilityManager.registerDeviceCapabilities(this);
+            
+            // Načtení dat
+            const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
+            
+            const settings = this.settingsManager.getDeviceSettings(this);
+            const pricesWithIndexes = this.priceCalculator.setPriceIndexes(
+                dailyPrices,
+                settings.lowIndexHours,
+                settings.highIndexHours
+            );
+
+            await this.capabilityManager.updateAllPrices(this, pricesWithIndexes);
+            await this.capabilityManager.setStatusFlags(this, {
+            updateStatus: true,
+            apiFailure: false
             });
-    
-            // Hlavní inicializační proces
-            const initializationPromise = (async () => {
-                try {
-                    // Inicializace základního stavu přes DeviceStateManager
-                    await this.deviceStateManager.initializeDeviceState(this);
-                    
-                    // Nastavení plánovaných úloh - necháme v device.js kvůli business logice
-                    this.logger.debug('Nastavování plánovaných úloh');
-                    await this.setupScheduledTasks(true);
-                    this.logger.log('Plánované úlohy nastaveny');
-    
-                    return true;
-                } catch (error) {
-                    this.logger.error('Chyba během inicializace', error);
-                    throw error;
-                }
-            })();
-    
-            // Race mezi inicializací a timeoutem
-            await Promise.race([initializationPromise, initTimeoutPromise]);
+            
+            // Nastavení intervalů
+            await this.setupScheduledTasks();
             
             this.isInitialized = true;
-            this.logger.log('Inicializace zařízení úspěšně dokončena', {
-                deviceId: this.getData().id,
-                name: this.getName()
-            });
-    
-        } catch (error) {
-            this.isInitialized = false;
-            this.logger.error('Kritické selhání inicializace zařízení', error, {
-                deviceId: this.getData().id,
-                name: this.getName()
-            });
             
-            // Cleanup v případě chyby
-            try {
-                await this.deviceStateManager.cleanupDeviceState(this);
-            } catch (cleanupError) {
-                this.logger.error('Chyba při cleanup po selhání inicializace', cleanupError);
-            }
-    
-            await this.setUnavailable(`Initialization failed: ${error.message}`);
+        } catch (error) {
+            this.logger?.error('Inicializace nedopadla', error);
             throw error;
         }
     }
@@ -101,6 +71,7 @@ class CZSpotPricesDevice extends Homey.Device {
             this.logger?.debug('Začátek inicializace helperů');
     
             // Inicializace všech singletonů
+            this.DeviceStateManager = DeviceStateManager.getInstance(this.homey)
             this.spotPriceApi = SpotPriceAPI.getInstance(this.homey);
             this.intervalManager = IntervalManager.getInstance(this.homey);
             this.priceCalculator = PriceCalculator.getInstance(this.homey);
@@ -151,7 +122,8 @@ class CZSpotPricesDevice extends Homey.Device {
             { name: 'conditionsManager', instance: this.conditionsManager },
             { name: 'actionsManager', instance: this.actionsManager },
             { name: 'capabilityManager', instance: this.capabilityManager },
-            { name: 'settingsManager', instance: this.settingsManager }
+            { name: 'settingsManager', instance: this.settingsManager },
+            { name: 'deviceStateManager', instance: this.DeviceStateManager }
         ];
     
         for (const helper of requiredHelpers) {

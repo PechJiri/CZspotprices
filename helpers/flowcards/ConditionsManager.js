@@ -286,7 +286,7 @@ class ConditionsManager {
             try {
                 const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
                 const currentHour = timeInfo.hour;
-                const settings = this.device.getSettings();
+                const settings = this.settingsManager.getDeviceSettings(this.device);
                 const isLowTariff = device.tariffCalculator.isLowTariff(currentHour, settings);
                 const result = args.tariff === (isLowTariff ? 'low' : 'high');
 

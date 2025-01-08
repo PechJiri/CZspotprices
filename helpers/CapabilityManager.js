@@ -1,6 +1,8 @@
 'use strict';
 
 const Logger = require('./Logger');
+const LockManager = require('./LockManager');
+const DeviceStateManager = require('./DeviceStateManager')
 
 class CapabilityManager {
    static instance = null;
@@ -19,7 +21,9 @@ class CapabilityManager {
        }
        this.homey = homeyInstance;
        this.logger = Logger.getInstance();
-   }
+       this.LockManager = LockManager.getInstance()
+       this.deviceStateManager = DeviceStateManager.getInstance();
+    }
 
    static setHomeyInstance(homey) {
        if (!homey) {
@@ -258,7 +262,7 @@ class CapabilityManager {
         const operationId = `update-${Date.now()}`;
         
         try {
-            const lockAcquired = await this.acquireLock(device, operationId);
+            const lockAcquired = await this.LockManager.acquireLock(device, operationId);
             if (!lockAcquired) {
                 this.logger?.warn('Nelze získat zámek pro aktualizaci capabilities', {
                     deviceId: device.getData().id,
@@ -295,10 +299,31 @@ class CapabilityManager {
                     pricesCount: processedPrices.length
                 });
     
+                // Nastavení status flagů
+                await this.setStatusFlags(device, {
+                    updateStatus: true,
+                    apiFailure: false
+                });
+    
+                // Nastavení dostupnosti zařízení
+                await device.setAvailable();
+    
+                // Emit událostí
+                if (!this.deviceStateManager) {
+                    throw new Error('DeviceStateManager není inicializován');
+                }
+
+                await this.deviceStateManager.emitPriceUpdate(device, {
+                    deviceId: device.getData().id,
+                    currentPrice: await device.getCapabilityValue('measure_current_spot_price_CZK'),
+                    currentIndex: await device.getCapabilityValue('measure_current_spot_index'),
+                    averagePrice: await device.getCapabilityValue('daily_average_price')
+                });
+    
                 return true;
     
             } finally {
-                await this.releaseLock(device, operationId);
+                await this.LockManager.releaseLock(device, operationId);
             }
     
         } catch (error) {
@@ -366,6 +391,33 @@ class CapabilityManager {
                 deviceId: device.getData().id
             });
             throw error;
+        }
+    }
+
+    async handleCapabilityError(device, operationId, error) {
+        try {
+            this.logger?.error('Chyba při aktualizaci capabilities', error, {
+                deviceId: device.getData().id,
+                operationId
+            });
+    
+            // Nastavení chybových flagů
+            await this.setStatusFlags(device, {
+                updateStatus: false,
+                apiFailure: true
+            });
+    
+            // Pokud má device metodu triggerAPIFailure, použijeme ji
+            if (device.triggerAPIFailure) {
+                await device.triggerAPIFailure({
+                    primaryAPI: error.message,
+                    backupAPI: '',
+                    willRetry: false,
+                    maxRetriesReached: true
+                });
+            }
+        } catch (handlingError) {
+            this.logger?.error('Chyba při zpracování capability erroru', handlingError);
         }
     }
 }
