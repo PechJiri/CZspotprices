@@ -626,7 +626,7 @@ class CZSpotPricesDevice extends Homey.Device {
     }
     
 
-   /**
+    /**
      * Hlavní metoda pro aktualizaci cen
      */
     async fetchAndUpdateSpotPrices() {
@@ -698,28 +698,16 @@ class CZSpotPricesDevice extends Homey.Device {
     async updateAllPrices(processedPrices) {
         const operationId = `update-${Date.now()}`;
         try {
-            this.logPriceUpdateStart(operationId, processedPrices);
-    
             await this.acquireUpdateLock(operationId);
             this.dataValidator.validateAndPreparePrices(processedPrices, this.getSettings());
             await this.updatePriceCapabilities(pricesWithIndexes);
     
-            this.logPriceUpdateSuccess(operationId, pricesWithIndexes);
             return true;
         } catch (error) {
             this.handlePriceUpdateError(operationId, error);
             throw error;
         } finally {
             this.releaseUpdateLock(operationId);
-        }
-    }
-
-    logPriceUpdateStart(operationId, processedPrices) {
-        if (this.logger) {
-            this.logger.debug('Začátek updateAllPrices', {
-                operationId,
-                processedPricesCount: processedPrices?.length
-            });
         }
     }
 
@@ -745,22 +733,6 @@ class CZSpotPricesDevice extends Homey.Device {
         ]);
     
         return { minMaxResult, currentPricesResult, averageResult, hourlyResult };
-    }
-
-    logPriceUpdateSuccess(operationId, pricesWithIndexes) {
-        const indexStats = {
-            low: pricesWithIndexes.filter(p => p.level === 'low').length,
-            medium: pricesWithIndexes.filter(p => p.level === 'medium').length,
-            high: pricesWithIndexes.filter(p => p.level === 'high').length
-        };
-    
-        if (this.logger) {
-            this.logger.log('Všechny ceny a indexy úspěšně aktualizovány', {
-                operationId,
-                indexStats,
-                deviceId: this.getData().id
-            });
-        }
     }
 
     handlePriceUpdateError(operationId, error) {
