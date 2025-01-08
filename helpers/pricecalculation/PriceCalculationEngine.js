@@ -4,6 +4,7 @@ const Logger = require('../Logger');
 const DataValidator = require('../DataValidator');
 const TariffCalculator = require('./TariffCalculator');
 const CacheManager = require('../CacheManager');
+const SettingsManager = require('../SettingsManager');
 
 class PriceCalculationEngine {
     static instance = null;
@@ -25,6 +26,7 @@ class PriceCalculationEngine {
         this.logger = Logger.getInstance()
         this.validator = DataValidator.getInstance(homeyInstance);
         this.tariffCalculator = TariffCalculator.getInstance(homeyInstance);
+        this.SettingsManager = SettingsManager.getInstance(homeyInstance);
         
         this.homey = homeyInstance;
         this.deviceContext = deviceContext;
@@ -200,7 +202,7 @@ class PriceCalculationEngine {
         }
     
         const currentHour = new Date().getHours();
-        const cacheKey = `${hours}-${startFromHour}-${currentHour}-${device.getPriceInKWh()}`;
+        const cacheKey = `${hours}-${startFromHour}-${currentHour}-${SettingsManager.getPriceInKWh()}`;
     
         if (this.cacheManager.has(cacheKey) && this.lastCalculationHour === currentHour) {
             const cachedData = this.cacheManager.get(cacheKey); // Použij správnou metodu
@@ -281,7 +283,7 @@ class PriceCalculationEngine {
     }
 
     async checkRemainingDayCache(device, hours, currentHour) {
-        const cacheKey = `remaining-${hours}-${currentHour}-${device.getPriceInKWh()}`;
+        const cacheKey = `remaining-${hours}-${currentHour}-${SettingsManager.getPriceInKWh()}`;
 
         if (this.cacheManager.has(cacheKey) && this.lastCalculationHour === currentHour) {
             const cachedData = this.cacheManager.get(cacheKey);
@@ -306,7 +308,7 @@ class PriceCalculationEngine {
     }
 
     updateRemainingDayCache(combinations, hours, currentHour, device) {
-        const cacheKey = `remaining-${hours}-${currentHour}-${device.getPriceInKWh()}`;
+        const cacheKey = `remaining-${hours}-${currentHour}-${SettingsManager.getPriceInKWh()}`;
         this.cacheManager.set(cacheKey, {
             data: combinations,
             timestamp: Date.now()
@@ -316,7 +318,7 @@ class PriceCalculationEngine {
 
     updateAveragePricesCache(combinations, hours, startFromHour, device) {
         const currentHour = new Date().getHours();
-        const cacheKey = `${hours}-${startFromHour}-${currentHour}-${device.getPriceInKWh()}`;
+        const cacheKey = `${hours}-${startFromHour}-${currentHour}-${SettingsManager.getPriceInKWh()}`;
         
         this.cacheManager.set(cacheKey, {
             data: combinations,

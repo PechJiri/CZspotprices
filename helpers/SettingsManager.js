@@ -175,6 +175,50 @@ class SettingsManager {
             throw error;
         }
     }
+    
+    /**
+     * Získá počet hodin pro nízký index z nastavení zařízení
+     * @param {Device} device - Instance zařízení
+     * @returns {number} Počet hodin pro nízký index, výchozí hodnota 8
+     */
+    getLowIndexHours(device) {
+        return device.getSetting('low_index_hours') || 8;
+    }
+    
+    /**
+     * Získá počet hodin pro vysoký index z nastavení zařízení
+     * @param {Device} device - Instance zařízení
+     * @returns {number} Počet hodin pro vysoký index, výchozí hodnota 8
+     */
+    getHighIndexHours(device) {
+        return device.getSetting('high_index_hours') || 8;
+    }
+    
+    /**
+     * Získá nastavení pro cenu v kWh
+     * @param {Device} device - Instance zařízení
+     * @returns {boolean} Zda je cena v kWh
+     */
+    getPriceInKWh(device) {
+        return device.getSetting('price_in_kwh') || false;
+    }
+
+    /**
+     * Získá všechna nastavení zařízení
+     * @param {Device} device - Instance zařízení
+     * @returns {Object} Objekt s nastaveními
+     */
+    getDeviceSettings(device) {
+        const settings = device.getSettings();
+        return {
+            lowIndexHours: this.getLowIndexHours(device),
+            highIndexHours: this.getHighIndexHours(device),
+            priceInKWh: this.getPriceInKWh(device),
+            lowTariffPrice: settings.low_tariff_price || 0,
+            highTariffPrice: settings.high_tariff_price || 0,
+            commodityPriceWithVat: settings.commodity_price_with_vat || false
+        };
+    }
 }
 
 module.exports = SettingsManager;

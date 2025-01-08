@@ -102,7 +102,15 @@ class CacheManager {
      * @param {string} type - Typ cache (PRICE, AVERAGE, DEFAULT)
      * @returns {boolean} - Úspěch operace
      */
-    set(key, data) {
+
+    /**
+     * Přidání nebo aktualizace záznamu v cache
+     * @param {string} key - Klíč cache
+     * @param {any} data - Data k uložení
+     * @param {string} [type='DEFAULT'] - Typ cache (PRICE, AVERAGE, DEFAULT)
+     * @returns {boolean} - Úspěch operace
+     */
+    set(key, data, type = 'DEFAULT') {
         try {
             const ttl = this.TTL[type] || this.TTL.DEFAULT;
             const cacheEntry = {

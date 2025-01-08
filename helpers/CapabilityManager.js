@@ -253,6 +253,121 @@ class CapabilityManager {
             return false;
         }
     }
+
+    async updateAllPrices(device, processedPrices) {
+        const operationId = `update-${Date.now()}`;
+        
+        try {
+            const lockAcquired = await this.acquireLock(device, operationId);
+            if (!lockAcquired) {
+                this.logger?.warn('Nelze získat zámek pro aktualizaci capabilities', {
+                    deviceId: device.getData().id,
+                    operationId
+                });
+                return false;
+            }
+    
+            try {
+                // Využití DataValidatoru pro validaci dat
+                const validationResult = device.dataValidator.validatePriceIndexData(
+                    processedPrices,
+                    device.settingsManager.getLowIndexHours(device),
+                    device.settingsManager.getHighIndexHours(device)
+                );
+    
+                if (!validationResult.isValid) {
+                    throw new Error(`Neplatná vstupní data: ${validationResult.errors.join(', ')}`);
+                }
+    
+                // Nastavení indexů podle aktuálních nastavení
+                const settings = device.settingsManager.getDeviceSettings(device);
+                const pricesWithIndexes = device.priceCalculator.setPriceIndexes(
+                    processedPrices,
+                    settings.lowIndexHours,
+                    settings.highIndexHours
+                );
+    
+                // Aktualizace všech capabilities najednou
+                await this.updatePriceCapabilities(device, pricesWithIndexes);
+                
+                this.logger?.debug('Capabilities aktualizovány', {
+                    deviceId: device.getData().id,
+                    pricesCount: processedPrices.length
+                });
+    
+                return true;
+    
+            } finally {
+                await this.releaseLock(device, operationId);
+            }
+    
+        } catch (error) {
+            await this.handleCapabilityError(device, operationId, error);
+            throw error;
+        }
+    }
+    
+    async updatePriceCapabilities(device, pricesWithIndexes) {
+        try {
+            // Validace cen před aktualizací capabilities
+            if (!device.dataValidator.validatePriceData(pricesWithIndexes)) {
+                throw new Error('Neplatná data pro aktualizaci capabilities');
+            }
+    
+            const updateTasks = [
+                this.updateHourlyCapabilities(device, pricesWithIndexes),
+                this.updateCurrentAndNextHourPrices(device, pricesWithIndexes),
+                this.updateMinMaxPrices(device, pricesWithIndexes),
+                this.updateDailyAverage(device, pricesWithIndexes)
+            ];
+    
+            const results = await Promise.all(updateTasks);
+    
+            this.logger?.debug('Cenové capabilities aktualizovány', {
+                deviceId: device.getData().id,
+                updates: {
+                    hourly: results[0],
+                    current: results[1],
+                    minMax: results[2],
+                    average: results[3]
+                }
+            });
+    
+            return true;
+        } catch (error) {
+            this.logger?.error('Chyba při aktualizaci capabilities', error, {
+                deviceId: device.getData().id
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Nastaví status flagy zařízení
+     * @param {Device} device - Instance zařízení
+     * @param {Object} flags - Objekt s flagy ke změně
+     * @param {boolean} flags.updateStatus - Status updatu
+     * @param {boolean} flags.apiFailure - Status API chyby
+     */
+    async setStatusFlags(device, { updateStatus, apiFailure }) {
+        try {
+            await Promise.all([
+                device.setCapabilityValue('spot_price_update_status', updateStatus),
+                device.setCapabilityValue('primary_api_fail', apiFailure)
+            ]);
+
+            this.logger?.debug('Status flagy nastaveny', {
+                deviceId: device.getData().id,
+                updateStatus,
+                apiFailure
+            });
+        } catch (error) {
+            this.logger?.error('Chyba při nastavování status flagů', error, {
+                deviceId: device.getData().id
+            });
+            throw error;
+        }
+    }
 }
 
 module.exports = CapabilityManager;
