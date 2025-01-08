@@ -477,61 +477,71 @@ class CZSpotPricesDriver extends Homey.Driver {
     }
 
     async tryUpdateDevice(device) {
+        if (!this.validateDevice(device)) {
+            return false;
+        }
+    
         try {
-            if (!device || !device.updateAllPrices) {
-                this.logger?.error('Neplatné zařízení pro tryUpdateDevice');
-                return false;
-            }
+            const dailyPrices = await this.fetchDailyPrices(device);
+            const processedPrices = this.processPrices(dailyPrices, device);
     
-            // Kontrola, zda je zařízení plně inicializováno
-            if (!device.isInitialized) {
-                this.logger?.warn('Zařízení není plně inicializováno, přeskakuji update');
-                return false;
-            }
-    
-            // Přidání kontroly závislostí
-            if (!device.priceCalculator || !device.spotPriceApi) {
-                this.logger?.error('Chybí required dependencies pro tryUpdateDevice');
-                return false;
-            }
-                
-            // Získání a zpracování dat
-            try {
-                const dailyPrices = await device.spotPriceApi.getDailyPrices(device);
-                const settings = device.getSettings();
-                
-                // Zpracování cen - použijeme device.priceCalculationEngine místo this
-                const processedPrices = dailyPrices.map(priceData => ({
-                    hour: priceData.hour,
-                    priceCZK: device.priceCalculationEngine.addDistributionPrice(
-                        priceData.priceCZK,
-                        settings,
-                        priceData.hour
-                    )
-                }));
-    
-                // Aktualizace zařízení s zpracovanými cenami
-                const updateResult = await device.updateAllPrices(processedPrices);
-    
-                return updateResult;
-    
-            } catch (error) {
-                this.logger?.error(`Chyba při aktualizaci dat zařízení ${device.getName()}`, error, {
-                    deviceId: device.getData().id,
-                    step: 'data_processing'
-                });
-                return false;
-            }
-    
+            return await device.updateAllPrices(processedPrices);
         } catch (error) {
-            this.logger?.error(`Chyba při tryUpdateDevice`, error, {
-                deviceId: device?.getData()?.id,
-                name: device?.getName(),
-                step: 'initialization'
-            });
+            this.logError('Chyba při aktualizaci dat zařízení', error, device, 'data_processing');
             return false;
         }
     }
+    
+    // Pomocné metody
+    validateDevice(device) {
+        if (!device || !device.updateAllPrices) {
+            this.logger?.error('Neplatné zařízení pro tryUpdateDevice');
+            return false;
+        }
+    
+        if (!device.isInitialized) {
+            this.logger?.warn('Zařízení není plně inicializováno, přeskakuji update');
+            return false;
+        }
+    
+        if (!device.priceCalculator || !device.spotPriceApi) {
+            this.logger?.error('Chybí required dependencies pro tryUpdateDevice');
+            return false;
+        }
+    
+        return true;
+    }
+    
+    async fetchDailyPrices(device) {
+        try {
+            return await device.spotPriceApi.getDailyPrices(device);
+        } catch (error) {
+            this.logError('Chyba při získávání denních cen', error, device, 'fetch_daily_prices');
+            throw error;
+        }
+    }
+    
+    processPrices(dailyPrices, device) {
+        const settings = device.getSettings();
+    
+        return dailyPrices.map(priceData => ({
+            hour: priceData.hour,
+            priceCZK: device.priceCalculationEngine.addDistributionPrice(
+                priceData.priceCZK,
+                settings,
+                priceData.hour
+            )
+        }));
+    }
+    
+    logError(message, error, device, step) {
+        this.logger?.error(message, error, {
+            deviceId: device?.getData()?.id,
+            name: device?.getName(),
+            step
+        });
+    }
+    
 
     async onPairListDevices() {
         try {
