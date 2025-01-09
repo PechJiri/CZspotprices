@@ -517,65 +517,46 @@ class CZSpotPricesDriver extends Homey.Driver {
     // Cleanup při odstranění driveru
     async onUninit() {
         try {
-            // 1. Nejdřív vyčistíme všechna zařízení
-            const devices = this.getDevices();
-            for (const device of Object.values(devices)) {
-                await this.deviceStateManager?.cleanupDeviceState(device);
-            }
-
-            // 2. Vyčistíme všechny hlavní instance v opačném pořadí než byly inicializovány
-            
-            // Nejdřív intervaly a cache, protože ty mohou být aktivně používané
-            if (this.intervalManager) {
-                this.intervalManager.clearAll();
-                this.logger?.debug('IntervalManager cleared');
-            }
-
-            if (this.cacheManager) {
-                this.cacheManager.clearAll();
-                this.logger?.debug('CacheManager cleared');
-            }
-
-            // Pak helpers pro ceny a tarify
-            if (this.priceCalculator) {
-                this.priceCalculator.clearCache();
-                this.logger?.debug('PriceCalculator cleared');
-            }
-
-            if (this.priceCalculationEngine) {
-                this.priceCalculationEngine = null;
-                this.logger?.debug('PriceCalculationEngine cleared');
-            }
-
-            if (this.tariffCalculator) {
-                this.tariffCalculator = null;
-                this.logger?.debug('TariffCalculator cleared');
-            }
-
-            // API instance
-            if (this.spotPriceApi) {
-                this.spotPriceApi = null;
-                this.logger?.debug('SpotPriceAPI cleared');
-            }
-
-            // Ostatní managery
-            if (this.dataValidator) {
-                this.dataValidator = null;
-                this.logger?.debug('DataValidator cleared');
-            }
-
-            if (this.settingsManager) {
-                this.settingsManager = null;
-                this.logger?.debug('SettingsManager cleared');
-            }
-
-            // Logger necháme jako poslední, abychom mohli logovat cleanup
+            await this._cleanupDevices();
+            await this._cleanupManagers();
             this.logger?.log('Driver uninitialized successfully');
             this.logger = null;
-
         } catch (error) {
-            // Pokud ještě máme logger, zalogujeme error
             this.logger?.error('Error during driver cleanup', error);
+        }
+    }
+    
+    async _cleanupDevices() {
+        const devices = this.getDevices();
+        for (const device of Object.values(devices)) {
+            await this.deviceStateManager?.cleanupDeviceState(device);
+        }
+    }
+    
+    async _cleanupManagers() {
+        const cleanupTasks = [
+            // Aktivní managery - čistíme první
+            { instance: 'intervalManager', method: 'clearAll' },
+            { instance: 'cacheManager', method: 'clearAll' },
+            { instance: 'priceCalculator', method: 'clearCache' },
+            
+            // Statické instance - stačí nullovat
+            { instance: 'priceCalculationEngine' },
+            { instance: 'tariffCalculator' },
+            { instance: 'spotPriceApi' },
+            { instance: 'dataValidator' },
+            { instance: 'settingsManager' }
+        ];
+    
+        for (const task of cleanupTasks) {
+            const manager = this[task.instance];
+            if (manager) {
+                if (task.method && typeof manager[task.method] === 'function') {
+                    await manager[task.method]();
+                }
+                this[task.instance] = null;
+                this.logger?.debug(`${task.instance} cleared`);
+            }
         }
     }
 }
