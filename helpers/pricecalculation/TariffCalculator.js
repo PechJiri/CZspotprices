@@ -3,6 +3,7 @@
 const Logger = require('../Logger');
 const DataValidator = require('../DataValidator');
 const SpotPriceAPI = require('../../drivers/cz-spot-prices/api');
+const CacheManager = require('../CacheManager');
 
 class TariffCalculator {
     static instance = null;
@@ -27,6 +28,7 @@ class TariffCalculator {
         this.logger = Logger.getInstance()
         this.homey = instanceToUse;
         this.validator = DataValidator.getInstance(instanceToUse);
+        this.cacheManager = CacheManager.getInstance(instanceToUse);
     }
 
     getSpotPriceAPI() {
@@ -50,6 +52,19 @@ class TariffCalculator {
      */
     getTariffHours(settings) {
         try {
+            // Vytvoření unikátního klíče pro cache na základě nastavení
+            const cacheKey = `tariff_hours_${JSON.stringify(settings)}`;
+            
+            // Pokus o získání z cache
+            const cachedHours = this.cacheManager.get(cacheKey);
+            if (cachedHours !== null) {
+                this.logger?.debug('Tarif získán z cache', { 
+                    cacheKey, 
+                    tarifniHodiny: cachedHours 
+                });
+                return cachedHours;
+            }
+
             if (!this.validator.validateTariffSettings(settings)) {
                 this.logger?.warn('Neplatná nastavení tarifu');
                 return [];
@@ -57,6 +72,9 @@ class TariffCalculator {
 
             const tarifniHodiny = Array.from({ length: 24 }, (_, i) => i)
                 .filter(i => settings[`hour_${i}`]);
+
+            // Uložení do cache s neomezenou platností (mění se jen při změně nastavení)
+            this.cacheManager.set(cacheKey, tarifniHodiny, 'DEFAULT');
 
             this.logger?.debug('Získání hodin tarifu', {
                 tarifniHodiny,
@@ -83,6 +101,19 @@ class TariffCalculator {
                 return false;
             }
 
+            // Vytvoření unikátního klíče pro cache
+            const cacheKey = `low_tariff_${hour}_${JSON.stringify(settings)}`;
+            
+            // Pokus o získání z cache
+            const cachedResult = this.cacheManager.get(cacheKey);
+            if (cachedResult !== null) {
+                this.logger?.debug('Tarif získán z cache', { 
+                    hour,
+                    isLowTariff: cachedResult 
+                });
+                return cachedResult;
+            }
+
             if (!this.validator.validateTariffSettings(settings)) {
                 this.logger?.warn('Neplatná nastavení pro kontrolu tarifu');
                 return false;
@@ -93,6 +124,9 @@ class TariffCalculator {
 
             const tarifniHodiny = this.getTariffHours(settings);
             const jeNizkyTarif = tarifniHodiny.includes(normalizedHour);
+
+            // Uložení do cache s platností do půlnoci
+            this.cacheManager.set(cacheKey, jeNizkyTarif, 'PRICE');
 
             this.logger?.debug('Kontrola nízkého tarifu', {
                 hour: normalizedHour,

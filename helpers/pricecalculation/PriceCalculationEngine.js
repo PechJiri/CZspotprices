@@ -66,6 +66,20 @@ class PriceCalculationEngine {
      */
     addDistributionPrice(basePrice, settings, hour) {
         try {
+            // Vytvoření klíče pro cache
+            const cacheKey = `distribution_${basePrice}_${hour}_${JSON.stringify(settings)}`;
+            
+            // Kontrola cache
+            const cachedPrice = this.cacheManager.get(cacheKey);
+            if (cachedPrice !== null) {
+                this.logger?.debug('Distribuční cena získána z cache', {
+                    basePrice,
+                    hour,
+                    finalPrice: cachedPrice
+                });
+                return cachedPrice;
+            }
+    
             // Debug log pro vstupní parametry
             this.logger?.debug('Výpočet ceny - vstupní parametry', {
                 basePrice,
@@ -73,44 +87,28 @@ class PriceCalculationEngine {
                 hour
             });
     
-            // Změna: použití validatePrice místo validateBasePrice
             if (!this.validator.validatePrice(basePrice, 'základní cena pro distribuci')) {
-                this.logger?.warning('Neplatná základní cena, vracím původní cenu', { basePrice });
                 return basePrice;
             }
     
             // Interní funkce pro přidání DPH
             const addVAT = (price) => {
                 if (!settings.commodity_price_with_vat) {
-                    this.logger?.debug('DPH není zapnuto, vracím původní cenu', { price });
                     return price;
                 }
-                const priceWithVAT = price * 1.21;
-                this.logger?.debug('Přidáno DPH k ceně', {
-                    původníCena: price,
-                    sDPH: priceWithVAT,
-                    sazba: '21%'
-                });
-                return priceWithVAT;
+                return price * 1.21;
             };
     
-            // Přidání DPH
             const priceWithVAT = addVAT(basePrice);
     
-            // Převod tarifů na čísla a kontrola
             const lowTariffPrice = parseFloat(settings.low_tariff_price) || 0;
             const highTariffPrice = parseFloat(settings.high_tariff_price) || 0;
             const isLowTariff = this.tariffCalculator.isLowTariff(hour, settings);
     
-            this.logger?.debug('Kontrola nízkého tarifu', {
-                hour,
-                isLowTariff,
-                lowTariffPrice,
-                highTariffPrice
-            });
-    
-            // Výpočet konečné ceny
             const finalPrice = priceWithVAT + (isLowTariff ? lowTariffPrice : highTariffPrice);
+    
+            // Cache s platností do půlnoci
+            this.cacheManager.set(cacheKey, finalPrice, 'PRICE');
     
             this.logger?.debug('Výpočet ceny s tarifem', {
                 hour,
@@ -126,7 +124,7 @@ class PriceCalculationEngine {
             this.logger?.error('Chyba při výpočtu ceny:', error);
             return basePrice;
         }
-    }    
+    }  
 
     /**
      * Konverze ceny na jinou jednotku (např. z MWh na kWh)
@@ -159,23 +157,41 @@ class PriceCalculationEngine {
         }
     }
 
-    calculateMinMaxPrices(prices) {
+    async calculateMinMaxPrices(prices) {
         try {
+            // Vytvoření unikátního klíče pro cache
+            const cacheKey = `minmax_${prices.map(p => p.priceCZK).join('_')}`;
+            
+            // Kontrola cache
+            const cachedResult = this.cacheManager.get(cacheKey);
+            if (cachedResult) {
+                this.logger?.debug('Min/max ceny získány z cache', {
+                    min: cachedResult.minPrice,
+                    max: cachedResult.maxPrice
+                });
+                return cachedResult;
+            }
+    
             if (!this.validator.validatePriceArray(prices)) {
                 throw new Error('Neplatná data pro výpočet min/max cen');
             }
-
+    
             const priceValues = prices.map(p => p.priceCZK);
             const minPrice = Math.min(...priceValues);
             const maxPrice = Math.max(...priceValues);
-
+    
+            const result = { minPrice, maxPrice };
+    
+            // Uložení do cache s platností do další hodiny
+            this.cacheManager.set(cacheKey, result, 'AVERAGE');
+    
             this.logger?.debug('Min/max ceny vypočteny', {
                 min: minPrice,
                 max: maxPrice,
                 počet_cen: prices.length
             });
-
-            return { minPrice, maxPrice };
+    
+            return result;
         } catch (error) {
             this.logger?.error('Chyba při výpočtu min/max cen', error);
             throw error;
@@ -184,24 +200,40 @@ class PriceCalculationEngine {
 
     getNextHourPrice(prices, currentHour) {
         try {
+            // Vytvoření klíče pro cache
+            const cacheKey = `next_hour_${currentHour}_${prices.map(p => p.priceCZK).join('_')}`;
+            
+            // Kontrola cache
+            const cachedPrice = this.cacheManager.get(cacheKey);
+            if (cachedPrice !== null) {
+                this.logger?.debug('Next hour price získána z cache', {
+                    currentHour,
+                    nextHourPrice: cachedPrice
+                });
+                return cachedPrice;
+            }
+    
             if (!this.validator.validatePriceArray(prices)) {
                 throw new Error('Neplatná data pro výpočet next hour price');
             }
-
+    
             if (!this.validator.validateHourRange(currentHour)) {
                 throw new Error('Neplatná hodina pro výpočet next hour price');
             }
-
+    
             const nextHourPrice = currentHour === 23 ? 
                 prices[currentHour].priceCZK : 
                 prices[currentHour + 1].priceCZK;
-
+    
+            // Cache s platností do další hodiny
+            this.cacheManager.set(cacheKey, nextHourPrice, 'AVERAGE');
+    
             this.logger?.debug('Next hour price vypočtena', {
                 currentHour,
                 nextHourPrice,
                 is23Hour: currentHour === 23
             });
-
+    
             return nextHourPrice;
         } catch (error) {
             this.logger?.error('Chyba při výpočtu next hour price', error);

@@ -16,11 +16,11 @@ class CacheManager {
         // Hlavní úložiště cache
         this.caches = new Map();
         
-        // Konstanty pro TTL
+        // Aktualizované TTL konstanty podle skutečného použití
         this.TTL = {
-            PRICE: 60 * 60 * 1000,        // 1 hodina
-            AVERAGE: 15 * 60 * 1000,      // 15 minut
-            DEFAULT: 30 * 60 * 1000       // 30 minut
+            PRICE: this.calculateTTLToNextMidnight(),  // Do další půlnoci pro denní data
+            AVERAGE: this.calculateTTLToNextHour(),    // Do další hodiny pro hodinová data
+            DEFAULT: 5 * 60 * 1000                     // 5 minut pro ostatní data
         };
 
         // Nastavení automatického čištění
@@ -29,6 +29,22 @@ class CacheManager {
         this.logger?.debug('CacheManager inicializován', {
             cacheTTL: this.TTL
         });
+    }
+
+    // Pomocné metody pro výpočet TTL
+    calculateTTLToNextMidnight() {
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 5, 0, 0);  // 00:05:00 další den
+        return tomorrow - now;
+    }
+
+    calculateTTLToNextHour() {
+        const now = new Date();
+        const nextHour = new Date(now);
+        nextHour.setHours(nextHour.getHours() + 1, 0, 1, 0);  // XX:00:01 další hodina
+        return nextHour - now;
     }
 
     static getInstance(homey) {
@@ -45,74 +61,46 @@ class CacheManager {
         CacheManager.homeyInstance = homey;
     }
 
-    /**
-     * Nastavení automatického čištění cache
-     * @private
-     */
     setupCacheCleanup() {
-        // Čištění každou hodinu
+        // Čištění každých 15 minut (sníženo z 1 hodiny)
         setInterval(() => {
             this.cleanupExpired();
-        }, this.TTL.PRICE);
+        }, 15 * 60 * 1000);
 
         this.logger?.debug('Automatické čištění cache nastaveno', {
-            interval: this.TTL.PRICE,
-            nextCleanup: new Date(Date.now() + this.TTL.PRICE).toISOString()
+            interval: 15 * 60 * 1000,
+            nextCleanup: new Date(Date.now() + 15 * 60 * 1000).toISOString()
         });
     }
 
-    /**
-    * Kontrola existence platného záznamu v cache 
-    * @param {string} key - Klíč záznamu v cache
-    * @returns {boolean} True pokud existuje platný záznam, false pokud neexistuje nebo je expirovaný
-    * @example
-    * // Kontrola existence cache pro data
-    * if (cacheManager.has('my-cache-key')) {
-    *   // Cache existuje a není expirovaná
-    * }
-    */
     has(key) {
         const entry = this.caches.get(key);
         if (!entry) {
-            this.logger?.debug('Cache nenalezena', { key });
             return false;
         }
             
-        // Kontrola expirace
         if (Date.now() > entry.expiresAt) {
-            this.logger?.debug('Cache expirovala', {
-                key,
-                expiredAt: new Date(entry.expiresAt).toISOString()
-            });
             this.caches.delete(key);
             return false;
         }
     
-        this.logger?.debug('Platná cache nalezena', { 
-            key,
-            expiresAt: new Date(entry.expiresAt).toISOString()
-        });
         return true;
     }
-    
-    /**
-     * Přidání nebo aktualizace záznamu v cache
-     * @param {string} key - Klíč cache
-     * @param {any} data - Data k uložení
-     * @param {string} type - Typ cache (PRICE, AVERAGE, DEFAULT)
-     * @returns {boolean} - Úspěch operace
-     */
 
-    /**
-     * Přidání nebo aktualizace záznamu v cache
-     * @param {string} key - Klíč cache
-     * @param {any} data - Data k uložení
-     * @param {string} [type='DEFAULT'] - Typ cache (PRICE, AVERAGE, DEFAULT)
-     * @returns {boolean} - Úspěch operace
-     */
     set(key, data, type = 'DEFAULT') {
         try {
-            const ttl = this.TTL[type] || this.TTL.DEFAULT;
+            // Určení TTL podle typu dat a klíče
+            let ttl = this.TTL[type];
+            
+            // Pro cenová data použijeme TTL do půlnoci
+            if (key.includes('price') || key.includes('Price')) {
+                ttl = this.calculateTTLToNextMidnight();
+            }
+            // Pro průměry a indexy použijeme hodinové TTL
+            else if (key.includes('average') || key.includes('index')) {
+                ttl = this.calculateTTLToNextHour();
+            }
+
             const cacheEntry = {
                 data,
                 timestamp: Date.now(),
@@ -121,13 +109,6 @@ class CacheManager {
             };
 
             this.caches.set(key, cacheEntry);
-
-            this.logger?.debug('Data uložena do cache', {
-                key,
-                type,
-                expiresAt: new Date(cacheEntry.expiresAt).toISOString()
-            });
-
             return true;
         } catch (error) {
             this.logger?.error('Chyba při ukládání do cache', error, { key, type });
@@ -135,34 +116,18 @@ class CacheManager {
         }
     }
 
-    /**
-     * Získání dat z cache
-     * @param {string} key - Klíč cache
-     * @returns {any|null} - Cached data nebo null
-     */
     get(key) {
         try {
             const entry = this.caches.get(key);
             
             if (!entry) {
-                this.logger?.debug('Cache nenalezena', { key });
                 return null;
             }
 
             if (Date.now() > entry.expiresAt) {
-                this.logger?.debug('Cache expirovala', {
-                    key,
-                    expiredAt: new Date(entry.expiresAt).toISOString()
-                });
                 this.caches.delete(key);
                 return null;
             }
-
-            this.logger?.debug('Data načtena z cache', {
-                key,
-                type: entry.type,
-                age: Date.now() - entry.timestamp
-            });
 
             return entry.data;
         } catch (error) {
@@ -171,54 +136,36 @@ class CacheManager {
         }
     }
 
-    /**
-     * Vyčištění všech expirovaných záznamů
-     */
     cleanupExpired() {
         const now = Date.now();
         const beforeCount = this.caches.size;
         let deletedCount = 0;
 
+        // Agresivnější čištění - odstraníme i záznamy, které brzy vyprší
         for (const [key, entry] of this.caches.entries()) {
-            if (now > entry.expiresAt) {
+            // Smažeme pokud již expiroval nebo expiruje v příštích 5 minutách
+            if (now > entry.expiresAt || (entry.expiresAt - now < 5 * 60 * 1000)) {
                 this.caches.delete(key);
                 deletedCount++;
             }
         }
 
-        this.logger?.debug('Vyčištění expirované cache dokončeno', {
-            beforeCount,
-            afterCount: this.caches.size,
-            deletedCount
-        });
-    }
-
-    /**
-     * Vymazání konkrétního záznamu
-     * @param {string} key - Klíč k vymazání
-     */
-    deleteCache(key) {
-        const deleted = this.caches.delete(key);
-        
-        if (deleted) {
-            this.logger?.debug('Cache záznam vymazán', { key });
-        } else {
-            this.logger?.debug('Cache záznam pro vymazání nenalezen', { key });
+        // Logujeme pouze pokud bylo něco smazáno
+        if (deletedCount > 0) {
+            this.logger?.debug('Vyčištění expirované cache dokončeno', {
+                beforeCount,
+                afterCount: this.caches.size,
+                deletedCount
+            });
         }
-        
-        return deleted;
     }
 
-    /**
-     * Vymazání všech cache záznamů
-     */
+    deleteCache(key) {
+        return this.caches.delete(key);
+    }
+
     clearAll() {
-        const count = this.caches.size;
         this.caches.clear();
-        
-        this.logger?.debug('Všechny cache záznamy vymazány', {
-            deletedCount: count
-        });
     }
 }
 

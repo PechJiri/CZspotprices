@@ -1,6 +1,7 @@
 'use strict';
 
 const Logger = require('../Logger');
+const SettingsManager = require('../SettingsManager')
 
 class ConditionsManager {
     static instance = null;
@@ -39,6 +40,7 @@ class ConditionsManager {
         this.homey = homey;
         this.device = device;
         this.logger = Logger.getInstance()
+        this.settingsManager = SettingsManager.getInstance(homey);
         this._conditions = new Map();
 
         // Základní typy podmínek
@@ -286,8 +288,8 @@ class ConditionsManager {
             try {
                 const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
                 const currentHour = timeInfo.hour;
-                const settings = this.settingsManager.getDeviceSettings(this.device);
-                const isLowTariff = device.tariffCalculator.isLowTariff(currentHour, settings);
+                const settings = this.settingsManager.getDeviceSettings(args.device);
+                const isLowTariff = args.device.tariffCalculator.isLowTariff(currentHour, settings);
                 const result = args.tariff === (isLowTariff ? 'low' : 'high');
 
                 this.logger.debug('Distribution tariff condition vyhodnocena:', {

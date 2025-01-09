@@ -177,10 +177,21 @@ class SpotPriceAPI {
     async getDailyPrices(device) {
         if (!device || typeof device.triggerAPIFailure !== 'function') {
             const errorMessage = 'Neplatná device instance pro getDailyPrices';
-            if (this.logger) {
-                this.logger.error(errorMessage, new Error(errorMessage));
-            }
+            this.logger?.error(errorMessage, new Error(errorMessage));
             throw new Error(errorMessage);
+        }
+    
+        // Vytvoření klíče pro cache
+        const cacheKey = `daily_prices_${new Date().toISOString().slice(0, 10)}`;
+        
+        // Kontrola cache
+        const cachedPrices = this.cacheManager.get(cacheKey);
+        if (cachedPrices) {
+            this.logger?.debug('Denní ceny získány z cache', {
+                count: cachedPrices.length,
+                date: new Date().toISOString().slice(0, 10)
+            });
+            return cachedPrices;
         }
     
         const timeoutMs = 10000;
@@ -192,7 +203,6 @@ class SpotPriceAPI {
             const rawData = await this._fetchFromPrimaryAPI(timeoutMs);
     
             if (!rawData) {
-                this.logger.error('Chyba: data jsou undefined po volání _fetchFromPrimaryAPI');
                 throw new Error('Data z primárního API jsou undefined');
             }
     
@@ -205,6 +215,9 @@ class SpotPriceAPI {
                 throw new Error('Neplatný formát dat z primárního API');
             }
     
+            // Cache dat s platností do půlnoci
+            this.cacheManager.set(cacheKey, data, 'PRICE');
+    
             this.logger?.log('Data úspěšně získána z primárního API', { 
                 source: 'Primary API',
                 sampleData: data[0]
@@ -213,6 +226,7 @@ class SpotPriceAPI {
             return data;
     
         } catch (primaryError) {
+            // Pokud selže primární API, zkusíme záložní
             await device.setCapabilityValue('primary_api_fail', true);
             
             try {
@@ -222,6 +236,9 @@ class SpotPriceAPI {
                 if (!this.dataValidator.validatePriceData(backupData)) {
                     throw new Error('Neplatný formát dat ze záložního API');
                 }
+    
+                // Cache záložních dat
+                this.cacheManager.set(cacheKey, backupData, 'PRICE');
     
                 await device.triggerAPIFailure({
                     primaryAPI: await this.handleApiError(primaryError, device, 'Primary API'),

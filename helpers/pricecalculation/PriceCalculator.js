@@ -64,32 +64,79 @@ class PriceCalculator {
     }
 
     getCacheManager() {
-        if (!this.components.cacheManager) {
+        if (!this._cacheManager) {
             const CacheManager = require('../CacheManager');
-            this.components.cacheManager = CacheManager.getInstance(this.homey);
+            this._cacheManager = CacheManager.getInstance(this.homey);
         }
-        return this.components.cacheManager;
+        return this._cacheManager;
     }
 
     // Hlavní metoda pro výpočet ceny
-    calculatePrice(data, settings, hour) {
-        const validator = this.getDataValidator();
-        
-        if (!validator.validatePrice(data)) {
-            this.logger?.error('Neplatná vstupní data');
+    async calculatePrice(data, settings, hour) {
+        try {
+            const cacheKey = `calculate_price_${JSON.stringify(data)}_${JSON.stringify(settings)}_${hour}`;
+            
+            // Pokus o získání z cache
+            const cachedPrice = this.getCacheManager().get(cacheKey);
+            if (cachedPrice !== null) {
+                this.logger?.debug('Cena načtena z cache', { 
+                    hour, 
+                    cachedPrice,
+                    cacheKey 
+                });
+                return cachedPrice;
+            }
+    
+            const validator = this.getDataValidator();
+            
+            if (!validator.validatePrice(data)) {
+                this.logger?.error('Neplatná vstupní data', {
+                    data,
+                    hour,
+                    settings
+                });
+                return null;
+            }
+    
+            const hourlyValidation = validator.validateHourlyPrice(data, hour);
+            if (!hourlyValidation.isValid) {
+                this.logger?.warn('Neplatná hodinová cena', {
+                    hour,
+                    price: hourlyValidation.price
+                });
+                return null;
+            }
+    
+            const priceEngine = this.getPriceCalculationEngine();
+            const finalPrice = priceEngine.addDistributionPrice(hourlyValidation.price, settings, hour);
+            
+            // Uložení do cache s existujícím TTL pro PRICE
+            if (finalPrice !== null) {
+                this.getCacheManager().set(cacheKey, finalPrice, 'PRICE');
+                this.logger?.debug('Cena uložena do cache', { 
+                    hour, 
+                    finalPrice,
+                    cacheKey 
+                });
+            }
+            
+            this.logger?.debug('Výsledná cena vypočtena', { 
+                hour, 
+                finalPrice,
+                inputPrice: hourlyValidation.price,
+                settings
+            });
+            
+            return finalPrice;
+    
+        } catch (error) {
+            this.logger?.error('Chyba při výpočtu ceny', error, {
+                hour,
+                data,
+                settings
+            });
             return null;
         }
-
-        const hourlyValidation = validator.validateHourlyPrice(data, hour);
-        if (!hourlyValidation.isValid) {
-            return null;
-        }
-
-        const priceEngine = this.getPriceCalculationEngine();
-        const finalPrice = priceEngine.addDistributionPrice(hourlyValidation.price, settings, hour);
-        
-        this.logger?.debug('Výsledná cena', { hour, finalPrice });
-        return finalPrice;
     }
 
     // Optimalizovaná metoda pro cenové indexy
