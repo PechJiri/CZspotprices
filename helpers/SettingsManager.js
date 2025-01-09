@@ -214,15 +214,26 @@ class SettingsManager {
      */
     getDeviceSettings(device) {
         const settings = device.getSettings();
+        this.logger.debug('Načtené nastavení zařízení', { settings });
+    
+        // Přidání výchozích hodnot pro všechny hodiny
+        const hourSettings = {};
+        for (let i = 0; i < 24; i++) {
+            const key = `hour_${i}`;
+            hourSettings[key] = settings[key] !== undefined ? settings[key] : true; // Výchozí hodnota `true`
+        }
+    
         return {
+            ...hourSettings,
             lowIndexHours: this.getLowIndexHours(device),
             highIndexHours: this.getHighIndexHours(device),
             priceInKWh: this.getPriceInKWh(device),
-            lowTariffPrice: settings.low_tariff_price || 0,
-            highTariffPrice: settings.high_tariff_price || 0,
-            commodityPriceWithVat: settings.commodity_price_with_vat || false
+            low_tariff_price: settings.low_tariff_price || 0,
+            high_tariff_price: settings.high_tariff_price || 0,
+            commodity_price_with_vat: settings.commodity_price_with_vat || false,
+            enable_logging: settings.enable_logging || false
         };
-    }
+    }    
 }
 
 module.exports = SettingsManager;

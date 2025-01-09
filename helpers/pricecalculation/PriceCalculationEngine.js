@@ -66,30 +66,50 @@ class PriceCalculationEngine {
      */
     addDistributionPrice(basePrice, settings, hour) {
         try {
+            // Debug log pro vstupní parametry
+            this.logger?.debug('Výpočet ceny - vstupní parametry', {
+                basePrice,
+                settings,
+                hour
+            });
+    
             // Změna: použití validatePrice místo validateBasePrice
             if (!this.validator.validatePrice(basePrice, 'základní cena pro distribuci')) {
+                this.logger?.warning('Neplatná základní cena, vracím původní cenu', { basePrice });
                 return basePrice;
             }
-            
+    
             // Interní funkce pro přidání DPH
             const addVAT = (price) => {
                 if (!settings.commodity_price_with_vat) {
-                    return price;  
+                    this.logger?.debug('DPH není zapnuto, vracím původní cenu', { price });
+                    return price;
                 }
                 const priceWithVAT = price * 1.21;
                 this.logger?.debug('Přidáno DPH k ceně', {
                     původníCena: price,
-                    sDPH: priceWithVAT, 
+                    sDPH: priceWithVAT,
                     sazba: '21%'
                 });
                 return priceWithVAT;
-            }
+            };
     
+            // Přidání DPH
             const priceWithVAT = addVAT(basePrice);
+    
+            // Převod tarifů na čísla a kontrola
             const lowTariffPrice = parseFloat(settings.low_tariff_price) || 0;
             const highTariffPrice = parseFloat(settings.high_tariff_price) || 0;
             const isLowTariff = this.tariffCalculator.isLowTariff(hour, settings);
-            
+    
+            this.logger?.debug('Kontrola nízkého tarifu', {
+                hour,
+                isLowTariff,
+                lowTariffPrice,
+                highTariffPrice
+            });
+    
+            // Výpočet konečné ceny
             const finalPrice = priceWithVAT + (isLowTariff ? lowTariffPrice : highTariffPrice);
     
             this.logger?.debug('Výpočet ceny s tarifem', {
@@ -106,7 +126,7 @@ class PriceCalculationEngine {
             this.logger?.error('Chyba při výpočtu ceny:', error);
             return basePrice;
         }
-    }
+    }    
 
     /**
      * Konverze ceny na jinou jednotku (např. z MWh na kWh)

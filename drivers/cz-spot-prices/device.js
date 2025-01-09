@@ -41,20 +41,36 @@ class CZSpotPricesDevice extends Homey.Device {
             
             // Načtení dat
             const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
-            
+
+            // Načtení nastavení zařízení
             const settings = this.settingsManager.getDeviceSettings(this);
+
+            // Zahrnutí distribuce a DPH do cen
+            const processedPrices = dailyPrices.map(price => ({
+                hour: price.hour,
+                priceCZK: this.priceCalculationEngine.addDistributionPrice(
+                    price.priceCZK,
+                    settings,
+                    price.hour
+                ),
+            }));
+
+            // Nastavení cenových indexů
             const pricesWithIndexes = this.priceCalculator.setPriceIndexes(
-                dailyPrices,
+                processedPrices,
                 settings.lowIndexHours,
                 settings.highIndexHours
             );
 
+            // Aktualizace capabilities zařízení
             await this.capabilityManager.updateAllPrices(this, pricesWithIndexes);
+
+            // Nastavení stavových flagů
             await this.capabilityManager.setStatusFlags(this, {
-            updateStatus: true,
-            apiFailure: false
+                updateStatus: true,
+                apiFailure: false
             });
-            
+   
             // Nastavení intervalů
             await this.setupScheduledTasks();
             

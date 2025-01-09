@@ -184,30 +184,39 @@ class DataValidator {
      * Validace nastavení tarifu
      */
     validateTariffSettings(settings) {
+        // Log vstupní parametry
+        this.logger?.debug('Validace nastavení tarifu - vstupní parametry', { settings });
+    
         if (!settings || typeof settings !== 'object') {
             this.logger?.debug('Chybí nastavení nebo není objekt', {
-                type: typeof settings
+                type: typeof settings,
+                settings // Přidáno pro zobrazení celého vstupu
             });
             return false;
         }
-
+    
         for (let i = 0; i < 24; i++) {
             const key = `hour_${i}`;
             if (!(key in settings)) {
-                this.logger?.debug(`Chybí nastavení pro hodinu ${i}`);
+                this.logger?.debug(`Chybí nastavení pro hodinu ${i}`, {
+                    missingKey: key,
+                    settings // Přidáno pro lepší kontext
+                });
                 return false;
             }
             if (typeof settings[key] !== 'boolean') {
                 this.logger?.debug(`Neplatný typ hodnoty pro hodinu ${i}`, {
                     hour: i,
-                    type: typeof settings[key]
+                    type: typeof settings[key],
+                    value: settings[key], // Zobrazí konkrétní hodnotu
+                    settings // Přidáno pro úplný kontext
                 });
                 return false;
             }
         }
-
+    
         return true;
-    }
+    }    
 
     /**
      * Validace hodiny pro tarif
