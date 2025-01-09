@@ -36,124 +36,57 @@ class DataValidator {
         return DataValidator.instance;
     }
 
-    /**
-     * Univerzální validace číselných hodnot
-     * @param {number} price - Cena k validaci
-     * @param {string} context - Kontext pro chybovou hlášku
-     * @returns {boolean} - True pokud je cena platná
-     */
-    validatePrice(price, context = 'cena') {
-        if (typeof price !== 'number' || isNaN(price) || price < 0) {
-            this.logger?.error(`Neplatná ${context}`, {
-                value: price,
-                type: typeof price
+    //hlavní metody
+    validateValue(value, type, minValue = null, maxValue = null, context = '') {
+        const isValidType = typeof value === type;
+        const isInRange = minValue === null || (value >= minValue && (maxValue === null || value <= maxValue));
+    
+        if (!isValidType || !isInRange) {
+            this.logger?.error(`Neplatná hodnota ${context}`, {
+                value,
+                type: typeof value,
+                expectedType: type,
+                minValue,
+                maxValue
             });
             return false;
         }
         return true;
     }
 
+    validateArray(array, length, context = '') {
+        if (!Array.isArray(array) || array.length !== length) {
+            this.logger?.error(`Neplatné ${context}`, {
+                receivedType: typeof array,
+                expectedLength: length,
+                actualLength: array?.length || 0
+            });
+            return false;
+        }
+        return true;
+    }
+
+    validatePriceItem(item) {
+        return (
+            this.validatePrice(item.priceCZK, `cena pro hodinu ${item.hour}`) &&
+            this.validateValue(item.hour, 'number', 0, 23, 'hodina')
+        );
+    }    
+
+    //původní metody
+    validatePrice(price, context = 'cena') {
+        return this.validateValue(price, 'number', 0, null, context);
+    }
+    
+
     /**
      * Validace cenových dat
      */
     validatePriceData(data) {
-        try {
-            if (!Array.isArray(data)) {
-                if (this.logger) {
-                    this.logger.debug('Vstupní data pro validaci', { 
-                        receivedType: typeof data,
-                        receivedValue: data,
-                        stack: new Error().stack
-                    });
-                    
-                    this.logger.error('Neplatná data - není pole', new Error('Invalid data type'));
-                }
-                return false;
-            }
+        if (!this.validateArray(data, 24, 'cenová data')) return false;
     
-            if (data.length !== 24) {
-                if (this.logger) {
-                    this.logger.error('Neplatná data - nesprávný počet hodin', new Error('Invalid data length'), {
-                        expectedLength: 24,
-                        actualLength: data.length,
-                        data: data.map(item => item ? {
-                            hour: item.hour || null,
-                            hasPrice: 'priceCZK' in item
-                        } : {
-                            hour: null,
-                            hasPrice: false
-                        })
-                    });
-                }
-                return false;
-            }
-    
-            const validationResults = data.map((item, index) => {
-                const hasValidPrice = this.validatePrice(item.priceCZK, `cena pro hodinu ${index}`);
-                const hasValidHour = typeof item.hour === 'number' && item.hour >= 0 && item.hour < 24;
-                
-                if (!hasValidPrice || !hasValidHour) {
-                    if (this.logger) {
-                        this.logger.debug('Neplatná data pro hodinu', {
-                            index,
-                            item,
-                            validations: {
-                                price: {
-                                    isValid: hasValidPrice,
-                                    value: item.priceCZK,
-                                    type: typeof item.priceCZK
-                                },
-                                hour: {
-                                    isValid: hasValidHour,
-                                    value: item.hour,
-                                    type: typeof item.hour
-                                }
-                            },
-                            hasLevel: Boolean(item.level)
-                        });
-                    }
-                }
-    
-                return hasValidPrice && hasValidHour;
-            });
-    
-            const isValid = validationResults.every(result => result);
-            
-            if (this.logger) {
-                this.logger.debug('Validace dat dokončena', {
-                    isValid,
-                    summary: {
-                        totalRecords: data.length,
-                        validRecords: validationResults.filter(Boolean).length,
-                        hasLevels: data.every(item => Boolean(item.level))
-                    },
-                    invalidHours: validationResults
-                        .map((result, index) => ({ index, valid: result }))
-                        .filter(item => !item.valid)
-                        .map(item => ({
-                            hour: data[item.index].hour,
-                            issues: {
-                                hasPrice: typeof data[item.index].priceCZK === 'number',
-                                validHour: typeof data[item.index].hour === 'number' && 
-                                         data[item.index].hour >= 0 && 
-                                         data[item.index].hour < 24
-                            }
-                        }))
-                });
-            }
-    
-            return isValid;
-    
-        } catch (error) {
-            if (this.logger) {
-                this.logger.error('Neočekávaná chyba při validaci dat', error, {
-                    dataLength: data?.length,
-                    stack: error.stack
-                });
-            }
-            return false;
-        }
-    }
+        return data.every(item => this.validatePriceItem(item));
+    }    
 
     /**
      * Validace vstupních dat pro výpočet cenových indexů
@@ -188,101 +121,65 @@ class DataValidator {
      * Validace počtu hodin pro indexy
      */
     validateIndexHours(lowIndexHours, highIndexHours) {
-        try {
-            if (typeof lowIndexHours !== 'number' || typeof highIndexHours !== 'number') {
-                this.logger?.error('Neplatný typ pro počet hodin', {
-                    lowIndexHours: typeof lowIndexHours,
-                    highIndexHours: typeof highIndexHours
-                });
-                return false;
-            }
-
-            if (lowIndexHours < 0 || highIndexHours < 0) {
-                this.logger?.error('Záporný počet hodin není povolen', {
-                    lowIndexHours,
-                    highIndexHours
-                });
-                return false;
-            }
-
-            if ((lowIndexHours + highIndexHours) > 24) {
-                this.logger?.error('Součet hodin přesahuje 24', {
-                    lowIndexHours,
-                    highIndexHours,
-                    sum: lowIndexHours + highIndexHours
-                });
-                return false;
-            }
-
-            return true;
-        } catch (error) {
-            this.logger?.error('Chyba při validaci počtu hodin', error);
+        if (
+            !this.validateValue(lowIndexHours, 'number', 0, 24, 'lowIndexHours') ||
+            !this.validateValue(highIndexHours, 'number', 0, 24, 'highIndexHours')
+        ) {
             return false;
         }
+    
+        if (lowIndexHours + highIndexHours > 24) {
+            this.logger?.error('Součet hodin přesahuje 24', {
+                lowIndexHours,
+                highIndexHours,
+                sum: lowIndexHours + highIndexHours
+            });
+            return false;
+        }
+    
+        return true;
     }
+    
 
     /**
      * Validace unikátnosti hodin
      */
     validateUniqueHours(data) {
-        try {
-            const hours = data.map(item => item.hour);
-            const uniqueHours = new Set(hours);
-
-            if (hours.length !== uniqueHours.size) {
-                this.logger?.error('Nalezeny duplicitní hodiny', {
-                    allHours: hours,
-                    uniqueHours: Array.from(uniqueHours)
-                });
-                return false;
-            }
-
-            return true;
-        } catch (error) {
-            this.logger?.error('Chyba při validaci unikátnosti hodin', error);
+        const hours = data.map(item => item.hour);
+        const uniqueHours = new Set(hours);
+    
+        if (hours.length !== uniqueHours.size) {
+            this.logger?.error('Nalezeny duplicitní hodiny', {
+                allHours: hours,
+                uniqueHours: Array.from(uniqueHours)
+            });
             return false;
         }
+    
+        return true;
     }
+    
 
     /**
      * Validace existence ceny pro konkrétní hodinu
      */
     validateHourlyPrice(data, hour) {
-        try {
-            if (!Array.isArray(data)) {
-                this.logger?.error('Data nejsou pole nebo jsou neplatná', {
-                    receivedType: typeof data,
-                    data: data || null
-                });
-                return { isValid: false, price: null };
-            }
+        if (!this.validateArray(data, null, 'cenová data')) return { isValid: false, price: null };
     
-            const priceData = data.find(d => d?.hour === hour);
+        const priceData = data.find(d => d?.hour === hour);
     
-            if (!priceData || priceData.priceCZK === undefined) {
-                this.logger?.error('Základní cena pro danou hodinu nenalezena', { 
-                    hour,
-                    dataLength: data.length,
-                    foundData: priceData || null
-                });
-                return { isValid: false, price: null };
-            }
-    
-            if (!this.validatePrice(priceData.priceCZK, 'hodinová cena')) {
-                return { isValid: false, price: null };
-            }
-    
-            return { isValid: true, price: priceData.priceCZK };
-            
-        } catch (error) {
-            this.logger?.error('Chyba při validaci hodinové ceny', error, {
-                hour,
-                dataLength: data?.length || 0
-            });
+        if (!priceData || priceData.priceCZK === undefined) {
+            this.logger?.error('Základní cena pro danou hodinu nenalezena', { hour });
             return { isValid: false, price: null };
         }
+    
+        if (!this.validatePrice(priceData.priceCZK, 'hodinová cena')) {
+            return { isValid: false, price: null };
+        }
+    
+        return { isValid: true, price: priceData.priceCZK };
     }
-
+    
     /**
      * Validace nastavení tarifu
      */
