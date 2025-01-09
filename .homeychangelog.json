@@ -184,5 +184,8 @@
   },
   "2.3.0": {
     "en": "big code refactor"
+  },
+  "2.3.1": {
+    "en": "bugfix"
   }
 }
