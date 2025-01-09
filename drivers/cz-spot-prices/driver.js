@@ -10,6 +10,7 @@ const PriceCalculationEngine = require('../../helpers/pricecalculation/PriceCalc
 const DataValidator = require('../../helpers/DataValidator');
 const CacheManager = require('../../helpers/CacheManager');
 const SettingsManager = require('../../helpers/SettingsManager');
+const DeviceStateManager = require('../../helpers/DeviceStateManager');
 const Logger = require('../../helpers/Logger');
 
 class CZSpotPricesDriver extends Homey.Driver {
@@ -28,6 +29,7 @@ class CZSpotPricesDriver extends Homey.Driver {
     
             // 2. Základní pomocné třídy
             this.cacheManager = CacheManager.getInstance(this.homey);
+            this.deviceStateManager = DeviceStateManager.getInstance(this.homey);
             this.dataValidator = DataValidator.getInstance(this.homey);
             this.settingsManager = SettingsManager.getInstance(this.homey);
     
@@ -247,10 +249,10 @@ class CZSpotPricesDriver extends Homey.Driver {
         }
     }
 
-  _getFirstDevice() {
-    const devices = this.getDevices();
-    return Object.values(devices)[0];
-  }
+    _getFirstDevice() {
+        const devices = this.getDevices();
+        return Object.values(devices)[0];
+    }
 
     async _tryUpdatePrices(device) {
         try {
@@ -310,30 +312,8 @@ class CZSpotPricesDriver extends Homey.Driver {
 
     async _scheduleRetry(device, retryCount, baseDelay = 5 * 60 * 1000) {
         try {
-            this.validateRetryParams(device, baseDelay);
             const delay = this.calculateRetryDelay(retryCount, baseDelay);
-            await this.logRetrySchedule(device, retryCount, delay);
-            await this.triggerRetryNotification(device, retryCount, delay);
-            await this.scheduleRetryInterval(device, retryCount, delay);
-            return true;
-        } catch (error) {
-            this.logRetryError(error, device, retryCount, baseDelay);
-            throw error;
-        }
-    }
- 
-    validateRetryParams(device, baseDelay) {
-        if (!device || !baseDelay || typeof baseDelay !== 'number') {
-            throw new Error('Neplatné vstupní parametry pro retry');
-        }
-    }
- 
-    calculateRetryDelay(retryCount, baseDelay) {
-        return baseDelay * Math.pow(2, retryCount);
-    }
- 
-    async logRetrySchedule(device, retryCount, delay) {
-        if (this.logger) {
+    
             const nextRun = new Date(Date.now() + delay);
             this.logger.warn(`Plánuji další pokus ${retryCount + 1}`, {
                 deviceId: device.getData().id,
@@ -341,7 +321,22 @@ class CZSpotPricesDriver extends Homey.Driver {
                 delayMinutes: Math.round(delay / 60000),
                 nextRetryTime: nextRun.toISOString()
             });
+    
+            await this.triggerRetryNotification(device, retryCount, delay);
+            await this.scheduleRetryInterval(device, retryCount, delay);
+            return true;
+        } catch (error) {
+            this.logger.error('Chyba při plánování dalšího pokusu', error, {
+                deviceId: device?.getData()?.id,
+                retryCount,
+                baseDelay
+            });
+            throw error;
         }
+    }
+ 
+    calculateRetryDelay(retryCount, baseDelay) {
+        return baseDelay * Math.pow(2, retryCount);
     }
  
     async triggerRetryNotification(device, retryCount, delay) {
@@ -392,16 +387,6 @@ class CZSpotPricesDriver extends Homey.Driver {
         );
         
     }
- 
-    logRetryError(error, device, retryCount, baseDelay = 5 * 60 * 1000) {
-        if (this.logger) {
-            this.logger.error('Chyba při plánování dalšího pokusu', error, {
-                deviceId: device?.getData()?.id,
-                retryCount,
-                baseDelay
-            });
-        }
-    }
 
     async _handleMaxRetriesReached(device) {
     try {
@@ -443,7 +428,7 @@ class CZSpotPricesDriver extends Homey.Driver {
     }
 
     async tryUpdateDevice(device) {
-        if (!this.validateDevice(device)) {
+        if (!this.dataValidator.validateDeviceState(device)) {
             return false;
         }
     
@@ -453,36 +438,16 @@ class CZSpotPricesDriver extends Homey.Driver {
     
             return await device.updateAllPrices(processedPrices);
         } catch (error) {
-            this.logError('Chyba při aktualizaci dat zařízení', error, device, 'data_processing');
+            this.logger.error('Chyba při aktualizaci dat zařízení', error, device, 'data_processing');
             return false;
         }
-    }
-    
-    // Pomocné metody
-    validateDevice(device) {
-        if (!device || !device.updateAllPrices) {
-            this.logger?.error('Neplatné zařízení pro tryUpdateDevice');
-            return false;
-        }
-    
-        if (!device.isInitialized) {
-            this.logger?.warn('Zařízení není plně inicializováno, přeskakuji update');
-            return false;
-        }
-    
-        if (!device.priceCalculator || !device.spotPriceApi) {
-            this.logger?.error('Chybí required dependencies pro tryUpdateDevice');
-            return false;
-        }
-    
-        return true;
     }
     
     async fetchDailyPrices(device) {
         try {
             return await device.spotPriceApi.getDailyPrices(device);
         } catch (error) {
-            this.logError('Chyba při získávání denních cen', error, device, 'fetch_daily_prices');
+            this.logger.error('Chyba při získávání denních cen', error, device, 'fetch_daily_prices');
             throw error;
         }
     }
@@ -499,15 +464,6 @@ class CZSpotPricesDriver extends Homey.Driver {
             )
         }));
     }
-    
-    logError(message, error, device, step) {
-        this.logger?.error(message, error, {
-            deviceId: device?.getData()?.id,
-            name: device?.getName(),
-            step
-        });
-    }
-    
 
     async onPairListDevices() {
         try {
@@ -558,24 +514,70 @@ class CZSpotPricesDriver extends Homey.Driver {
     }
     }
 
-  // Cleanup při odstranění driveru
-  async onUninit() {
-    if (this.intervalManager) {
-        this.intervalManager.clearAll();
-        if (this.logger) {
-            this.logger.debug('All intervals cleared');
+    // Cleanup při odstranění driveru
+    async onUninit() {
+        try {
+            // 1. Nejdřív vyčistíme všechna zařízení
+            const devices = this.getDevices();
+            for (const device of Object.values(devices)) {
+                await this.deviceStateManager?.cleanupDeviceState(device);
+            }
+
+            // 2. Vyčistíme všechny hlavní instance v opačném pořadí než byly inicializovány
+            
+            // Nejdřív intervaly a cache, protože ty mohou být aktivně používané
+            if (this.intervalManager) {
+                this.intervalManager.clearAll();
+                this.logger?.debug('IntervalManager cleared');
+            }
+
+            if (this.cacheManager) {
+                this.cacheManager.clearAll();
+                this.logger?.debug('CacheManager cleared');
+            }
+
+            // Pak helpers pro ceny a tarify
+            if (this.priceCalculator) {
+                this.priceCalculator.clearCache();
+                this.logger?.debug('PriceCalculator cleared');
+            }
+
+            if (this.priceCalculationEngine) {
+                this.priceCalculationEngine = null;
+                this.logger?.debug('PriceCalculationEngine cleared');
+            }
+
+            if (this.tariffCalculator) {
+                this.tariffCalculator = null;
+                this.logger?.debug('TariffCalculator cleared');
+            }
+
+            // API instance
+            if (this.spotPriceApi) {
+                this.spotPriceApi = null;
+                this.logger?.debug('SpotPriceAPI cleared');
+            }
+
+            // Ostatní managery
+            if (this.dataValidator) {
+                this.dataValidator = null;
+                this.logger?.debug('DataValidator cleared');
+            }
+
+            if (this.settingsManager) {
+                this.settingsManager = null;
+                this.logger?.debug('SettingsManager cleared');
+            }
+
+            // Logger necháme jako poslední, abychom mohli logovat cleanup
+            this.logger?.log('Driver uninitialized successfully');
+            this.logger = null;
+
+        } catch (error) {
+            // Pokud ještě máme logger, zalogujeme error
+            this.logger?.error('Error during driver cleanup', error);
         }
     }
-    if (this.priceCalculator) {
-        this.priceCalculator.clearCache();
-        if (this.logger) {
-            this.logger.debug('PriceCalculator cache cleared');
-        }
-    }
-    if (this.logger) {
-        this.logger.log('Driver uninitialized successfully');
-    }
-  }
 }
 
 module.exports = CZSpotPricesDriver;

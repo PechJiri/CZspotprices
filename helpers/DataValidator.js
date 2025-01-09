@@ -384,6 +384,39 @@ class DataValidator {
     
         return pricesWithIndexes;
     }
+
+    validateDeviceState(device) {
+        try {
+            if (!device || !device.updateAllPrices) {
+                this.logger?.error('Neplatné zařízení pro update', {
+                    exists: !!device,
+                    hasUpdateMethod: !!device?.updateAllPrices
+                });
+                return false;
+            }
+        
+            if (!device.isInitialized) {
+                this.logger?.warn('Zařízení není plně inicializováno', {
+                    deviceId: device.getData()?.id
+                });
+                return false;
+            }
+        
+            if (!device.priceCalculator || !device.spotPriceApi) {
+                this.logger?.error('Chybí required dependencies', {
+                    deviceId: device.getData()?.id,
+                    hasPriceCalculator: !!device.priceCalculator,
+                    hasSpotPriceApi: !!device.spotPriceApi
+                });
+                return false;
+            }
+        
+            return true;
+        } catch (error) {
+            this.logger?.error('Chyba při validaci stavu zařízení', error);
+            return false;
+        }
+    }
 }
 
 module.exports = DataValidator;

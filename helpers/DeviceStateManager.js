@@ -137,6 +137,29 @@ class DeviceStateManager {
         }
     }
 
+    /**
+     * Emituje událost aktualizace cen
+     * @param {Device} device - Instance zařízení
+     * @param {Object} updateData - Data k emitování
+     */
+    async emitPriceUpdate(device, updateData) {
+        try {
+            await device.homey.emit('spot_prices_updated', {
+                ...updateData,
+                timestamp: Date.now()
+            });
+
+            this.logger?.debug('Price update událost emitována', {
+                deviceId: device.getData().id,
+                data: updateData
+            });
+        } catch (error) {
+            this.logger?.error('Chyba při emitování price update události', error, {
+                deviceId: device.getData().id
+            });
+        }
+    }
+
     async resetDeviceState(device) {
         try {
             this.logger.log('Začátek resetu stavu zařízení');
@@ -420,31 +443,6 @@ class DeviceStateManager {
                 deviceId: device.getData().id,
                 referencesCount: references.length
             });
-        }
-    }
-
-    /**
-     * Emituje událost aktualizace cen
-     * @param {Device} device - Instance zařízení
-     * @param {Object} updateData - Data k emitování
-     */
-    async emitPriceUpdate(device, updateData) {
-        try {
-            await device.homey.emit('spot_prices_updated', {
-                ...updateData,
-                timestamp: Date.now()
-            });
-
-            this.logger?.debug('Price update událost emitována', {
-                deviceId: device.getData().id,
-                data: updateData
-            });
-        } catch (error) {
-            this.logger?.error('Chyba při emitování price update události', error, {
-                deviceId: device.getData().id
-            });
-            // Nechceme zde házet error, protože selhání emitu události
-            // by nemělo ovlivnit hlavní funkcionalitu
         }
     }
 }
