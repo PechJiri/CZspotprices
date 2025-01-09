@@ -473,7 +473,7 @@ class CZSpotPricesDevice extends Homey.Device {
         const operationId = `fetch-${Date.now()}`;
         
         try {
-            // Status management přes CapabilityManager
+            // Status management 
             await this.capabilityManager.setStatusFlags(this, {
                 updateStatus: false,
                 apiFailure: false
@@ -484,17 +484,17 @@ class CZSpotPricesDevice extends Homey.Device {
                 operationId
             });
     
-            // Získání lock přes LockManager
+            // Získání lock
             const lockAcquired = await this.lockManager.acquireLock(this.getData().id, operationId);
             if (!lockAcquired) {
                 throw new Error('Nelze získat zámek pro aktualizaci - jiná operace právě probíhá');
             }
     
             try {
-                // Použití SpotPriceAPI přes jeho manager
+                // Získání dat
                 const dailyPrices = await this.spotPriceApi.getDailyPrices(this);
     
-                // Validace přes DataValidator
+                // Validace dat
                 const validationResult = this.dataValidator.validatePriceIndexData(
                     dailyPrices,
                     this.settingsManager.getLowIndexHours(this),
@@ -505,10 +505,10 @@ class CZSpotPricesDevice extends Homey.Device {
                     throw new Error(`Neplatná data z API: ${validationResult.errors.join(', ')}`);
                 }
     
-                // Získání nastavení přes SettingsManager
+                // Nastavení
                 const settings = this.settingsManager.getDeviceSettings(this);
     
-                // Zpracování cen přes PriceCalculationEngine
+                // Zpracování cen 
                 const processedPrices = dailyPrices.map(priceData => ({
                     ...priceData,
                     priceCZK: this.priceCalculationEngine.addDistributionPrice(
@@ -518,42 +518,40 @@ class CZSpotPricesDevice extends Homey.Device {
                     )
                 }));
     
-                // Cache management
+                // Cache update
                 this.cacheManager.set('lastProcessedPrices', processedPrices);
     
-                // Aktualizace capabilities
+                // Update capabilities
                 await this.capabilityManager.updateAllPrices(this, processedPrices);
     
-                // Nastavení dostupnosti a status flagů
+                // Status a dostupnost
                 await this.capabilityManager.setStatusFlags(this, {
-                    updateStatus: true,
+                    updateStatus: true,  
                     apiFailure: false
                 });
                 await this.setAvailable();
     
-                // Emit událostí přes DeviceStateManager
-                await this.deviceStateManager.emitPriceUpdate(this, {
+                // Emit update události
+                await this.DeviceStateManager.emitPriceUpdate(this, {
                     deviceId: this.getData().id,
                     currentPrice: await this.getCapabilityValue('measure_current_spot_price_CZK'),
-                    currentIndex: await this.getCapabilityValue('measure_current_spot_index'),
+                    currentIndex: await this.getCapabilityValue('measure_current_spot_index'), 
                     averagePrice: await this.getCapabilityValue('daily_average_price')
                 });
     
                 this.logger?.log('Spot ceny úspěšně aktualizovány', {
                     deviceId: this.getData().id,
-                    operationId
+                    operationId  
                 });
     
                 return true;
     
             } finally {
-                // Uvolnění zámku v každém případě
                 await this.lockManager.releaseLock(this.getData().id, operationId);
             }
     
         } catch (error) {
-            // Error handling přes TriggersManager a CapabilityManager
-            await this.triggersManager.triggerAPIFailure({
+            await this.triggerAPIFailure({
                 primaryAPI: error.message,
                 backupAPI: '',
                 willRetry: false,

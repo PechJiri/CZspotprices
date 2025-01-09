@@ -177,32 +177,31 @@ class SpotPriceAPI {
     async getDailyPrices(device) {
         if (!device || typeof device.triggerAPIFailure !== 'function') {
             const errorMessage = 'Neplatná device instance pro getDailyPrices';
-            this.logger?.error(errorMessage, new Error(errorMessage));
+            if (this.logger) {
+                this.logger.error(errorMessage, new Error(errorMessage));
+            }
             throw new Error(errorMessage);
         }
     
-        // Vytvoření klíče pro cache
-        const cacheKey = `daily_prices_${new Date().toISOString().slice(0, 10)}`;
-        
-        // Kontrola cache
-        const cachedPrices = this.cacheManager.get(cacheKey);
-        if (cachedPrices) {
-            this.logger?.debug('Denní ceny získány z cache', {
-                count: cachedPrices.length,
-                date: new Date().toISOString().slice(0, 10)
-            });
-            return cachedPrices;
-        }
-    
+        const cacheManager = this.getCacheManager(); // Použití getteru místo přímého přístupu
         const timeoutMs = 10000;
-        let spotElektrinaError = null;
-        let oteError = null;
-    
+        
         try {
             await device.setCapabilityValue('primary_api_fail', false);
+            
+            // Pokus se načíst z cache
+            const cacheKey = `dailyPrices_${new Date().toISOString().split('T')[0]}`;
+            const cachedData = cacheManager.get(cacheKey); // Použití cache manageru přes getter
+            
+            if (cachedData) {
+                this.logger?.debug('Načtena data z cache', { cacheKey });
+                return cachedData;
+            }
+    
             const rawData = await this._fetchFromPrimaryAPI(timeoutMs);
     
             if (!rawData) {
+                this.logger.error('Chyba: data jsou undefined po volání _fetchFromPrimaryAPI');
                 throw new Error('Data z primárního API jsou undefined');
             }
     
@@ -215,8 +214,8 @@ class SpotPriceAPI {
                 throw new Error('Neplatný formát dat z primárního API');
             }
     
-            // Cache dat s platností do půlnoci
-            this.cacheManager.set(cacheKey, data, 'PRICE');
+            // Uložení do cache
+            cacheManager.set(cacheKey, data, 'PRICE');
     
             this.logger?.log('Data úspěšně získána z primárního API', { 
                 source: 'Primary API',
