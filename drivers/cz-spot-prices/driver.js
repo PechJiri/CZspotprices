@@ -428,10 +428,6 @@ class CZSpotPricesDriver extends Homey.Driver {
     }
 
     async tryUpdateDevice(device) {
-        if (!this.dataValidator.validateDeviceState(device)) {
-            return false;
-        }
-    
         try {
             const dailyPrices = await this.fetchDailyPrices(device);
             const processedPrices = this.processPrices(dailyPrices, device);

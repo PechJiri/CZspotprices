@@ -1,6 +1,7 @@
 'use strict';
 
 const Logger = require('../Logger');
+const PriceCalculationEngine = require('../pricecalculation/PriceCalculationEngine');
 
 class TriggersManager {
     static instance = null;
@@ -28,6 +29,7 @@ class TriggersManager {
         this.homey = homey;
         this.device = device;
         this.logger = Logger.getInstance()
+        this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey)
         this._triggers = new Map();
 
         // Cenové triggery
@@ -193,7 +195,7 @@ class TriggersManager {
                     const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
                     const currentHour = timeInfo.hour;
 
-                    const combinations = await this.device.priceCalculator.calculateAveragePrices(
+                    const combinations = await this.priceCalculationEngine.calculateAveragePrices(
                         this.device,
                         hours,
                         0
