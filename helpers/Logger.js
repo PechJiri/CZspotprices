@@ -210,18 +210,6 @@ class Logger {
         });
     }
 
-    warn(message, data = {}) {
-        if (!Logger.enabled) return;
-
-        const logEntry = this.addToHistory('warning', message, data);
-        this.homey.log({
-            type: 'warning',
-            message,
-            ...data,
-            timestamp: logEntry.timestamp
-        });
-    }
-
     getLogHistory() {
         return [...this.logHistory];
     }
