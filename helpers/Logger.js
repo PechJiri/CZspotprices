@@ -20,7 +20,7 @@ class Logger {
         this.homey = homeyInstance;
         
         // Nastavení pro rotaci logů
-        this.maxLogSize = 200;
+        this.maxLogSize = 500;
         this.logHistory = [];
         this.rotationInterval = 60 * 60 * 1000; // 1 hodina
         this.lastRotation = Date.now();

@@ -229,16 +229,30 @@ class SpotPriceAPI {
             await device.setCapabilityValue('primary_api_fail', true);
             
             try {
+                this.logger?.log('Primární API selhalo, přepínám na záložní API', {
+                    primaryError: primaryError.message
+                });
+        
                 const rawBackupData = await this.getBackupDailyPrices(device);
+                
+                this.logger?.debug('Data získána ze záložního API', {
+                    dataLength: rawBackupData?.length,
+                    sample: rawBackupData?.[0]
+                });
+        
                 const backupData = rawBackupData.map(({ hour, priceCZK }) => ({ hour, priceCZK }));
-    
-                if (!this.dataValidator.validatePriceData(backupData)) {
+        
+                if (!this.getDataValidator().validatePriceData(backupData)) {
                     throw new Error('Neplatný formát dat ze záložního API');
                 }
-    
-                // Cache záložních dat
-                this.cacheManager.set(cacheKey, backupData, 'PRICE');
-    
+        
+                this.logger?.debug('Data ze záložního API validována', {
+                    count: backupData.length
+                });
+        
+                // Použití správné metody přes getter
+                this.getCacheManager().set(cacheKey, backupData, 'PRICE');
+        
                 await device.triggerAPIFailure({
                     primaryAPI: await this.handleApiError(primaryError, device, 'Primary API'),
                     backupAPI: 'Záložní API úspěšné',
@@ -246,10 +260,16 @@ class SpotPriceAPI {
                     retryCount: 0,
                     nextRetryIn: '60'
                 });
-    
+        
+                this.logger?.log('Úspěšně přepnuto na záložní API');
                 return backupData;
-    
+        
             } catch (backupError) {
+                this.logger?.error('Selhalo i záložní API', {
+                    primaryError: primaryError.message,
+                    backupError: backupError.message
+                });
+        
                 const errorMessage = await this.handleApiError(backupError, device, 'Backup API');
                 
                 await device.triggerAPIFailure({
@@ -258,7 +278,7 @@ class SpotPriceAPI {
                     willRetry: false,
                     maxRetriesReached: true
                 });
-    
+        
                 throw new Error(`Selhání obou API: ${errorMessage}`);
             }
         }
@@ -445,14 +465,36 @@ class SpotPriceAPI {
     
     async getBackupDailyPrices() {
         try {
+            this.logger?.debug('Začínám získávat data ze záložního API');
+            
             await this.initializeBackupFetch();
             const exchangeRate = await this.updateExchangeRate();
             const timeInfo = this.getCurrentTimeInfo();
+            
+            this.logger?.debug('Získané parametry pro záložní API', {
+                exchangeRate,
+                timeInfo
+            });
+    
             const rawData = await this.fetchBackupData(timeInfo);
+            
+            this.logger?.debug('Získána raw data ze záložního API', {
+                hasData: !!rawData,
+                dataStructure: rawData?.data ? Object.keys(rawData.data) : null
+            });
+    
             const prices = await this.processBackupData(rawData, exchangeRate);
+            
+            this.logger?.debug('Zpracovaná data ze záložního API', {
+                pricesCount: prices?.length,
+                samplePrice: prices?.[0]
+            });
+    
             return this.validateAndFormatPrices(prices);
         } catch (error) {
-            this.handleBackupError(error);
+            this.logger?.error('Chyba při získávání dat ze záložního API', error, {
+                stack: error.stack
+            });
             throw error;
         }
     }

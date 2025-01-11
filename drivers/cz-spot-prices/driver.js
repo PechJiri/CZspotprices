@@ -261,19 +261,33 @@ class CZSpotPricesDriver extends Homey.Driver {
                 return false;
             }
             
-            // Nastavíme status jen jednou zde
+            this.logger?.debug('Začátek _tryUpdatePrices', {
+                deviceId: device.getData().id,
+                deviceName: device.getName()
+            });
+            
             await device.setCapabilityValue('spot_price_update_status', false);
             
             const updateResult = await this.tryUpdateDevice(device);
             
+            this.logger?.debug('Výsledek tryUpdateDevice', {
+                updateResult,
+                deviceId: device.getData().id
+            });
+            
             if (updateResult) {
                 await device.setCapabilityValue('spot_price_update_status', true);
                 this.logger?.log(`Aktualizace zařízení ${device.getName()} proběhla úspěšně`);
+            } else {
+                this.logger?.error(`Aktualizace zařízení ${device.getName()} selhala`);
             }
-
+    
             return updateResult;
         } catch (error) {
-            this.logger?.error(`Chyba při aktualizaci zařízení ${device.getName()}`, error);
+            this.logger?.error(`Chyba při aktualizaci zařízení ${device.getName()}`, error, {
+                deviceId: device.getData().id,
+                stack: error.stack
+            });
             return false;
         }
     }
@@ -429,21 +443,60 @@ class CZSpotPricesDriver extends Homey.Driver {
 
     async tryUpdateDevice(device) {
         try {
-            const dailyPrices = await this.fetchDailyPrices(device);
-            const processedPrices = this.processPrices(dailyPrices, device);
+            this.logger?.debug('Začátek tryUpdateDevice', {
+                deviceId: device.getData().id
+            });
     
-            return await device.updateAllPrices(processedPrices);
+            const dailyPrices = await this.fetchDailyPrices(device);
+            
+            if (!dailyPrices || !Array.isArray(dailyPrices)) {
+                this.logger?.error('Neplatná data z fetchDailyPrices', {
+                    data: dailyPrices,
+                    type: typeof dailyPrices
+                });
+                return false;
+            }
+    
+            const processedPrices = this.processPrices(dailyPrices, device);
+            
+            this.logger?.debug('Data zpracována', {
+                rawCount: dailyPrices.length,
+                processedCount: processedPrices.length
+            });
+    
+            // Oprava: Použití CapabilityManageru místo přímého volání na device
+            return await device.capabilityManager.updateAllPrices(device, processedPrices);
         } catch (error) {
-            this.logger.error('Chyba při aktualizaci dat zařízení', error, device, 'data_processing');
+            this.logger?.error('Chyba při aktualizaci dat zařízení', error, {
+                deviceId: device.getData().id,
+                errorType: error.name,
+                errorMessage: error.message,
+                stack: error.stack
+            });
             return false;
         }
     }
     
     async fetchDailyPrices(device) {
         try {
-            return await device.spotPriceApi.getDailyPrices(device);
+            this.logger?.debug('Začátek fetchDailyPrices');
+            
+            const data = await device.spotPriceApi.getDailyPrices(device);
+            
+            if (!data || !Array.isArray(data)) {
+                throw new Error('Neplatná data z API');
+            }
+            
+            this.logger?.debug('Data získána', {
+                count: data.length,
+                sample: data[0]
+            });
+            
+            return data;
         } catch (error) {
-            this.logger.error('Chyba při získávání denních cen', error, device, 'fetch_daily_prices');
+            this.logger?.error('Chyba při získávání denních cen', error, {
+                deviceId: device.getData().id
+            });
             throw error;
         }
     }
