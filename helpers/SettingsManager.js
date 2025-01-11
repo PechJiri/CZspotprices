@@ -36,8 +36,7 @@ class SettingsManager {
     async handleSettingsUpdate(device, { oldSettings, newSettings, changedKeys }) {
         try {
             if (changedKeys.includes('enable_logging')) {
-                Logger.setGlobalLogging(newSettings.enable_logging);
-                this.logger.log(`Globální logování ${newSettings.enable_logging ? 'zapnuto' : 'vypnuto'}`);
+                Logger.setEnabled(newSettings.enable_logging);
             }
 
             this.logSettingsChange(changedKeys, oldSettings, newSettings);

@@ -236,7 +236,7 @@ class CZSpotPricesDriver extends Homey.Driver {
                     }
                 }
                 
-                await device._updateMinMaxPrices(processedPrices);
+                await device.capabilityManager.updateMinMaxPrices(device, processedPrices);
 
             } catch (error) {
                 if (this.logger) {
