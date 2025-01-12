@@ -155,7 +155,7 @@ class TariffCalculator {
         }
     }
 
-    async checkTariffChange(device, currentHour, timeInfo) {
+    async checkTariffChange(device, currentHour) {
         try {
             // Použijeme již existující timeInfo
             const settings = device.getSettings();
