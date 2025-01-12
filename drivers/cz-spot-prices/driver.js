@@ -307,7 +307,7 @@ class CZSpotPricesDriver extends Homey.Driver {
     async _handleUpdateFailure(device, retryCount, maxRetries, baseDelay) {
     if (retryCount < maxRetries) {
         if (this.logger) {
-            this.logger.warn('Půlnoční aktualizace selhala, plánuje se další pokus', { 
+            this.logger.debug('Půlnoční aktualizace selhala, plánuje se další pokus', { 
                 deviceId: device.getData().id, 
                 retryCount 
             });
@@ -329,7 +329,7 @@ class CZSpotPricesDriver extends Homey.Driver {
             const delay = this.calculateRetryDelay(retryCount, baseDelay);
     
             const nextRun = new Date(Date.now() + delay);
-            this.logger.warn(`Plánuji další pokus ${retryCount + 1}`, {
+            this.logger.debug(`Plánuji další pokus ${retryCount + 1}`, {
                 deviceId: device.getData().id,
                 retryCount,
                 delayMinutes: Math.round(delay / 60000),
