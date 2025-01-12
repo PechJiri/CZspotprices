@@ -205,5 +205,8 @@
   },
   "2.3.7": {
     "en": "removed hour 0-23 price form insights"
+  },
+  "2.3.8": {
+    "en": "Dependecies update"
   }
 }
