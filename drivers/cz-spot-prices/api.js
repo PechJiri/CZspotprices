@@ -335,7 +335,7 @@ class SpotPriceAPI {
         });
     }       
     
-    async fetchBackupData(device) {
+    async fetchBackupData() {
         const response = await this.fetchAPI(this.backupUrl, 10000);
     
         if (!response?.data?.dataLine) {

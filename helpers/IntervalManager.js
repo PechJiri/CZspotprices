@@ -342,6 +342,25 @@ class IntervalManager {
             this.logger?.error('Error executing immediate updates', error);
         }
     }
+
+    getDelayToNextMidnight() {
+        const now = new Date();
+        const target = new Date(now);
+        target.setHours(23, 0, 1, 0);
+        
+        let delay = target - now;
+        if (delay < 0) {
+            delay += 24 * 60 * 60 * 1000;
+        }
+        
+        this.logger?.debug('Vypočten čas do příštího midnight update', {
+            currentTime: now.toISOString(),
+            nextUpdate: new Date(now.getTime() + delay).toISOString(),
+            delayMinutes: Math.floor(delay / 60000)
+        });
+        
+        return delay;
+    }
 }
 
 module.exports = IntervalManager;
