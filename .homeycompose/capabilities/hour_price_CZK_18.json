@@ -16,7 +16,7 @@
   },
   "units": "CZK",
   "decimals": 2,
-  "insights": true,
+  "insights": false,
   "getable": true,
   "setable": false,
   "uiComponent": "sensor",
