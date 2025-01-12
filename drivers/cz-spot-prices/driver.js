@@ -337,14 +337,14 @@ class CZSpotPricesDriver extends Homey.Driver {
     
             const dailyPrices = await this.fetchDailyPrices(device);
             
-            if (!dailyPrices || !Array.isArray(dailyPrices)) {
-                this.logger?.error('Neplatná data z fetchDailyPrices', {
+            if (!dailyPrices || dailyPrices.length === 0) {
+                this.logger?.error('Žádná data z fetchDailyPrices', {
                     data: dailyPrices,
                     type: typeof dailyPrices
                 });
                 return false;
             }
-    
+
             const processedPrices = this.processPrices(dailyPrices, device);
             
             this.logger?.debug('Data zpracována', {
@@ -352,7 +352,6 @@ class CZSpotPricesDriver extends Homey.Driver {
                 processedCount: processedPrices.length
             });
     
-            // Oprava: Použití CapabilityManageru místo přímého volání na device
             return await device.capabilityManager.updateAllPrices(device, processedPrices);
         } catch (error) {
             this.logger?.error('Chyba při aktualizaci dat zařízení', error, {

@@ -162,7 +162,6 @@ class TariffCalculator {
             const isLowTariff = this.isLowTariff(currentHour, settings);
             
             // Cache pro celou hodinu
-            const cacheKey = `tariff_${currentHour}_${device.getId()}`;
             const previousTariff = await device.getStoreValue('previousTariff');
             const currentTariff = isLowTariff ? 'low' : 'high';
     
