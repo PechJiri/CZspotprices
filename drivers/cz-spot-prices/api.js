@@ -183,23 +183,25 @@ class SpotPriceAPI {
             throw new Error(errorMessage);
         }
     
-        const cacheManager = this.getCacheManager(); // Použití getteru místo přímého přístupu
+        const cacheManager = this.getCacheManager();
         const timeoutMs = 10000;
-        
+    
         try {
             await device.setCapabilityValue('primary_api_fail', false);
-            
-            // Pokus se načíst z cache
-            const cacheKey = `dailyPrices_${new Date().toISOString().split('T')[0]}`;
-            const cachedData = cacheManager.get(cacheKey); // Použití cache manageru přes getter
-            
-            if (cachedData) {
-                this.logger?.debug('Načtena data z cache', { cacheKey });
-                return cachedData;
+    
+            // Generování cache klíče pro primární API
+            const currentDate = new Date().toISOString().split('T')[0];
+            const primaryCacheKey = `primary_dailyPrices_${currentDate}`;
+    
+            // Pokus načíst z cache (primární API)
+            const cachedPrimaryData = cacheManager.get(primaryCacheKey);
+            if (cachedPrimaryData) {
+                this.logger?.debug('Načtena data z cache (primární API)', { cacheKey: primaryCacheKey });
+                return cachedPrimaryData;
             }
     
+            // Získání dat z primárního API
             const rawData = await this._fetchFromPrimaryAPI(timeoutMs);
-    
             if (!rawData) {
                 this.logger.error('Chyba: data jsou undefined po volání _fetchFromPrimaryAPI');
                 throw new Error('Data z primárního API jsou undefined');
@@ -214,10 +216,10 @@ class SpotPriceAPI {
                 throw new Error('Neplatný formát dat z primárního API');
             }
     
-            // Uložení do cache
-            cacheManager.set(cacheKey, data, 'PRICE');
+            // Uložení do cache (primární API)
+            cacheManager.set(primaryCacheKey, data, 'PRICE');
     
-            this.logger?.log('Data úspěšně získána z primárního API', { 
+            this.logger?.log('Data úspěšně získána z primárního API', {
                 source: 'Primary API',
                 sampleData: data[0]
             });
@@ -227,32 +229,40 @@ class SpotPriceAPI {
         } catch (primaryError) {
             // Pokud selže primární API, zkusíme záložní
             await device.setCapabilityValue('primary_api_fail', true);
-            
+    
             try {
                 this.logger?.log('Primární API selhalo, přepínám na záložní API', {
                     primaryError: primaryError.message
                 });
-        
+    
+                // Generování cache klíče pro záložní API
+                const currentDate = new Date().toISOString().split('T')[0];
+                const backupCacheKey = `backup_dailyPrices_${currentDate}`;
+    
+                // Pokus načíst z cache (záložní API)
+                const cachedBackupData = cacheManager.get(backupCacheKey);
+                if (cachedBackupData) {
+                    this.logger?.debug('Načtena data z cache (záložní API)', { cacheKey: backupCacheKey });
+                    return cachedBackupData;
+                }
+    
+                // Získání dat ze záložního API
                 const rawBackupData = await this.getBackupDailyPrices(device);
-                
+    
                 this.logger?.debug('Data získána ze záložního API', {
                     dataLength: rawBackupData?.length,
                     sample: rawBackupData?.[0]
                 });
-        
+    
                 const backupData = rawBackupData.map(({ hour, priceCZK }) => ({ hour, priceCZK }));
-        
+    
                 if (!this.getDataValidator().validatePriceData(backupData)) {
                     throw new Error('Neplatný formát dat ze záložního API');
                 }
-        
-                this.logger?.debug('Data ze záložního API validována', {
-                    count: backupData.length
-                });
-        
-                // Použití správné metody přes getter
-                this.getCacheManager().set(cacheKey, backupData, 'PRICE');
-        
+    
+                // Uložení do cache (záložní API)
+                cacheManager.set(backupCacheKey, backupData, 'PRICE');
+    
                 await device.triggerAPIFailure({
                     primaryAPI: await this.handleApiError(primaryError, device, 'Primary API'),
                     backupAPI: 'Záložní API úspěšné',
@@ -260,29 +270,29 @@ class SpotPriceAPI {
                     retryCount: 0,
                     nextRetryIn: '60'
                 });
-        
+    
                 this.logger?.log('Úspěšně přepnuto na záložní API');
                 return backupData;
-        
+    
             } catch (backupError) {
                 this.logger?.error('Selhalo i záložní API', {
                     primaryError: primaryError.message,
                     backupError: backupError.message
                 });
-        
+    
                 const errorMessage = await this.handleApiError(backupError, device, 'Backup API');
-                
+    
                 await device.triggerAPIFailure({
                     primaryAPI: await this.handleApiError(primaryError, device, 'Primary API'),
                     backupAPI: errorMessage,
                     willRetry: false,
                     maxRetriesReached: true
                 });
-        
+    
                 throw new Error(`Selhání obou API: ${errorMessage}`);
             }
         }
-    }
+    }    
 
     async _fetchFromPrimaryAPI(timeoutMs) {
         const url = `${this.baseUrl}/get-prices-json`;
@@ -414,7 +424,6 @@ class SpotPriceAPI {
     async processAndUpdatePrices(device, dailyPrices) {
         try {
             const processedPrices = await this.processPrices(dailyPrices, device);
-            await this.updateDeviceValues(device, processedPrices);
             await device.setAvailable();
             await device.setCapabilityValue('spot_price_update_status', true);
             await this.emitUpdateEvent(device);
@@ -429,10 +438,6 @@ class SpotPriceAPI {
             ...priceData,
             priceCZK: this.getPriceCalculationEngine().addDistributionPrice(priceData.priceCZK, settings, priceData.hour)
         }));
-    }
-    
-    async updateDeviceValues() {
-        // Implementace aktualizace hodnot zařízení
     }
     
     async emitUpdateEvent(device) {
@@ -463,41 +468,79 @@ class SpotPriceAPI {
         });
     }
     
-    async getBackupDailyPrices() {
+    async getBackupDailyPrices(device) {
+        const cacheManager = this.getCacheManager(); // Použití getteru pro práci s cache
+    
         try {
             this.logger?.debug('Začínám získávat data ze záložního API');
+    
+            // Získání aktuálního času a validace výstupu
+            const timeInfo = this.getCurrentTimeInfo();
+            if (!timeInfo || !timeInfo.date || typeof timeInfo.hour !== 'number') {
+                throw new Error('Chyba při získávání aktuálního času: neplatné časové informace');
+            }
+    
+            const cacheKey = `backupDailyPrices_${timeInfo.date}`;
             
+            // Pokus o načtení dat ze záložní cache
+            const cachedData = cacheManager.get(cacheKey);
+            if (cachedData) {
+                this.logger?.debug('Načtena data ze záložního API z cache', { cacheKey });
+                return cachedData;
+            }
+    
+            // Inicializace záložního API
             await this.initializeBackupFetch();
             const exchangeRate = await this.updateExchangeRate();
-            const timeInfo = this.getCurrentTimeInfo();
-            
+            this.logger?.debug('Exchange rate aktualizován', { exchangeRate: this.exchangeRate });
+    
             this.logger?.debug('Získané parametry pro záložní API', {
                 exchangeRate,
-                timeInfo
+                timeInfo,
             });
     
+            // Načtení dat ze záložního API
             const rawData = await this.fetchBackupData(timeInfo);
-            
+    
             this.logger?.debug('Získána raw data ze záložního API', {
                 hasData: !!rawData,
-                dataStructure: rawData?.data ? Object.keys(rawData.data) : null
+                dataStructure: rawData?.data ? Object.keys(rawData.data) : null,
             });
     
+            // Validace základní struktury dat
+            if (!this.getDataValidator().validateBackupApiResponse(rawData)) {
+                throw new Error('Neplatná základní struktura dat ze záložního API');
+            }
+    
+            // Zpracování dat
             const prices = await this.processBackupData(rawData, exchangeRate);
-            
+    
             this.logger?.debug('Zpracovaná data ze záložního API', {
                 pricesCount: prices?.length,
-                samplePrice: prices?.[0]
+                samplePrice: prices?.[0],
             });
     
-            return this.validateAndFormatPrices(prices);
+            // Validace zpracovaných dat
+            if (!this.getDataValidator().validatePriceData(prices)) {
+                throw new Error('Neplatná cenová data po zpracování záložního API');
+            }
+    
+            // Uložení zpracovaných dat do cache
+            cacheManager.set(cacheKey, prices, 'PRICE');
+    
+            this.logger?.log('Data úspěšně uložena do cache pro záložní API', {
+                cacheKey,
+                sampleData: prices[0],
+            });
+    
+            return prices;
         } catch (error) {
             this.logger?.error('Chyba při získávání dat ze záložního API', error, {
-                stack: error.stack
+                stack: error.stack,
             });
             throw error;
         }
-    }
+    }            
     
     async initializeBackupFetch() {
         this.logger?.debug('Začátek získávání cen ze záložního API', { 
@@ -506,6 +549,7 @@ class SpotPriceAPI {
     }
     
     async fetchBackupData(timeInfo) {
+        this.logger?.debug('Volání záložního API', { url: this.backupUrl, date: timeInfo.date });
         const response = await axios.get(this.backupUrl, {
             params: { report_date: timeInfo.date }
         });
@@ -515,35 +559,36 @@ class SpotPriceAPI {
     async processBackupData(data, exchangeRate) {
         const dataLine = data?.data?.dataLine.find(line => 
             line.title === "Cena (EUR/MWh)");
-            
-        if (!this.isValidDataLine(dataLine)) {
-            throw new Error('Invalid data structure from backup API');
-        }
-        
-        return this.convertPrices(dataLine.point, exchangeRate);
-    }
     
-    isValidDataLine(dataLine) {
-        return dataLine && Array.isArray(dataLine.point) && dataLine.point.length >= 24;
+        if (!this.getDataValidator().validateBackupDataStructure(data)) {
+            throw new Error('Neplatná struktura dat ze záložního API');
+        }
+    
+        // Validace jednotlivých bodů v datech
+        if (!this.getDataValidator().validatePriceLine(dataLine)) {
+            throw new Error('Neplatná dataLine struktura nebo data neobsahují platné hodnoty');
+        }
+    
+        return this.convertPrices(dataLine.point, exchangeRate);
     }
     
     convertPrices(points, exchangeRate) {
         const hourMap = new Map([...Array(24)].map((_, i) => [i + 1, i === 24 ? 0 : i]));
-        
+    
         return points.slice(0, 24).map(point => {
             const inputHour = parseInt(point.x, 10);
             if (!hourMap.has(inputHour)) {
                 throw new Error(`Neplatná vstupní hodina: ${inputHour}`);
             }
-            
+    
             const hour = hourMap.get(inputHour);
             const priceEUR = parseFloat(point.y);
             if (isNaN(priceEUR)) {
                 throw new Error(`Neplatná cena pro hodinu ${inputHour}: ${point.y}`);
             }
-            
+    
             const priceCZK = priceEUR * exchangeRate;
-            
+    
             return {
                 hour,
                 priceCZK: parseFloat(priceCZK.toFixed(2)),

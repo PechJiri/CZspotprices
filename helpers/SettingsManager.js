@@ -56,7 +56,7 @@ class SettingsManager {
     
             // Logujeme dokončení pouze pokud je logging zapnutý
             if (Logger.enabled) {
-                this.logger.log('Aktualizace nastavení dokončena', {
+                this.logger.debug('Aktualizace nastavení dokončena', {
                     changedSettings: changedKeys.join(', ')
                 });
             }
