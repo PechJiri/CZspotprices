@@ -466,14 +466,16 @@ class PriceCalculationEngine {
         return isMatch;
     }
 
-    async checkAveragePriceAndTrigger(device, triggerCard) {
+    async checkAveragePriceAndTrigger(device, triggerCard, timeInfo) {
         try {
+            // Použijeme již existující timeInfo místo nového získávání
+            const currentHour = timeInfo.hour;
+            
             const flows = await triggerCard.getArgumentValues(device);
-            const { hour: currentHour } = this.getSpotPriceAPI().getCurrentTimeInfo();
     
             for (const flow of flows) {
                 const { hours, condition } = flow;
-                const combinations = await this.calculatePriceCombinations(device, hours, 0);
+                const combinations = await this.calculateAveragePrices(device, hours, currentHour);
                 const targetCombination = this.getTargetCombination(combinations, condition);
     
                 if (this.isCurrentHourMatch(targetCombination, currentHour)) {

@@ -155,11 +155,16 @@ class TariffCalculator {
         }
     }
 
-    async checkTariffChange(device, currentHour) {
+    async checkTariffChange(device, currentHour, timeInfo) {
         try {
+            // Použijeme již existující timeInfo
             const settings = device.getSettings();
+            const isLowTariff = this.isLowTariff(currentHour, settings);
+            
+            // Cache pro celou hodinu
+            const cacheKey = `tariff_${currentHour}_${device.getId()}`;
             const previousTariff = await device.getStoreValue('previousTariff');
-            const currentTariff = this.isLowTariff(currentHour, settings) ? 'low' : 'high';
+            const currentTariff = isLowTariff ? 'low' : 'high';
     
             if (previousTariff !== currentTariff) {
                 this.logger?.debug('Detekována změna tarifu', {
@@ -171,25 +176,25 @@ class TariffCalculator {
                 await device.setStoreValue('previousTariff', currentTariff);
                 const triggerData = { previousTariff, currentTariff };
     
-                // Spouštění příslušných triggerů
+                // Spustit příslušné triggery
                 if (currentTariff === 'high') {
-                    const highTariffTrigger = device.triggersManager.getTrigger('when-high-tariff-starts');
-                    if (highTariffTrigger) {
-                        await highTariffTrigger.trigger(device, {}, triggerData);
+                    const trigger = device.triggersManager.getTrigger('when-high-tariff-starts');
+                    if (trigger) {
+                        await trigger.trigger(device, {}, triggerData);
                         this.logger?.debug('High tariff start trigger spuštěn');
                     }
                 } else {
-                    const lowTariffTrigger = device.triggersManager.getTrigger('when-low-tariff-starts');
-                    if (lowTariffTrigger) {
-                        await lowTariffTrigger.trigger(device, {}, triggerData);
+                    const trigger = device.triggersManager.getTrigger('when-low-tariff-starts');
+                    if (trigger) {
+                        await trigger.trigger(device, {}, triggerData);
                         this.logger?.debug('Low tariff start trigger spuštěn');
                     }
                 }
     
                 // Obecný trigger pro změnu tarifu
-                const changeTrigger = device.triggersManager.getTrigger('when-distribution-tariff-changes');
-                if (changeTrigger) {
-                    await changeTrigger.trigger(device, {}, triggerData);
+                const trigger = device.triggersManager.getTrigger('when-distribution-tariff-changes');
+                if (trigger) {
+                    await trigger.trigger(device, {}, triggerData);
                     this.logger?.debug('Tariff change trigger spuštěn');
                 }
     
@@ -197,7 +202,6 @@ class TariffCalculator {
             }
         } catch (error) {
             this.logger?.error('Chyba při kontrole změny tarifu', error, {
-                hour: currentHour,
                 deviceId: device.getData().id
             });
         }

@@ -132,7 +132,7 @@ class SpotPriceAPI {
         };
     }
 
-    //nová implementace
+    //Core metody
     async getDailyPrices(device) {
         if (!device || typeof device.triggerAPIFailure !== 'function') {
             const errorMessage = 'Neplatná device instance pro getDailyPrices';
@@ -148,13 +148,18 @@ class SpotPriceAPI {
     
         try {
             await device.setCapabilityValue('primary_api_fail', false);
-    
-            const primaryData = await this.fetchWithCache(
+
+            let primaryData = await this.fetchWithCache(
                 primaryCacheKey,
                 () => this.fetchAPI(`${this.baseUrl}/get-prices-json`),
                 cacheManager
             );
-    
+
+            // Omezíme primaryData pouze na hoursToday s požadovanými klíči
+            primaryData = primaryData.hoursToday.map(({ hour, priceCZK }) => ({ hour, priceCZK }));
+
+            this.logger.debug('Primární data po zpracování', { primaryData });
+
             this.validatePriceData(primaryData);
             this.logger.debug('Data úspěšně získána z primárního API', {
                 source: 'Primary API',

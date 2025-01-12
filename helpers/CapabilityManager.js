@@ -67,7 +67,7 @@ class CapabilityManager {
 
            const { hour: currentHour } = device.spotPriceApi.getCurrentTimeInfo();
            const nextHour = (currentHour + 1) % 24;
-           const currentPriceInKWh = device.priceInKWh;
+           const currentPriceInKWh = device.settingsManager.getPriceInKWh(device);
 
            this.logger?.debug('Začátek aktualizace current a next hour price', {
                currentHour,

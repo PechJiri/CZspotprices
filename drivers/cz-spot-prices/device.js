@@ -399,74 +399,64 @@ class CZSpotPricesDevice extends Homey.Device {
 
     async updateHourlyData() {
         try {
-            const { hour: currentHour } = this.spotPriceApi.getCurrentTimeInfo();
-            
+            const timeInfo = this.spotPriceApi.getCurrentTimeInfo();
+            const currentHour = timeInfo.hour;
+                
             this.logger?.log('Začátek hodinové aktualizace', {
                 hour: currentHour,
-                systemHour: new Date().getHours(),
+                systemHour: timeInfo.systemHour,
                 timezone: this.homey.clock.getTimezone()
             });
-     
-            const [currentPrice, currentIndex, nextHourPrice] = await Promise.all([
-                this.getCapabilityValue(`hour_price_CZK_${currentHour}`),
-                this.getCapabilityValue(`hour_price_index_${currentHour}`),
-                currentHour === 23 ? 
-                    this.getCapabilityValue(`hour_price_CZK_${currentHour}`) :
-                    this.getCapabilityValue(`hour_price_CZK_${(currentHour + 1) % 24}`)
-            ]);
-     
-            if (currentPrice === null || currentIndex === null) {
-                this.logger?.error('Chybí data pro hodinu', {
+    
+            // Použijeme existující prices z capabilities pro aktualizaci
+            const pricesWithIndexes = [];
+            for (let i = 0; i < 24; i++) {
+                const price = await this.getCapabilityValue(`hour_price_CZK_${i}`);
+                const level = await this.getCapabilityValue(`hour_price_index_${i}`);
+                if (price !== null && level !== null) {
+                    pricesWithIndexes.push({
+                        hour: i,
+                        priceCZK: price,
+                        level
+                    });
+                }
+            }
+    
+            if (pricesWithIndexes.length !== 24) {
+                this.logger?.error('Nekompletní cenová data', {
                     hour: currentHour,
-                    price: currentPrice,
-                    index: currentIndex,
-                    nextPrice: nextHourPrice
+                    foundPrices: pricesWithIndexes.length
                 });
                 return false;
             }
-     
-            await Promise.all([
-                // 1. Aktualizace capabilities
-                Promise.all([
-                    this.setCapabilityValue('measure_current_spot_price_CZK', currentPrice),
-                    this.setCapabilityValue('measure_current_spot_index', currentIndex),
-                    this.setCapabilityValue('measure_next_hour_price', nextHourPrice)
-                ]),
-     
-                // 2. Kontrola změny tarifu
-                this.tariffCalculator.checkTariffChange(this, currentHour),
-     
-                // 3. Kontrola average price triggerů
-                (async () => {
-                    try {
-                        const triggerCard = this.homey.flow.getDeviceTriggerCard('average-price-trigger');
-                        await this.priceCalculationEngine.checkAveragePriceAndTrigger(this, triggerCard);
-                    } catch (error) {
-                        this.logger?.error('Chyba při kontrole average price triggerů', error);
-                    }
-                })()
-            ]);
-     
+    
+            // Necháme CapabilityManager aktualizovat current/next ceny
+            await this.capabilityManager.updateCurrentAndNextHourPrices(this, pricesWithIndexes);
+    
+            // Kontrola změny tarifu
+            await this.tariffCalculator.checkTariffChange(this, currentHour, timeInfo);
+    
+            // Kontrola average price triggerů
+            await this.checkAveragePrices(currentHour, timeInfo);
+    
             this.logger?.log('Hodinová aktualizace dokončena', {
-                hour: currentHour,
-                price: currentPrice,
-                index: currentIndex,
-                nextPrice: nextHourPrice
+                hour: currentHour
             });
-     
+    
             return true;
-     
         } catch (error) {
             this.logger?.error('Kritická chyba při hodinové aktualizaci', error);
             return false;
         }
     }
-  
-    /**
-     * Generování ID zařízení
-     */
-    generateDeviceId() {
-      return this.homey.util.generateUniqueId();
+    
+    async checkAveragePrices(currentHour, timeInfo) {
+        try {
+            const triggerCard = this.homey.flow.getDeviceTriggerCard('average-price-trigger');
+            await this.priceCalculationEngine.checkAveragePriceAndTrigger(this, triggerCard, timeInfo);
+        } catch (error) {
+            this.logger?.error('Chyba při kontrole average price triggerů', error);
+        }
     }
 
     // Změna settings zařízení

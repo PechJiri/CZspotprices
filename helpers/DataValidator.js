@@ -83,6 +83,8 @@ class DataValidator {
      * Validace cenových dat
      */
     validatePriceData(data) {
+        this.logger.debug('Validace dat z API', { data });
+
         if (!this.validateArray(data, 24, 'cenová data')) return false;
     
         return data.every(item => this.validatePriceItem(item));
@@ -93,10 +95,12 @@ class DataValidator {
      */
     validatePriceIndexData(data, lowIndexHours, highIndexHours) {
         try {
+            this.logger.debug('Data z API Před validací cenových dat pro indexy', { data });
             const errors = [];
-            
+
             if (!this.validatePriceData(data)) {
                 errors.push('Neplatná cenová data');
+                this.logger.error('Validace cenových dat selhala', { data });
                 return { isValid: false, errors };
             }
 

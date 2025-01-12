@@ -68,12 +68,34 @@ class DeviceStateManager {
     }
 
     async initializeDeviceId(device) {
-        const deviceId = device.getData().id || await device.getStoreValue('device_id');
-        
-        if (!deviceId) {
-            const newDeviceId = device.homey.util.generateUniqueId();
+        try {
+            // Nejprve zkusíme získat ID z device.getData()
+            const deviceId = device.getData()?.id;
+            
+            if (deviceId) {
+                // ID již existuje z párování, uložíme ho do store pro konzistenci
+                await device.setStoreValue('device_id', deviceId);
+                this.logger.debug('Použito existující ID zařízení z párování', { deviceId });
+                return deviceId;
+            }
+    
+            // Záložní řešení - pokud by z nějakého důvodu ID neexistovalo
+            const storedId = await device.getStoreValue('device_id');
+            if (storedId) {
+                this.logger.debug('Použito ID ze store', { deviceId: storedId });
+                return storedId;
+            }
+    
+            // Pokud nemáme ID ani z párování ani ze store, vygenerujeme nové
+            // Používáme stejnou metodu jako driver
+            const newDeviceId = crypto.randomUUID();
             await device.setStoreValue('device_id', newDeviceId);
-            this.logger.log('Vygenerováno nové ID zařízení', { newDeviceId });
+            this.logger.log('Vygenerováno nové ID zařízení (záložní řešení)', { newDeviceId });
+            return newDeviceId;
+    
+        } catch (error) {
+            this.logger.error('Chyba při inicializaci ID zařízení', error);
+            throw error;
         }
     }
 
