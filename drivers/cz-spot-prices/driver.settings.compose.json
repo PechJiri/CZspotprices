@@ -16,7 +16,7 @@
       "ru": "Включить ведение журнала отладки",
       "ko": "디버그 로깅 활성화"
     },
-    "value": true,
+    "value": false,
     "hint": {
       "en": "Enable detailed logging for debugging purposes",
       "nl": "Inschakelen van gedetailleerde logboekaantekeningen voor debuggingdoeleinden",

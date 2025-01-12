@@ -21,18 +21,18 @@
     "ko": "CZ 현물 가격"
   },
   "description": {
-    "en": "Get your CZ spot prices with distribution fees",
-    "nl": "Krijg uw CZ spotprijzen met distributiekosten",
-    "da": "Få dine CZ spotpriser med distributionsgebyrer",
-    "de": "Erhalten Sie Ihre CZ-Spotpreise mit Verteilungsgebühren",
-    "es": "Obtén tus precios spot de CZ con tarifas de distribución",
-    "fr": "Obtenez vos prix spot CZ avec les frais de distribution",
-    "it": "Ottieni i tuoi prezzi spot CZ con tariffe di distribuzione",
-    "no": "Få dine CZ spotpriser med distribusjonsgebyrer",
-    "sv": "Få dina CZ spotpriser med distributionsavgifter",
-    "pl": "Uzyskaj ceny spotowe CZ z opłatami dystrybucyjnymi",
-    "ru": "Получите СЗ спотовые цены с учетом сборов за распределение",
-    "ko": "CZ 현물 가격에 배포 수수료 포함"
+    "en": "Get your CZ spot prices with distribution fees and VAT",
+    "nl": "Krijg uw CZ spotprijzen met distributiekosten en BTW",
+    "da": "Få dine CZ spotpriser med distributionsgebyrer og moms",
+    "de": "Erhalten Sie Ihre CZ-Spotpreise mit Verteilungsgebühren und MwSt",
+    "es": "Obtén tus precios spot de CZ con tarifas de distribución e IVA",
+    "fr": "Obtenez vos prix spot CZ avec les frais de distribution et la TVA",
+    "it": "Ottieni i tuoi prezzi spot CZ con tariffe di distribuzione e IVA",
+    "no": "Få dine CZ spotpriser med distribusjonsgebyrer og MVA",
+    "sv": "Få dina CZ spotpriser med distributionsavgifter och moms",
+    "pl": "Uzyskaj ceny spotowe CZ z opłatami dystrybucyjnymi i VAT",
+    "ru": "Получите CZ спотовые цены с учетом сборов за распределение и НДС",
+    "ko": "CZ 현물 가격에 배포 수수료 및 부가가치세 포함"
   },
   "category": [
     "energy"

@@ -75,6 +75,14 @@ class CZSpotPricesDevice extends Homey.Device {
             await this.setupScheduledTasks();
             
             this.isInitialized = true;
+
+            // Nastavení logování podle konfigurace zařízení
+            const enableLogging = settings.enable_logging || false;
+            Logger.setEnabled(enableLogging);
+            this.logger?.debug('Nastavení logování podle konfigurace', {
+                enableLogging,
+                deviceId: this.getData().id
+            });
             
         } catch (error) {
             this.logger?.error('Inicializace nedopadla', error);

@@ -35,24 +35,36 @@ class SettingsManager {
 
     async handleSettingsUpdate(device, { oldSettings, newSettings, changedKeys }) {
         try {
-            if (changedKeys.includes('enable_logging')) {
+            // Kontrola změny stavu logování včetně ověření skutečné změny hodnoty
+            if (changedKeys.includes('enable_logging') && 
+                oldSettings.enable_logging !== newSettings.enable_logging) {
                 Logger.setEnabled(newSettings.enable_logging);
             }
-
-            this.logSettingsChange(changedKeys, oldSettings, newSettings);
-
+    
+            // Logujeme změny pouze pokud je logging zapnutý
+            if (Logger.enabled) {
+                this.logSettingsChange(changedKeys, oldSettings, newSettings);
+            }
+    
+            // Kontrola potřeby přepočtu cen
             if (this.needsRecalculation(changedKeys)) {
                 await this.handlePriceRecalculation(device, oldSettings, newSettings, changedKeys);
             }
-
+    
+            // Emitujeme událost o změně nastavení
             await this.homey.emit('settings_changed');
-            this.logger.log('Aktualizace nastavení dokončena', {
-                changedSettings: changedKeys.join(', ')
-            });
-
+    
+            // Logujeme dokončení pouze pokud je logging zapnutý
+            if (Logger.enabled) {
+                this.logger.log('Aktualizace nastavení dokončena', {
+                    changedSettings: changedKeys.join(', ')
+                });
+            }
+    
             return true;
-
+    
         } catch (error) {
+            // Error logy jdou vždy, bez ohledu na stav loggingu
             this.logger.error('Chyba při aktualizaci nastavení', error, {
                 changedKeys,
                 deviceId: device.getData().id
