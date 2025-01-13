@@ -75,14 +75,6 @@ class CZSpotPricesDevice extends Homey.Device {
             await this.setupScheduledTasks();
             
             this.isInitialized = true;
-
-            // Nastavení logování podle konfigurace zařízení
-            const enableLogging = settings.enable_logging || false;
-            Logger.setEnabled(enableLogging);
-            this.logger?.debug('Nastavení logování podle konfigurace', {
-                enableLogging,
-                deviceId: this.getData().id
-            });
             
         } catch (error) {
             this.logger?.error('Inicializace nedopadla', error);
@@ -96,6 +88,17 @@ class CZSpotPricesDevice extends Homey.Device {
     
             // Inicializace všech singletonů
             this.DeviceStateManager = DeviceStateManager.getInstance(this.homey)
+            this.settingsManager = SettingsManager.getInstance(this.homey);
+
+            // Hned po settingsManager nastavíme logging
+            const settings = this.settingsManager.getDeviceSettings(this);
+            const enableLogging = settings.enable_logging || false;
+            Logger.setEnabled(enableLogging);
+            this.logger?.debug('Nastavení logování podle konfigurace', {
+                enableLogging,
+                deviceId: this.getData().id
+            });
+
             this.spotPriceApi = SpotPriceAPI.getInstance(this.homey);
             this.intervalManager = IntervalManager.getInstance(this.homey);
             this.priceCalculator = PriceCalculator.getInstance(this.homey);
@@ -103,7 +106,6 @@ class CZSpotPricesDevice extends Homey.Device {
             this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey);
             this.dataValidator = DataValidator.getInstance(this.homey);
             this.cacheManager = CacheManager.getInstance(this.homey);
-            this.settingsManager = SettingsManager.getInstance(this.homey);
             this.capabilityManager = CapabilityManager.getInstance(this.homey);
             this.lockManager = LockManager.getInstance(this.homey);
     

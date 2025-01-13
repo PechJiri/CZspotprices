@@ -275,7 +275,8 @@ class IntervalManager {
         const averagePriceCallback = async () => {
             try {
                 const triggerCard = device.homey.flow.getDeviceTriggerCard('average-price-trigger');
-                await device.priceCalculationEngine.checkAveragePriceAndTrigger(device, triggerCard);
+                const timeInfo = device.spotPriceApi.getCurrentTimeInfo();
+                await device.priceCalculationEngine.checkAveragePriceAndTrigger(device, triggerCard, timeInfo);
                 await device.setStoreValue('lastAverageUpdate', Date.now());
             } catch (error) {
                 this.logger?.error('Average price check failed', error);

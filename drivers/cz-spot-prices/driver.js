@@ -17,23 +17,27 @@ class CZSpotPricesDriver extends Homey.Driver {
     static CONTEXT = 'CZSpotPricesDriver';
 
     async onInit() {
-        const requiredManagers = {
-            logger: Logger,
-            cacheManager: CacheManager,
-            deviceStateManager: DeviceStateManager,
-            dataValidator: DataValidator,
-            settingsManager: SettingsManager,
-            tariffCalculator: TariffCalculator,
-            priceCalculationEngine: PriceCalculationEngine,
-            priceCalculator: PriceCalculator,
-            spotPriceApi: SpotPriceAPI,
-            intervalManager: IntervalManager
-        };
-    
         try {
             if (!this.homey) throw new Error('Homey instance není dostupná');
+                
+            // Nejdřív inicializujeme Logger - defaultně zapnutý
+            this.logger = Logger.getInstance(this.homey);
+            Logger.setEnabled(true);
             
-            Object.entries(requiredManagers).forEach(([key, Manager]) => {
+            // Pak inicializujeme zbytek manažerů
+            const remainingManagers = {
+                settingsManager: SettingsManager,
+                cacheManager: CacheManager,
+                deviceStateManager: DeviceStateManager,
+                dataValidator: DataValidator,
+                tariffCalculator: TariffCalculator,
+                priceCalculationEngine: PriceCalculationEngine,
+                priceCalculator: PriceCalculator,
+                spotPriceApi: SpotPriceAPI,
+                intervalManager: IntervalManager
+            };
+    
+            Object.entries(remainingManagers).forEach(([key, Manager]) => {
                 this[key] = Manager.getInstance(this.homey);
             });
     
