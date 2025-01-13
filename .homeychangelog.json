@@ -211,5 +211,8 @@
   },
   "2.3.9": {
     "en": "bugfix"
+  },
+  "2.3.10": {
+    "en": "lowered homey npm package to save space"
   }
 }
