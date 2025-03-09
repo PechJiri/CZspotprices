@@ -2,7 +2,7 @@
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "com.spotprice.cz",
   "version": "2.3.10",
-  "compatibility": ">=12.1.0",
+  "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
     "local"
@@ -1331,7 +1331,7 @@
         "ru": "CZ спотовые цены",
         "ko": "CZ 스팟 가격"
       },
-      "class": "sensor",
+      "class": "service",
       "platforms": [
         "local"
       ],

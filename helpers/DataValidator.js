@@ -75,7 +75,7 @@ class DataValidator {
 
     //původní metody
     validatePrice(price, context = 'cena') {
-        return this.validateValue(price, 'number', 0, null, context);
+        return this.validateValue(price, 'number', null, null, context);
     }
     
 

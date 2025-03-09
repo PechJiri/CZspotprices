@@ -14,13 +14,11 @@
     "ru": "CZ спотовые цены",
     "ko": "CZ 스팟 가격"
   },
-  "class": "sensor",
-  "platforms": [
-    "local"
-  ],
-  "connectivity": [
-    "cloud"
-  ],
+  "class": "service",
+  "platforms": ["local"],
+
+  "connectivity": ["cloud"],
+
   "icon": "/drivers/assets/icon.svg",
   "capabilities": [
     "measure_current_spot_price_CZK",
