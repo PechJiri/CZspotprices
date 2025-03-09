@@ -1,6 +1,6 @@
 {
   "id": "com.spotprice.cz",
-  "version": "2.3.10",
+  "version": "2.3.11",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
