@@ -1,0 +1,41 @@
+{
+  "id": "com.spotprice.cz",
+  "version": "2.1.2",
+  "compatibility": ">=12.3.0",
+  "sdk": 3,
+  "platforms": [
+    "local"
+  ],
+  "name": {
+    "en": "CZ spot prices"
+  },
+  "description": {
+    "en": "Get your CZ spot prices with distribution fees"
+  },
+  "category": [
+    "energy"
+  ],
+  "permissions": [],
+  "icon": "/assets/icon.svg",
+  "images": {
+    "small": "/assets/images/app_small.png",
+    "large": "/assets/images/app_large.png",
+    "xlarge": "/assets/images/app_xlarge.png"
+  },
+  "author": {
+    "name": "Jiri Pech",
+    "email": "jiri.pech@centrum.cz"
+  },
+  "contributing": {
+    "donate": {
+      "paypal": {
+        "username": "pechjiri"
+      }
+    }
+  },
+  "brandColor": "#333333",
+  "source": "https://github.com/PechJiri/CZspotprices",
+  "homepage": "https://spotovaelektrina.cz/",
+  "support": "mailto:jiri.pech@centrum.cz",
+  "homeyCommunityTopicId": 116949
+}

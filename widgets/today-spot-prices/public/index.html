@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spot Price Intervals</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: var(--homey-su-2);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: var(--homey-background-color);
+            color: var(--homey-text-color);
+        }
+        
+        #container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--homey-background-color);
+            border-radius: var(--homey-border-radius-default);
+        }
+        
+        /* Toggle View Buttons */
+        .view-toggle {
+            display: flex;
+            gap: var(--homey-su-1);
+            margin-bottom: var(--homey-su-2);
+            border: var(--homey-line);
+            border-radius: var(--homey-border-radius-default);
+            padding: var(--homey-su-1);
+            background-color: var(--homey-color-mono-100);
+        }
+        
+        .view-toggle button {
+            flex: 1;
+            padding: var(--homey-su-2) var(--homey-su-3);
+            border: none;
+            border-radius: var(--homey-border-radius-small);
+            background: transparent;
+            color: var(--homey-text-color);
+            font-size: var(--homey-font-size-small);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .view-toggle button.active {
+            background-color: var(--homey-color-blue);
+            color: var(--homey-text-color-white);
+        }
+        
+        /* Price Info */
+        #priceInfo {
+            text-align: center;
+            font-size: var(--homey-font-size-small);
+            margin-bottom: var(--homey-su-2);
+            color: var(--homey-text-color-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--homey-su-1);
+        }
+        
+        .price-row {
+            display: flex;
+            justify-content: center;
+            gap: var(--homey-su-3);
+            flex-wrap: wrap;
+        }
+        
+        .price-row span {
+            white-space: nowrap;
+        }
+        
+        .unit-row {
+            font-size: var(--homey-font-size-small);
+            color: var(--homey-text-color-light);
+        }
+        
+        /* Chart Container */
+        #chartContainer {
+            flex-grow: 1;
+            position: relative;
+            min-height: 180px;
+        }
+        
+        #chart {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        /* Loading State */
+        .loading {
+            text-align: center;
+            color: var(--homey-text-color-light);
+            padding: var(--homey-su-4);
+        }
+    </style>
+</head>
+<body class="homey-widget">
+    <div id="container">
+        <!-- View Toggle -->
+        <div class="view-toggle">
+            <button data-view="24h" class="active">24h</button>
+            <button data-view="6h">6h</button>
+            <button data-view="3h">3h</button>
+        </div>
+        
+        <!-- Price Info -->
+        <div id="priceInfo">Loading...</div>
+        
+        <!-- Chart -->
+        <div id="chartContainer">
+            <canvas id="chart"></canvas>
+        </div>
+    </div>
+    
+    <script>
+        let chart = null;
+        let Homey = null;
+        let currentView = '24h';
+        let cachedData = null;
+        let priceInKWh = false;
+
+        function onHomeyReady(_Homey) {
+            console.log('=== onHomeyReady called ===');
+            Homey = _Homey;
+            
+            // Load saved view preference
+            const instanceId = Homey.getWidgetInstanceId();
+            const savedView = localStorage.getItem(`spotprice_view_${instanceId}`);
+            console.log('Saved view preference:', savedView);
+            
+            if (savedView && ['24h', '6h', '3h'].includes(savedView)) {
+                currentView = savedView;
+                console.log('Using saved view:', currentView);
+                
+                // Update active button
+                document.querySelectorAll('.view-toggle button').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.getAttribute('data-view') === currentView) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+            
+            // Setup toggle buttons
+            setupViewToggle();
+            
+            // Initialize
+            console.log('Scheduling init in 100ms...');
+            setTimeout(init, 100);
+        }
+
+        function setupViewToggle() {
+            console.log('Setting up view toggle buttons');
+            const toggleButtons = document.querySelectorAll('.view-toggle button');
+            console.log('Found toggle buttons:', toggleButtons.length);
+            
+            toggleButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    console.log('Toggle button clicked:', button.getAttribute('data-view'));
+                    Homey.hapticFeedback();
+                    const viewName = button.getAttribute('data-view');
+                    switchView(viewName);
+                });
+            });
+        }
+
+        function switchView(viewName) {
+            console.log('=== switchView called ===');
+            console.log('From:', currentView, 'To:', viewName);
+            
+            if (currentView === viewName) {
+                console.log('Already on this view, skipping');
+                return;
+            }
+            
+            // Update active button
+            document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+            document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
+            
+            currentView = viewName;
+            
+            // Save preference
+            const instanceId = Homey.getWidgetInstanceId();
+            localStorage.setItem(`spotprice_view_${instanceId}`, viewName);
+            console.log('View preference saved');
+            
+            // Redraw chart if we have data (height stays the same)
+            if (cachedData) {
+                console.log('Redrawing view with cached data');
+                renderChart(cachedData);
+            } else {
+                console.log('No cached data available yet');
+            }
+        }
+
+        function getBarColor(slot) {
+            const level = slot.level;
+            
+            if (level === 'high') {
+                return 'rgb(220,53,69)';
+            } else if (level === 'low') {
+                return 'rgb(25,135,84)';
+            } else {
+                return 'rgb(108,117,125)';
+            }
+        }
+
+        function formatPrice(price, inKWh) {
+            if (price === null || price === undefined) return 'N/A';
+            return inKWh ? price.toFixed(2) : price.toFixed(0);
+        }
+
+        function formatTime(hour, minute) {
+            return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+        }
+
+        function getCurrentSlotIndex() {
+            const now = new Date();
+            const hour = now.getHours();
+            const minute = Math.floor(now.getMinutes() / 15) * 15;
+            return hour * 4 + minute / 15;
+        }
+
+        function updatePriceInfo(data) {
+            console.log('Updating price info');
+            const unit = data.priceInKWh ? 'CZK/kWh' : 'CZK/MWh';
+            const priceInfoDiv = document.getElementById('priceInfo');
+            
+            priceInfoDiv.innerHTML = `
+                <div class="price-row">
+                    <span>Now ${formatPrice(data.currentPrice, data.priceInKWh)}</span>
+                    <span>⌀ ${formatPrice(data.averagePrice, data.priceInKWh)}</span>
+                    <span>↑ ${formatPrice(data.maxPrice, data.priceInKWh)}</span>
+                    <span>↓ ${formatPrice(data.minPrice, data.priceInKWh)}</span>
+                </div>
+                <div class="unit-row">${unit}</div>
+            `;
+        }
+
+        function renderChart(data) {
+            console.log('=== renderChart called ===');
+            console.log('Current view:', currentView);
+            
+            const allSlots = data.allSlots;
+            console.log('Total slots available:', allSlots.length);
+            priceInKWh = data.priceInKWh;
+            
+            updatePriceInfo(data);
+            
+            let slotsToShow = [];
+            let labelFormatter = null;
+            let currentIndex = getCurrentSlotIndex();
+            let remainingSlots = 96 - currentIndex; // Slots remaining until end of day
+            
+            console.log('Current index:', currentIndex, 'Remaining slots:', remainingSlots);
+            
+            if (currentView === '24h') {
+                // Show all 96 slots
+                slotsToShow = allSlots;
+                labelFormatter = (slot) => {
+                    // Show only hour numbers every 3 hours (0, 3, 6, 9, 12, 15, 18, 21)
+                    if (slot.minute === 0 && slot.hour % 3 === 0) {
+                        return `${slot.hour}`;
+                    }
+                    return ''; // Empty label for other slots
+                };
+                console.log('24h view: showing all 96 slots');
+            } else if (currentView === '6h') {
+                // Show current slot + next slots up to 6h or end of day
+                const slotsToTake = Math.min(24, remainingSlots); // 6h = 24 slots
+                slotsToShow = allSlots.slice(currentIndex, currentIndex + slotsToTake);
+                labelFormatter = (slot) => formatTime(slot.hour, slot.minute);
+                console.log('6h view: showing', slotsToTake, 'slots from index', currentIndex);
+            } else if (currentView === '3h') {
+                // Show current slot + next slots up to 3h or end of day
+                const slotsToTake = Math.min(12, remainingSlots); // 3h = 12 slots
+                slotsToShow = allSlots.slice(currentIndex, currentIndex + slotsToTake);
+                labelFormatter = (slot) => formatTime(slot.hour, slot.minute);
+                console.log('3h view: showing', slotsToTake, 'slots from index', currentIndex);
+            }
+            
+            if (slotsToShow.length === 0) {
+                console.error('No slots to display!');
+                document.getElementById('priceInfo').textContent = 'No data available';
+                return;
+            }
+            
+            console.log('Slots to render:', slotsToShow.length);
+            
+            const ctx = document.getElementById('chart').getContext('2d');
+            const prices = slotsToShow.map(slot => slot.priceCZK);
+            const maxPrice = Math.max(...prices);
+            const minPrice = Math.min(...prices);
+            
+            console.log('Price range:', minPrice, '-', maxPrice);
+            
+            const suggestedMax = Math.ceil((maxPrice * 1.05) / (priceInKWh ? 1 : 1000)) * (priceInKWh ? 1 : 1000);
+            const suggestedMin = Math.floor((minPrice * 0.95) / (priceInKWh ? 1 : 1000)) * (priceInKWh ? 1 : 1000);
+
+            const borderColor = getComputedStyle(document.body).getPropertyValue('--homey-text-color').trim();
+
+            if (chart) {
+                console.log('Destroying existing chart');
+                chart.destroy();
+            }
+
+            console.log('Creating new chart');
+            
+            // Determine which slot is "current" for border highlighting
+            let currentSlotInView = -1;
+            if (currentView === '24h') {
+                currentSlotInView = currentIndex;
+            } else {
+                // For 6h and 3h views, the first slot is current
+                currentSlotInView = 0;
+            }
+            
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: slotsToShow.map(slot => labelFormatter(slot)),
+                    datasets: [{
+                        data: prices,
+                        backgroundColor: slotsToShow.map(slot => getBarColor(slot)),
+                        borderColor: slotsToShow.map((slot, idx) => idx === currentSlotInView ? borderColor : 'transparent'),
+                        borderWidth: slotsToShow.map((slot, idx) => idx === currentSlotInView ? 2 : 0),
+                        barThickness: 'flex',
+                        maxBarThickness: currentView === '24h' ? 8 : (currentView === '6h' ? 15 : 25),
+                        categoryPercentage: 0.9,
+                        barPercentage: 0.95,
+                        borderRadius: {
+                            topLeft: 4,
+                            topRight: 4,
+                            bottomLeft: 4,
+                            bottomRight: 4
+                        },
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    const slot = slotsToShow[context[0].dataIndex];
+                                    return formatTime(slot.hour, slot.minute);
+                                },
+                                label: function(context) {
+                                    const slot = slotsToShow[context.dataIndex];
+                                    return `${context.parsed.y.toFixed(priceInKWh ? 2 : 0)} ${priceInKWh ? 'CZK/kWh' : 'CZK/MWh'} (${slot.level})`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            suggestedMin: suggestedMin,
+                            suggestedMax: suggestedMax,
+                            ticks: {
+                                maxTicksLimit: currentView === '24h' ? 4 : 5,
+                                callback: function(value) {
+                                    if (priceInKWh) {
+                                        return value.toFixed(2);
+                                    } else {
+                                        return value >= 1000 ? (value / 1000) + 'k' : value;
+                                    }
+                                },
+                                font: { size: 12 },
+                                color: borderColor
+                            },
+                            grid: {
+                                drawBorder: false,
+                                display: currentView !== '24h',
+                                color: 'rgba(128,128,128,0.1)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: currentView === '24h' ? 0 : 45,
+                                minRotation: currentView === '24h' ? 0 : 45,
+                                autoSkip: currentView === '24h',
+                                maxTicksLimit: currentView === '24h' ? 24 : undefined,
+                                font: { size: 10 },
+                                color: borderColor
+                            },
+                            grid: {
+                                drawBorder: false,
+                                display: false
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 5,
+                            right: 5,
+                            bottom: 5,
+                            left: 5
+                        }
+                    }
+                }
+            });
+            console.log('Chart created successfully');
+        }
+
+        function updateChart() {
+            console.log('=== updateChart called ===');
+            console.log('Homey API available:', !!Homey);
+            console.log('Current view:', currentView);
+            
+            if (!Homey || !Homey.api) {
+                console.error('Homey or Homey.api not available!');
+                return;
+            }
+            
+            console.log('Calling API: GET /interval-prices');
+            
+            Homey.api('GET', '/interval-prices')
+                .then(result => {
+                    console.log('=== API response received ===');
+                    console.log('Result object:', result);
+                    console.log('AllSlots?', !!result?.allSlots);
+                    console.log('AllSlots length:', result?.allSlots?.length);
+                    
+                    if (result && result.allSlots && result.allSlots.length === 96) {
+                        console.log('Valid data received, caching and rendering');
+                        cachedData = result;
+                        renderChart(result);
+                    } else {
+                        console.error('Invalid data format received:', result);
+                        throw new Error('Unexpected data format');
+                    }
+                })
+                .catch(error => {
+                    console.error('=== API call failed ===');
+                    console.error('Error:', error);
+                    console.error('Error message:', error.message);
+                    
+                    document.getElementById('priceInfo').textContent = 'Error loading data: ' + error.message;
+                });
+        }
+
+        function init() {
+            console.log('=== init called ===');
+            console.log('Current view:', currentView);
+            
+            // Load data
+            console.log('Initial data load...');
+            updateChart();
+            
+            // Update every 15 minutes
+            console.log('Setting up 15-minute interval');
+            setInterval(updateChart, 15 * 60 * 1000);
+            
+            // Register callback for app updates
+            console.log('Registering prices_updated event listener');
+            Homey.on('prices_updated', () => {
+                console.log('!!! prices_updated event received !!!');
+                updateChart();
+            });
+            
+            // Set initial height based on view
+            const height = 320; // Unified height for all views
+            console.log('Setting initial height to:', height);
+            Homey.ready({ height });
+            console.log('=== Widget ready ===');
+        }
+    </script>
+</body>
+</html>

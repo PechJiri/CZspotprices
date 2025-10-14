@@ -1,0 +1,44 @@
+{
+      "id": "current-price-index-trigger",
+      "title": {
+        "en": "Current price index is"
+      },
+      "args": [
+        {
+          "name": "index",
+          "type": "dropdown",
+          "title": {
+            "en": "Price Index"
+          },
+          "values": [
+            {
+              "id": "low",
+              "title": {
+                "en": "Low"
+              }
+            },
+            {
+              "id": "medium",
+              "title": {
+                "en": "Medium"
+              }
+            },
+            {
+              "id": "high",
+              "title": {
+                "en": "High"
+              }
+            },
+            {
+              "id": "unknown",
+              "title": {
+                "en": "Unknown"
+              }
+            }
+          ]
+        }
+      ],
+      "titleFormatted": {
+        "en": "Current price index for current is [[index]]"
+      }
+    }
