@@ -4,7 +4,9 @@
   "main": "app.js",
   "scripts": {},
   "devDependencies": {
-    "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.7",
-    "homey": "^3.5.0"
+    "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.7"
+  },
+  "dependencies": {
+    "homey": "^3.9.5"
   }
 }
