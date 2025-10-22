@@ -1,5 +1,8 @@
 {
   "3.0.0": {
     "en": "BREAKING CHANGE: due to change in czech electricity markets (prices are now per 15 minutes intervals instead of hourly intervals) I had to refactor whole app - i have refactored flow cards, capabilities, widgets. For hourly data in transition period you can stay on production version of the app. If you need 15 minutes data now, you can update to this test version. You will have to delete old device, add new one, and change all your flow with new app level flow cards. "
+  },
+  "3.0.1": {
+    "en": "Updated api.js to be ready for NodeJS22 update, updated homey package to 3.5.0"
   }
 }
