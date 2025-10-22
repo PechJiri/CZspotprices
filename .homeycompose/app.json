@@ -24,7 +24,7 @@
   },
   "author": {
     "name": "Jiri Pech",
-    "email": "jiri.pech@centrum.cz"
+    "email": "jirka@pechovic.cz"
   },
   "contributing": {
     "donate": {
@@ -36,6 +36,6 @@
   "brandColor": "#333333",
   "source": "https://github.com/PechJiri/CZspotprices",
   "homepage": "https://spotovaelektrina.cz/",
-  "support": "mailto:jiri.pech@centrum.cz",
+  "support": "mailto:jirka@pechovic.cz",
   "homeyCommunityTopicId": 116949
 }

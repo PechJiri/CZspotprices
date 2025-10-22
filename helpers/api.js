@@ -274,9 +274,23 @@ class SpotPriceAPI {
             }
         }
 
-        // 4. ZPRACOVÁNÍ
-        const dataValidator = this.getDataValidator();
-        const processedData = dataValidator.processRawData(rawData);
+        // 4. ZPRACOVÁNÍ - transformace do interního formátu
+        const processedData = {
+            today: rawData.hoursToday.map(slot => ({
+                hour: slot.hour,
+                minute: slot.minute,
+                priceCZK: slot.priceCZK,
+                priceEur: slot.priceEur || 0
+            })),
+            tomorrow: (rawData.hoursTomorrow || []).map(slot => ({
+                hour: slot.hour,
+                minute: slot.minute,
+                priceCZK: slot.priceCZK,
+                priceEur: slot.priceEur || 0
+            })),
+            fetchedAt: new Date().toISOString(),
+            dateKey: timeInfo.dateKey
+        };
 
         // 5. VALIDACE ZPRACOVANÝCH DAT
         if (!processedData?.today || processedData.today.length !== 96) {
