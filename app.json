@@ -1051,23 +1051,6 @@
       ]
     }
   ],
-  "widgets": {
-    "today-spot-prices": {
-      "name": {
-        "en": "Spot Price Graph",
-        "cs": "Graf spotových cen"
-      },
-      "height": 280,
-      "api": {
-        "getIntervalPrices": {
-          "method": "GET",
-          "path": "/interval-prices"
-        }
-      },
-      "id": "today-spot-prices",
-      "settings": []
-    }
-  },
   "capabilities": {
     "current_index": {
       "type": "enum",

@@ -1,8 +1,7 @@
 'use strict';
 
-const colors = require('colors');
-const { Log } = require('../../..');
-const { App } = require('../../..');
+const Log = require('../../../lib/Log');
+const App = require('../../../lib/App');
 
 exports.desc = 'Run a Homey App in development mode';
 exports.builder = yargs => {
@@ -30,6 +29,12 @@ exports.builder = yargs => {
       type: 'string',
       default: '',
       desc: 'Provide a comma-separated path to local Node.js modules to link. Only works when running the app inside Docker.',
+    })
+    .option('network', {
+      alias: 'n',
+      default: 'bridge',
+      type: 'string',
+      description: 'Docker network mode. Must match name from `docker network ls`. Only works when running the app inside Docker.',
     });
 };
 exports.handler = async yargs => {
@@ -40,8 +45,14 @@ exports.handler = async yargs => {
       clean: yargs.clean,
       skipBuild: yargs.skipBuild,
       linkModules: yargs.linkModules,
+      network: yargs.network,
     });
   } catch (err) {
-    Log(colors.red(err.message));
+    if (err instanceof Error && err.stack) {
+      Log.error(err.stack);
+    } else {
+      Log.error(err);
+    }
+    process.exit(1);
   }
 };
