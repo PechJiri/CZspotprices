@@ -200,15 +200,39 @@
             }
         }
 
-        function getBarColor(slot) {
+        /**
+         * Zjistí, zda daná hodina obsahuje alespoň jeden interval s high tariff
+         */
+        function isHighTariffHour(hour, allSlots) {
+            // Zkontrolujeme všechny 4 15-minutové intervaly v dané hodině
+            for (let minute = 0; minute < 60; minute += 15) {
+                const slotIndex = hour * 4 + minute / 15;
+                if (slotIndex < allSlots.length) {
+                    const slot = allSlots[slotIndex];
+                    if (slot.level === 'high') {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Určí barvu sloupce podle level a toho, zda je v high tariff hodině
+         * Intervaly v high tariff hodinách mají tmavší odstín
+         */
+        function getBarColor(slot, isInHighTariffHour) {
             const level = slot.level;
             
             if (level === 'high') {
-                return 'rgb(220,53,69)';
+                // High level - červená
+                return isInHighTariffHour ? 'rgb(180,43,56)' : 'rgb(220,53,69)';
             } else if (level === 'low') {
-                return 'rgb(25,135,84)';
+                // Low level - zelená
+                return isInHighTariffHour ? 'rgb(20,110,68)' : 'rgb(25,135,84)';
             } else {
-                return 'rgb(108,117,125)';
+                // Medium level - šedá
+                return isInHighTariffHour ? 'rgb(88,95,102)' : 'rgb(108,117,125)';
             }
         }
 
@@ -322,13 +346,26 @@
                 currentSlotInView = 0;
             }
             
+            // Vytvoříme mapu hodin s high tariff pro všechny sloty
+            // Toto použijeme pro určení tmavších barev
+            const highTariffHours = new Set();
+            for (let hour = 0; hour < 24; hour++) {
+                if (isHighTariffHour(hour, allSlots)) {
+                    highTariffHours.add(hour);
+                }
+            }
+            console.log('High tariff hours:', Array.from(highTariffHours).join(', '));
+            
             chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: slotsToShow.map(slot => labelFormatter(slot)),
                     datasets: [{
                         data: prices,
-                        backgroundColor: slotsToShow.map(slot => getBarColor(slot)),
+                        backgroundColor: slotsToShow.map(slot => {
+                            const isInHighTariffHour = highTariffHours.has(slot.hour);
+                            return getBarColor(slot, isInHighTariffHour);
+                        }),
                         borderColor: slotsToShow.map((slot, idx) => idx === currentSlotInView ? borderColor : 'transparent'),
                         borderWidth: slotsToShow.map((slot, idx) => idx === currentSlotInView ? 2 : 0),
                         barThickness: 'flex',
