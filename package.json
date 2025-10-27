@@ -7,6 +7,6 @@
     "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.7"
   },
   "dependencies": {
-    "homey": "^3.9.5"
+    "homey": "^3.9.6"
   }
 }

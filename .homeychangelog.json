@@ -4,5 +4,8 @@
   },
   "3.0.1": {
     "en": "Updated api.js to be ready for NodeJS22 update, updated homey package to 3.5.0"
+  },
+  "3.0.2": {
+    "en": "Widget bugfix"
   }
 }
