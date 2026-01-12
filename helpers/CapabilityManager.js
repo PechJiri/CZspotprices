@@ -150,6 +150,18 @@ class CapabilityManager {
                 device.setCapabilityValue('current_index', currentIndexLevel)
             ];
 
+            // Update low_tariff capability
+            const settings = device.getSettings();
+            if (device.tariffCalculator) {
+                const isLowTariff = device.tariffCalculator.isLowTariff(timeInfo.hour, settings);
+                updatePromises.push(device.setCapabilityValue('low_tariff', isLowTariff));
+                
+                this.logger?.debug('Low tariff aktualizován', {
+                    hour: timeInfo.hour,
+                    isLowTariff
+                });
+            }
+
             if (nextPrice !== null) {
                 updatePromises.push(
                     device.setCapabilityValue('next_price', nextPrice),
@@ -344,6 +356,7 @@ class CapabilityManager {
             'lowest_price',
             'highest_price',
             'daily_average',
+            'low_tariff',
             // Status capabilities (2)
             'primary_api_fail',
             'spot_price_update_status'
