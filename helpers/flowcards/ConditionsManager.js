@@ -19,9 +19,9 @@ class ConditionsManager {
      * @param {Device} device - Instance zařízení
      * @returns {ConditionsManager} Singleton instance
      */
-    static getInstance(homey, device = null) {
+    static getInstance(homey) {
         if (!ConditionsManager.instance) {
-            ConditionsManager.instance = new ConditionsManager(homey, device);
+            ConditionsManager.instance = new ConditionsManager(homey);
         }
         return ConditionsManager.instance;
     }
@@ -38,13 +38,12 @@ class ConditionsManager {
      * @param {Homey} homey - Instance Homey
      * @param {Device} device - Instance zařízení
      */
-    constructor(homey, device) {
+    constructor(homey) {
         if (ConditionsManager.instance) {
             throw new Error('Použijte ConditionsManager.getInstance() místo new ConditionsManager()');
         }
 
         this.homey = homey;
-        this.device = device;
         this.logger = Logger.getInstance(homey);
         this.isInitialized = false;
         this.settingsManager = SettingsManager.getInstance(homey);
@@ -186,11 +185,11 @@ class ConditionsManager {
 
         card.registerRunListener(async (args) => {
             try {
-                const { count, condition, interval_type } = args;
-                const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
+                const { count, condition, interval_type, device } = args;
+                const timeInfo = device.spotPriceApi.getCurrentTimeInfo();
 
                 // ✅ Přepočet hodin na sloty
-                const actualSlotCount = this.device.priceCalculationEngine.convertToSlotCount(
+                const actualSlotCount = device.priceCalculationEngine.convertToSlotCount(
                     count, 
                     interval_type
                 );
@@ -203,7 +202,8 @@ class ConditionsManager {
                 });
 
                 // ✅ OPRAVA: Získat data Z CACHE (bez findCurrentSlot)
-                const cachedPrices = this.device.cacheManager.get('lastProcessedPrices');
+                const cacheKey = `device_${device.getData().id}_lastProcessedPrices`;
+                const cachedPrices = device.cacheManager.get(cacheKey);
                 
                 if (!cachedPrices || cachedPrices.length !== 96) {
                     this.logger?.warn('⚠️ Chybí data v cache pro condition', {
@@ -228,8 +228,8 @@ class ConditionsManager {
                 // Vypočítej průměrné ceny
                 // Lock mechanismus v PriceCalculationEngine zajistí, že pro stejné parametry
                 // proběhne výpočet pouze jednou (ostatní čekají na výsledek)
-                const combinations = await this.device.priceCalculationEngine.calculateAverageSlotPrices(
-                    this.device,
+                const combinations = await device.priceCalculationEngine.calculateAverageSlotPrices(
+                    device,
                     actualSlotCount,
                     0
                 );
@@ -279,11 +279,11 @@ class ConditionsManager {
 
         card.registerRunListener(async (args) => {
             try {
-                const { count, condition, interval_type } = args;
-                const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
+                const { count, condition, interval_type, device } = args;
+                const timeInfo = device.spotPriceApi.getCurrentTimeInfo();
 
                 // ✅ Přepočet hodin na sloty
-                const actualSlotCount = this.device.priceCalculationEngine.convertToSlotCount(
+                const actualSlotCount = device.priceCalculationEngine.convertToSlotCount(
                     count, 
                     interval_type
                 );
@@ -296,7 +296,8 @@ class ConditionsManager {
                 });
 
                 // ✅ OPRAVA: Získat data Z CACHE (bez findCurrentSlot)
-                const cachedPrices = this.device.cacheManager.get('lastProcessedPrices');
+                const cacheKey = `device_${device.getData().id}_lastProcessedPrices`;
+                const cachedPrices = device.cacheManager.get(cacheKey);
                 
                 if (!cachedPrices || cachedPrices.length !== 96) {
                     this.logger?.warn('⚠️ Chybí data v cache pro condition', {
@@ -323,8 +324,8 @@ class ConditionsManager {
                 // (např. slots=2, startFrom=63) proběhne výpočet pouze jednou
                 // Pokud druhá condition (highest vs lowest) zavolá se stejnými parametry,
                 // počká na dokončení prvního výpočtu a použije výsledek z cache
-                const combinations = await this.device.priceCalculationEngine.calculateRemainingSlotPrices(
-                    this.device,
+                const combinations = await device.priceCalculationEngine.calculateRemainingSlotPrices(
+                    device,
                     actualSlotCount,
                     currentSlotIndex
                 );

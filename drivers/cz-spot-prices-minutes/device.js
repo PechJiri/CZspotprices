@@ -42,6 +42,7 @@ class CZSpotPricesQuarterDevice extends Homey.Device {
      */
     async onInit() {
         try {
+            this._isDeleted = false; // <-- PŘIDAT
             this.isInitialized = false;
             this.logger = Logger.getInstance(this.homey);
             
@@ -90,7 +91,8 @@ class CZSpotPricesQuarterDevice extends Homey.Device {
                 settings.high_index_intervals || 8
             );
 
-            this.cacheManager.set('lastProcessedPrices', pricesWithIndexes, 'PRICE');
+            const cacheKey = `device_${this.getData().id}_lastProcessedPrices`;
+            this.cacheManager.set(cacheKey, pricesWithIndexes, 'PRICE');
 
             // Aktualizace capabilities zařízení (jen 8 capabilities)
             await this.capabilityManager.updateDeviceCapabilities(this, pricesWithIndexes);
@@ -150,13 +152,13 @@ class CZSpotPricesQuarterDevice extends Homey.Device {
             this.lockManager = LockManager.getInstance(this.homey);
     
             // Flow card manažery
-            this.actionsManager = ActionsManager.getInstance(this.homey, this);
+            this.actionsManager = ActionsManager.getInstance(this.homey);
             await this.actionsManager.initialize();
     
-            this.conditionsManager = ConditionsManager.getInstance(this.homey, this);
+            this.conditionsManager = ConditionsManager.getInstance(this.homey);
             await this.conditionsManager.initialize();
     
-            this.triggersManager = TriggersManager.getInstance(this.homey, this);
+            this.triggersManager = TriggersManager.getInstance(this.homey);
             await this.triggersManager.initialize();
     
             this.logger?.debug('Helpery úspěšně inicializovány');
@@ -235,12 +237,13 @@ class CZSpotPricesQuarterDevice extends Homey.Device {
     async updateSlotData() {
         try {
             // 1️⃣ Načti HOTOVÉ sloty z cache
-            let cachedPrices = this.cacheManager.get('lastProcessedPrices');
+            const cacheKey = `device_${this.getData().id}_lastProcessedPrices`;
+            let cachedPrices = this.cacheManager.get(cacheKey);
             
             if (!cachedPrices || cachedPrices.length !== 96) {
                 this.logger?.warn('⚠️ Chybí data v cache, volám ensureCachedData()');
                 await this.ensureCachedData();
-                cachedPrices = this.cacheManager.get('lastProcessedPrices');
+                cachedPrices = this.cacheManager.get(cacheKey);
                 
                 if (!cachedPrices || cachedPrices.length !== 96) {
                     throw new Error('Cache stále prázdná po ensureCachedData()');
@@ -349,12 +352,13 @@ class CZSpotPricesQuarterDevice extends Homey.Device {
             );
 
             // 6️⃣ Uložení do cache
+            const cacheKey = `device_${this.getData().id}_lastProcessedPrices`;
             this.logger?.debug('💾 UKLÁDÁM DO CACHE (bez update capabilities)', {
-                klíč: 'lastProcessedPrices',
+                klíč: cacheKey,
                 počet: pricesWithIndexes.length
             });
             
-            this.cacheManager.set('lastProcessedPrices', pricesWithIndexes);
+            this.cacheManager.set(cacheKey, pricesWithIndexes);
 
             return true;
 
@@ -446,6 +450,8 @@ class CZSpotPricesQuarterDevice extends Homey.Device {
      * @returns {Promise<boolean>} True pokud aktualizace proběhla úspěšně
      */
     async fetchAndUpdateSpotPrices() {
+        if (this._isDeleted) return false; // <-- PŘIDAT
+
         const operationId = `fetch-prices-${Date.now()}`;
         
         try {
@@ -482,6 +488,7 @@ class CZSpotPricesQuarterDevice extends Homey.Device {
                 }
 
                 // 3️⃣ Nastavení
+                const settings = this.settingsManager.getDeviceSettings(this);
                 const tariffMap = this.tariffCalculator.getTariffMap(settings);
 
                 this.logger?.debug('🗺️ TariffMap vytvořena pro batch zpracování', {
@@ -506,6 +513,12 @@ class CZSpotPricesQuarterDevice extends Homey.Device {
                     processedSlots: processedPrices.length
                 });
 
+                // <-- KONTROLA PŘED ZÁPISEM:
+                if (this._isDeleted) {
+                     this.logger?.debug('Zařízení smazáno během API volání, přerušuji...');
+                     return false;
+                }
+
                 // 5️⃣ Nastavení cenových indexů (low/medium/high)
                 const pricesWithIndexes = this.priceCalculator.setIndexes(
                     processedPrices,
@@ -514,12 +527,13 @@ class CZSpotPricesQuarterDevice extends Homey.Device {
                 );
 
                 // 6️⃣ Cache update
+                const cacheKey = `device_${this.getData().id}_lastProcessedPrices`;
                 this.logger?.debug('💾 UKLÁDÁM DO CACHE', {
-                    klíč: 'lastProcessedPrices',
+                    klíč: cacheKey,
                     počet: pricesWithIndexes.length,
                     ukázka_slot_16_45: pricesWithIndexes.find(s => s.hour === 16 && s.minute === 45)
                 });
-                this.cacheManager.set('lastProcessedPrices', pricesWithIndexes, 'PRICE');
+                this.cacheManager.set(cacheKey, pricesWithIndexes, 'PRICE');
 
                 // 7️⃣ Update capabilities (pouze 8 capabilities)
                 await this.capabilityManager.updateDeviceCapabilities(this, pricesWithIndexes);
@@ -629,6 +643,7 @@ class CZSpotPricesQuarterDevice extends Homey.Device {
      * Vyčistí intervaly, cache, store
      */
     async onDeleted() {
+        this._isDeleted = true; // <-- PŘIDAT na úplný začátek
         await this.deviceStateManager.cleanupDeviceState(this);
     }
 

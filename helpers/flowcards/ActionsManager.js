@@ -19,9 +19,9 @@ class ActionsManager {
      * @param {Device} device - Instance zařízení
      * @returns {ActionsManager} Singleton instance
      */
-    static getInstance(homey, device = null) {
+    static getInstance(homey) {
         if (!ActionsManager.instance) {
-            ActionsManager.instance = new ActionsManager(homey, device);
+            ActionsManager.instance = new ActionsManager(homey);
         }
         return ActionsManager.instance;
     }
@@ -38,13 +38,12 @@ class ActionsManager {
      * @param {Homey} homey - Instance Homey
      * @param {Device} device - Instance zařízení
      */
-    constructor(homey, device) {
+    constructor(homey) {
         if (ActionsManager.instance) {
             throw new Error('Použijte ActionsManager.getInstance() místo new ActionsManager()');
         }
 
         this.homey = homey;
-        this.device = device;
         this.logger = Logger.getInstance(homey);
         this.isInitialized = false;
         this._actions = new Map();
@@ -96,15 +95,23 @@ class ActionsManager {
 
             const card = this.homey.flow.getActionCard('update_data_via_api');
             
-            card.registerRunListener(async () => {
+            card.registerRunListener(async (args) => {
                 try {
-                    // Device metoda už ví jak zpracovat data (15min sloty)
-                    await this.device.fetchAndUpdateSpotPrices();
-                    await this.device.setAvailable();
+                    // OPRAVA: Použijeme args.device místo this.device
+                    await args.device.fetchAndUpdateSpotPrices();
+                    
+                    // Bezpečnostní kontrola, zda zařízení nebylo mezitím smazáno
+                    if (!args.device._isDeleted) {
+                        await args.device.setAvailable().catch(() => {});
+                    }
                     
                     this.logger.debug('Data úspěšně aktualizována přes API');
                     return true;
                 } catch (error) {
+                    // Ignorujeme chyby smazaných zařízení
+                    if (error.message.includes('Not Found: Device with ID')) {
+                        return false;
+                    }
                     this.logger.error('Chyba při aktualizaci dat přes API:', error);
                     return false;
                 }

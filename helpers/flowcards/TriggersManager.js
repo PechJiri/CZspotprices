@@ -17,9 +17,9 @@ class TriggersManager {
     /**
      * Získá nebo vytvoří instanci TriggersManageru
      */
-    static getInstance(homey, device = null) {
+    static getInstance(homey) {
         if (!TriggersManager.instance) {
-            TriggersManager.instance = new TriggersManager(homey, device);
+            TriggersManager.instance = new TriggersManager(homey);
         }
         return TriggersManager.instance;
     }
@@ -31,13 +31,12 @@ class TriggersManager {
         TriggersManager.homeyInstance = homey;
     }
 
-    constructor(homey, device) {
+    constructor(homey) {
         if (TriggersManager.instance) {
             throw new Error('Použijte TriggersManager.getInstance() místo new TriggersManager()');
         }
 
         this.homey = homey;
-        this.device = device;
         this.logger = Logger.getInstance(homey);
         this.isInitialized = false;
         this.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey);
@@ -234,18 +233,25 @@ class TriggersManager {
 
             card.registerRunListener(async (args) => {
                 try {
+                    const device = this._getDevice();
+                    if (!device) {
+                        this.logger?.warn('Zádné zařízení není k dispozici pro vyhodnocení average-price-trigger');
+                        return false;
+                    }
+
                     const { count, condition, interval_type } = args;
 
                     // ✅ Přepočet hodin na sloty
-                    const actualSlotCount = this.device.priceCalculationEngine.convertToSlotCount(
+                    const actualSlotCount = this.priceCalculationEngine.convertToSlotCount(
                         count, 
                         interval_type
                     );
 
-                    const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
+                    const timeInfo = device.spotPriceApi.getCurrentTimeInfo();
                     
                     // ✅ OPRAVA: Získat data Z CACHE
-                    const cachedPrices = this.device.cacheManager.get('lastProcessedPrices');
+                    const cacheKey = `device_${device.getData().id}_lastProcessedPrices`;
+                    const cachedPrices = device.cacheManager.get(cacheKey);
                     
                     if (!cachedPrices || cachedPrices.length !== 96) {
                         this.logger?.warn('⚠️ Chybí data v cache pro trigger');
@@ -253,7 +259,7 @@ class TriggersManager {
                     }
 
                     // ✅ OPRAVA: Předat data jako PRVNÍ parametr
-                    const currentSlot = this.device.spotPriceApi.findCurrentSlot(
+                    const currentSlot = device.spotPriceApi.findCurrentSlot(
                         cachedPrices,
                         timeInfo
                     );
@@ -268,8 +274,8 @@ class TriggersManager {
                         return false;
                     }
 
-                    const combinations = await this.device.priceCalculationEngine.calculateAverageSlotPrices(
-                        this.device,
+                    const combinations = await this.priceCalculationEngine.calculateAverageSlotPrices(
+                        device,
                         actualSlotCount,
                         0
                     );
@@ -336,12 +342,17 @@ class TriggersManager {
 
             card.registerRunListener(async (args, state) => {
                 try {
-                    const timeInfo = this.device.spotPriceApi.getCurrentTimeInfo();
+                    const device = this._getDevice();
+                    if (!device) {
+                        this.logger?.warn(`Žádné zřízení není k dispozici pro ${config.id}`);
+                        return false;
+                    }
+                    const timeInfo = device.spotPriceApi.getCurrentTimeInfo();
                     const currentHour = timeInfo.hour;
 
                     // ✅ JEDNODUCHÉ: Přímo použij getTariffMap z TariffCalculator
-                    const settings = this.device.getSettings();
-                    const tariffMap = this.device.tariffCalculator.getTariffMap(settings);
+                    const settings = device.getSettings();
+                    const tariffMap = device.tariffCalculator.getTariffMap(settings);
                     const isLowTariff = tariffMap.get(currentHour) || false;
                     
                     const isTariffMatch = config.type === 'TARIFF_HIGH_START' ?
@@ -492,6 +503,25 @@ class TriggersManager {
     }
 
     // ==================== POMOCNÉ METODY ====================
+
+    /**
+     * Vrátí první aktivní instanci zařízení
+     * Využívá se pro app-level karty, které v `args` nedostávají kontext zařízení
+     * @private
+     */
+    _getDevice() {
+        if (!this.homey || !this.homey.drivers) return null;
+        try {
+            const driver = this.homey.drivers.getDriver('cz-spot-prices-minutes');
+            if (driver) {
+                const devices = driver.getDevices();
+                return devices.length > 0 ? devices[0] : null;
+            }
+        } catch (err) {
+            this.logger?.warn('Nelze získat driver cz-spot-prices-minutes: ' + err.message);
+        }
+        return null;
+    }
 
     /**
      * Získá trigger podle ID
