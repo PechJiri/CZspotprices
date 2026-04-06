@@ -85,11 +85,14 @@ class DataValidator {
      * TICHÁ validace ceny - bez logování
      * Pro použití v batch loops
      * 
-     * @param {number} price - cena
+     * POZNÁMKA: Záporné ceny jsou legitimní - na energetickém trhu
+     * se vyskytují při přebytku výroby z obnovitelných zdrojů.
+     * 
+     * @param {number} price - cena (může být záporná!)
      * @returns {boolean}
      */
     validatePrice(price) {
-        return typeof price === 'number' && !isNaN(price) && price >= 0;
+        return typeof price === 'number' && isFinite(price);
     }
 
     /**
