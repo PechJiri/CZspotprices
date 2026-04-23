@@ -2,7 +2,6 @@
 
 const Logger = require('../Logger');
 const DataValidator = require('../DataValidator');
-const PriceCalculationEngine = require('./PriceCalculationEngine');
 
 /**
  * PriceCalculator - výpočty cen a indexů pro 15minutové sloty
@@ -19,12 +18,11 @@ class PriceCalculator {
         
         this.logger = Logger.getInstance();
         this.homey = homey;
-        
+
         // Automaticky získáme instances jako singleton
-        this.priceCalculationEngine = PriceCalculationEngine.getInstance(homey);
         this.dataValidator = DataValidator.getInstance(homey);
         this.components = {}; // Pro lazy-load komponenty
-        
+
         this.logger?.debug('PriceCalculator inicializován');
     }
 
@@ -44,22 +42,6 @@ class PriceCalculator {
 
     // ==================== LAZY-LOAD KOMPONENTY ====================
 
-    getTariffCalculator() {
-        if (!this.components.tariffCalculator) {
-            const TariffCalculator = require('./TariffCalculator');
-            this.components.tariffCalculator = TariffCalculator.getInstance(this.homey);
-        }
-        return this.components.tariffCalculator;
-    }
-
-    getPriceCalculationEngine() {
-        if (!this.components.priceCalculationEngine) {
-            const PriceCalculationEngine = require('./PriceCalculationEngine');
-            this.components.priceCalculationEngine = PriceCalculationEngine.getInstance(this.homey);
-        }
-        return this.components.priceCalculationEngine;
-    }
-
     getDataValidator() {
         if (!this.components.dataValidator) {
             const DataValidator = require('../DataValidator');
@@ -74,79 +56,6 @@ class PriceCalculator {
             this._cacheManager = CacheManager.getInstance(this.homey);
         }
         return this._cacheManager;
-    }
-
-    // ==================== VÝPOČET CENY ====================
-
-    /**
-     * Hlavní metoda pro výpočet ceny se všemi příplatky
-     * Funguje univerzálně - přidává distribuční tarif podle hodiny
-     * 
-     * @param {Array} data - Cenová data (pole slotů)
-     * @param {Object} settings - Nastavení device
-     * @param {number} hour - Hodina (0-23) pro určení distribučního tarifu
-     * @returns {number|null} - Vypočtená cena nebo null
-     */
-    async calculatePrice(data, settings, hour) {
-        try {
-            const cacheKey = `calculate_price_${JSON.stringify(data)}_${JSON.stringify(settings)}_${hour}`;
-            
-            // Pokus o získání z cache
-            const cachedPrice = this.getCacheManager().get(cacheKey);
-            if (cachedPrice !== null) {
-                this.logger?.debug('Cena načtena z cache', { 
-                    hour, 
-                    cachedPrice
-                });
-                return cachedPrice;
-            }
-    
-            const validator = this.getDataValidator();
-            
-            if (!validator.validatePrice(data)) {
-                this.logger?.error('Neplatná vstupní data', {
-                    data,
-                    hour,
-                    settings
-                });
-                return null;
-            }
-    
-            const hourlyValidation = validator.validateHourlyPrice(data, hour);
-            if (!hourlyValidation.isValid) {
-                this.logger?.warn('Neplatná hodinová cena', {
-                    hour,
-                    price: hourlyValidation.price
-                });
-                return null;
-            }
-    
-            const priceEngine = this.getPriceCalculationEngine();
-            const finalPrice = priceEngine.addDistributionPrice(
-                hourlyValidation.price, 
-                settings, 
-                hour
-            );
-            
-            // Uložení do cache
-            if (finalPrice !== null) {
-                this.getCacheManager().set(cacheKey, finalPrice, 'PRICE');
-                this.logger?.debug('Cena uložena do cache', { 
-                    hour, 
-                    finalPrice
-                });
-            }
-            
-            return finalPrice;
-    
-        } catch (error) {
-            this.logger?.error('Chyba při výpočtu ceny', error, {
-                hour,
-                data,
-                settings
-            });
-            return null;
-        }
     }
 
     // ==================== INDEXY PRO 15MINUTOVÉ SLOTY (96) ====================
@@ -292,159 +201,6 @@ class PriceCalculator {
         };
     }
 
-    /**
-     * Najde nejlevnější N po sobě jdoucích slotů (sliding window)
-     * 
-     * @param {Array} data - Cenová data (sloty)
-     * @param {number} count - Počet po sobě jdoucích slotů
-     * @returns {Object|null} - {startIndex, items, avgPrice, totalPrice} nebo null
-     */
-    findCheapestConsecutive(data, count) {
-        if (!Array.isArray(data) || data.length < count) {
-            this.logger?.warn('Nedostatečná data pro findCheapestConsecutive', {
-                dataLength: data?.length,
-                požadovanýCount: count
-            });
-            return null;
-        }
-
-        let minSum = Infinity;
-        let minIndex = 0;
-
-        // Sliding window přes všechna data
-        for (let i = 0; i <= data.length - count; i++) {
-            const sum = data.slice(i, i + count)
-                .reduce((s, item) => s + item.priceCZK, 0);
-            
-            if (sum < minSum) {
-                minSum = sum;
-                minIndex = i;
-            }
-        }
-
-        const items = data.slice(minIndex, minIndex + count);
-
-        this.logger?.debug('Nejlevnější po sobě jdoucí sloty nalezeny', {
-            startIndex: minIndex,
-            count: count,
-            avgPrice: (minSum / count).toFixed(2),
-            startTime: `${items[0].hour}:${String(items[0].minute).padStart(2, '0')}`
-        });
-
-        return {
-            startIndex: minIndex,
-            items: items,
-            avgPrice: minSum / count,
-            totalPrice: minSum
-        };
-    }
-
-    /**
-     * Najde nejdražší N po sobě jdoucích slotů (sliding window)
-     * 
-     * @param {Array} data - Cenová data (sloty)
-     * @param {number} count - Počet po sobě jdoucích slotů
-     * @returns {Object|null} - {startIndex, items, avgPrice, totalPrice} nebo null
-     */
-    findMostExpensiveConsecutive(data, count) {
-        if (!Array.isArray(data) || data.length < count) {
-            this.logger?.warn('Nedostatečná data pro findMostExpensiveConsecutive', {
-                dataLength: data?.length,
-                požadovanýCount: count
-            });
-            return null;
-        }
-
-        let maxSum = -Infinity;
-        let maxIndex = 0;
-
-        // Sliding window přes všechna data
-        for (let i = 0; i <= data.length - count; i++) {
-            const sum = data.slice(i, i + count)
-                .reduce((s, item) => s + item.priceCZK, 0);
-            
-            if (sum > maxSum) {
-                maxSum = sum;
-                maxIndex = i;
-            }
-        }
-
-        const items = data.slice(maxIndex, maxIndex + count);
-
-        this.logger?.debug('Nejdražší po sobě jdoucí sloty nalezeny', {
-            startIndex: maxIndex,
-            count: count,
-            avgPrice: (maxSum / count).toFixed(2),
-            startTime: `${items[0].hour}:${String(items[0].minute).padStart(2, '0')}`
-        });
-
-        return {
-            startIndex: maxIndex,
-            items: items,
-            avgPrice: maxSum / count,
-            totalPrice: maxSum
-        };
-    }
-
-    /**
-     * Zjistí, zda je aktuální čas v low index slotu
-     * 
-     * @param {Array} slotsWithIndexes - Sloty s level indexy
-     * @param {number} hour - Aktuální hodina
-     * @param {number} minute - Aktuální minuta
-     * @returns {boolean} - True pokud je low index
-     */
-    isCurrentTimeLowIndex(slotsWithIndexes, hour, minute) {
-        if (!Array.isArray(slotsWithIndexes)) {
-            return false;
-        }
-
-        const currentSlot = slotsWithIndexes.find(
-            s => s.hour === hour && s.minute === minute
-        );
-
-        return currentSlot?.level === 'low';
-    }
-
-    /**
-     * Zjistí, zda je aktuální čas v high index slotu
-     * 
-     * @param {Array} slotsWithIndexes - Sloty s level indexy
-     * @param {number} hour - Aktuální hodina
-     * @param {number} minute - Aktuální minuta
-     * @returns {boolean} - True pokud je high index
-     */
-    isCurrentTimeHighIndex(slotsWithIndexes, hour, minute) {
-        if (!Array.isArray(slotsWithIndexes)) {
-            return false;
-        }
-
-        const currentSlot = slotsWithIndexes.find(
-            s => s.hour === hour && s.minute === minute
-        );
-
-        return currentSlot?.level === 'high';
-    }
-
-    /**
-     * Získá level index pro konkrétní čas
-     * 
-     * @param {Array} slotsWithIndexes - Sloty s level indexy
-     * @param {number} hour - Hodina
-     * @param {number} minute - Minuta
-     * @returns {string} - 'low', 'medium', 'high', nebo 'unknown'
-     */
-    getIndexLevelForTime(slotsWithIndexes, hour, minute) {
-        if (!Array.isArray(slotsWithIndexes)) {
-            return 'unknown';
-        }
-
-        const slot = slotsWithIndexes.find(
-            s => s.hour === hour && s.minute === minute
-        );
-
-        return slot?.level || 'unknown';
-    }
 }
 
 module.exports = PriceCalculator;

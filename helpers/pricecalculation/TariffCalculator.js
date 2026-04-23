@@ -56,13 +56,14 @@ class TariffCalculator {
      */
     getTariffHours(settings) {
         try {
-            // Vytvoření unikátního klíče pro cache
-            const cacheKey = `tariff_hours_${JSON.stringify(settings)}`;
-            
+            // Stabilní cache klíč obsahující JEN relevantní hour_0..hour_23 pole
+            const tariffKey = Array.from({ length: 24 }, (_, i) =>
+                settings[`hour_${i}`] ? '1' : '0').join('');
+            const cacheKey = `tariff_hours_${tariffKey}`;
+
             // Pokus o získání z cache
             const cachedHours = this.cacheManager.get(cacheKey);
             if (cachedHours !== null) {
-                // ✅ ODSTRANĚNO: zbytečné logování cache hit
                 return cachedHours;
             }
 
@@ -170,13 +171,14 @@ class TariffCalculator {
                 return false;
             }
 
-            // Vytvoření unikátního klíče pro cache
-            const cacheKey = `low_tariff_${hour}_${JSON.stringify(settings)}`;
-            
+            // Stabilní cache klíč obsahující JEN relevantní hour_0..hour_23 pole
+            const tariffKey = Array.from({ length: 24 }, (_, i) =>
+                settings[`hour_${i}`] ? '1' : '0').join('');
+            const cacheKey = `low_tariff_${hour}_${tariffKey}`;
+
             // Pokus o získání z cache
             const cachedResult = this.cacheManager.get(cacheKey);
             if (cachedResult !== null) {
-                // ✅ ODSTRANĚNO: Veškeré logování cache hit
                 return cachedResult;
             }
 
@@ -186,8 +188,8 @@ class TariffCalculator {
             const tarifniHodiny = this.getTariffHours(settings);
             const jeNizkyTarif = tarifniHodiny.includes(normalizedHour);
 
-            // Uložení do cache
-            this.cacheManager.set(cacheKey, jeNizkyTarif, 'PRICE');
+            // Uložení do cache (tarif se mění jen při úpravě settings - DEFAULT TTL stačí)
+            this.cacheManager.set(cacheKey, jeNizkyTarif, 'DEFAULT');
 
             return jeNizkyTarif;
         } catch (error) {

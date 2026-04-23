@@ -17,35 +17,14 @@ class CacheManager {
         
         this.logger = Logger.getInstance();
         this.homey = homey;
-        
+
         // Hlavní úložiště cache
         this.caches = new Map();
-        
-        // ✅ HYBRID: TTL konstanty optimalizované pro lazy evaluation
-        this.TTL = {
-            // Denní cenová data - platná do půlnoci
-            PRICE: this.calculateTTLToNextMidnight(),
-            
-            // ✅ KRITICKÁ ZMĚNA: AVERAGE nyní také do půlnoci
-            // Důvod: calculateAverageSlotPrices() používá dateKey v cache klíči
-            // → Lazy evaluation: První trigger = compute, další = cache hit do půlnoci
-            // → Automatická invalidace po půlnoci (nový dateKey)
-            AVERAGE: this.calculateTTLToNextMidnight(),
-            
-            // Ostatní dočasná data
-            DEFAULT: 5 * 60 * 1000  // 5 minut
-        };
 
         // Nastavení automatického čištění
         this.setupCacheCleanup();
-        
-        this.logger?.debug('CacheManager inicializován (HYBRID cache strategy)', {
-            cacheTTL: {
-                PRICE: 'do půlnoci',
-                AVERAGE: 'do půlnoci (lazy eval)',  // ← Vysvětluje strategii
-                DEFAULT: '5 minut'
-            }
-        });
+
+        this.logger?.debug('CacheManager inicializován (HYBRID cache strategy)');
     }
 
     // Pomocné metody pro výpočet TTL
@@ -117,16 +96,21 @@ class CacheManager {
 
     set(key, data, type = 'DEFAULT') {
         try {
-            // Určení TTL podle typu dat a klíče
-            let ttl = this.TTL[type];
-            
-            // Pro cenová data použijeme TTL do půlnoci
-            if (key.includes('price') || key.includes('Price')) {
-                ttl = this.calculateTTLToNextMidnight();
-            }
-            // Pro průměry a indexy použijeme hodinové TTL
-            else if (key.includes('average') || key.includes('index')) {
-                ttl = this.calculateTTLToNextHour();
+            // Dynamický TTL podle typu - vždy přepočítán, aby se správně
+            // reflektoval aktuální čas (TTL do půlnoci/hodiny se mění v čase).
+            let ttl;
+            switch (type) {
+                case 'PRICE':
+                case 'MIDNIGHT':
+                    ttl = this.calculateTTLToNextMidnight();
+                    break;
+                case 'AVERAGE':
+                case 'HOURLY':
+                    ttl = this.calculateTTLToNextHour();
+                    break;
+                case 'DEFAULT':
+                default:
+                    ttl = 5 * 60 * 1000; // 5 minut
             }
 
             const cacheEntry = {
@@ -169,10 +153,10 @@ class CacheManager {
         const beforeCount = this.caches.size;
         let deletedCount = 0;
 
-        // Agresivnější čištění - odstraníme i záznamy, které brzy vyprší
+        // Odstraníme pouze záznamy, které už expirovaly - žádná dopředná marže
+        // (stále platné záznamy mohou být znovu použity do jejich skutečné expirace)
         for (const [key, entry] of this.caches.entries()) {
-            // Smažeme pokud již expiroval nebo expiruje v příštích 5 minutách
-            if (now > entry.expiresAt || (entry.expiresAt - now < 5 * 60 * 1000)) {
+            if (now > entry.expiresAt) {
                 this.caches.delete(key);
                 deletedCount++;
             }
