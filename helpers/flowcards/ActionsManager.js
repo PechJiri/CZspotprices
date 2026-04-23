@@ -94,17 +94,23 @@ class ActionsManager {
             }
 
             const card = this.homey.flow.getActionCard('update_data_via_api');
-            
-            card.registerRunListener(async (args) => {
+
+            card.registerRunListener(async () => {
                 try {
-                    // OPRAVA: Použijeme args.device místo this.device
-                    await args.device.fetchAndUpdateSpotPrices();
-                    
-                    // Bezpečnostní kontrola, zda zařízení nebylo mezitím smazáno
-                    if (!args.device._isDeleted) {
-                        await args.device.setAvailable().catch(() => {});
+                    // App-level action: args.device není k dispozici, získáme device přes driver
+                    const device = this._getDevice();
+                    if (!device) {
+                        this.logger?.warn('Žádné zařízení není k dispozici pro update_data_via_api');
+                        return false;
                     }
-                    
+
+                    await device.fetchAndUpdateSpotPrices();
+
+                    // Bezpečnostní kontrola, zda zařízení nebylo mezitím smazáno
+                    if (!device._isDeleted) {
+                        await device.setAvailable().catch(() => {});
+                    }
+
                     this.logger.debug('Data úspěšně aktualizována přes API');
                     return true;
                 } catch (error) {
@@ -124,6 +130,27 @@ class ActionsManager {
             this.logger.error('Chyba při registraci update data action:', error);
             throw error;
         }
+    }
+
+    // ==================== POMOCNÉ METODY ====================
+
+    /**
+     * Vrátí první aktivní instanci zařízení.
+     * App-level actions nemají args.device — získáváme ho přes driver.
+     * @private
+     */
+    _getDevice() {
+        if (!this.homey || !this.homey.drivers) return null;
+        try {
+            const driver = this.homey.drivers.getDriver('cz-spot-prices-minutes');
+            if (driver) {
+                const devices = driver.getDevices();
+                return devices.length > 0 ? devices[0] : null;
+            }
+        } catch (err) {
+            this.logger?.warn('Nelze získat driver cz-spot-prices-minutes: ' + err.message);
+        }
+        return null;
     }
 
     // ==================== VEŘEJNÉ METODY ====================

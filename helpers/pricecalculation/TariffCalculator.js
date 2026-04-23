@@ -247,23 +247,19 @@ class TariffCalculator {
                 await device.setStoreValue('previousTariff', currentTariff);
                 const triggerData = { previousTariff, currentTariff };
     
-                // Spustit příslušné triggery
+                // Spustit příslušné triggery (app-level: trigger(tokens, state))
+                // Pozn.: when-distribution-tariff-changes se spouští z CapabilityManager
+                // při skutečné změně capability low_tariff (reakce na change capability).
                 if (currentTariff === 'high') {
                     const trigger = device.triggersManager.getTrigger('when-high-tariff-starts');
                     if (trigger) {
-                        await trigger.trigger(device, {}, triggerData);
+                        await trigger.trigger({}, triggerData);
                     }
                 } else {
                     const trigger = device.triggersManager.getTrigger('when-low-tariff-starts');
                     if (trigger) {
-                        await trigger.trigger(device, {}, triggerData);
+                        await trigger.trigger({}, triggerData);
                     }
-                }
-    
-                // Obecný trigger pro změnu tarifu
-                const trigger = device.triggersManager.getTrigger('when-distribution-tariff-changes');
-                if (trigger) {
-                    await trigger.trigger(device, {}, triggerData);
                 }
             }
             // ✅ ODSTRANĚNO: Log při žádné změně

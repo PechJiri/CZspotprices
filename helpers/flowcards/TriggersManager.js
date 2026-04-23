@@ -188,9 +188,15 @@ class TriggersManager {
 
             card.registerRunListener(async (args) => {
                 try {
-                    // Získej aktuální index z 15min device
-                    const currentIndex = await args.device.getCapabilityValue('current_index');
-                    
+                    // App-level trigger: args.device není k dispozici, získáme device přes driver
+                    const device = this._getDevice();
+                    if (!device) {
+                        this.logger?.warn(`Žádné zařízení není k dispozici pro ${config.id}`);
+                        return false;
+                    }
+
+                    const currentIndex = await device.getCapabilityValue(config.capability);
+
                     if (currentIndex === null || currentIndex === undefined) {
                         throw new Error('Aktuální index není dostupný');
                     }

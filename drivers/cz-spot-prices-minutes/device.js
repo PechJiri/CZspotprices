@@ -397,33 +397,6 @@ class CZSpotPricesQuarterDevice extends Homey.Device {
     }
 
     /**
-     * Trigger pro změnu distribučního tarifu
-     * Spouští se při přechodu z nízkého na vysoký tarif nebo naopak
-     * 
-     * @param {string} previousTariff - Předchozí tarif ('low' nebo 'high')
-     * @param {string} currentTariff - Aktuální tarif ('low' nebo 'high')
-     */
-    async triggerTariffChange(previousTariff, currentTariff) {
-        try {
-            const triggerCard = this.homey.flow.getTriggerCard('when-distribution-tariff-changes');
-            
-            if (!triggerCard) {
-                throw new Error('Trigger karta není k dispozici');
-            }
-    
-            await triggerCard.trigger(this);
-    
-            this.logger?.debug('Tariff change trigger spuštěn', {
-                previousTariff,
-                currentTariff,
-                deviceId: this.getData().id
-            });
-        } catch (error) {
-            this.logger?.error('Chyba při spouštění tariff change triggeru', error);
-        }
-    }
-
-    /**
      * Handler pro změnu nastavení zařízení
      * Deleguje na SettingsManager který zajistí přepočet cen
      */

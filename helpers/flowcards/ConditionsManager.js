@@ -123,8 +123,14 @@ class ConditionsManager {
 
             card.registerRunListener(async (args) => {
                 try {
-                    // Získej aktuální hodnotu z 15min device
-                    const currentValue = await args.device.getCapabilityValue(conditionConfig.capability);
+                    // App-level condition: args.device není k dispozici, získáme device přes driver
+                    const device = this._getDevice();
+                    if (!device) {
+                        this.logger?.warn(`Žádné zařízení není k dispozici pro ${conditionConfig.id}`);
+                        return false;
+                    }
+
+                    const currentValue = await device.getCapabilityValue(conditionConfig.capability);
 
                     if (currentValue === null || currentValue === undefined) {
                         throw new Error(`Hodnota není dostupná pro ${conditionConfig.capability}`);
@@ -185,12 +191,19 @@ class ConditionsManager {
 
         card.registerRunListener(async (args) => {
             try {
-                const { count, condition, interval_type, device } = args;
+                // App-level condition: args.device není k dispozici, získáme device přes driver
+                const device = this._getDevice();
+                if (!device) {
+                    this.logger?.warn('Žádné zařízení není k dispozici pro average-price-condition');
+                    return false;
+                }
+
+                const { count, condition, interval_type } = args;
                 const timeInfo = device.spotPriceApi.getCurrentTimeInfo();
 
                 // ✅ Přepočet hodin na sloty
                 const actualSlotCount = device.priceCalculationEngine.convertToSlotCount(
-                    count, 
+                    count,
                     interval_type
                 );
 
@@ -204,7 +217,7 @@ class ConditionsManager {
                 // ✅ OPRAVA: Získat data Z CACHE (bez findCurrentSlot)
                 const cacheKey = `device_${device.getData().id}_lastProcessedPrices`;
                 const cachedPrices = device.cacheManager.get(cacheKey);
-                
+
                 if (!cachedPrices || cachedPrices.length !== 96) {
                     this.logger?.warn('⚠️ Chybí data v cache pro condition', {
                         found: cachedPrices?.length || 0
@@ -279,12 +292,19 @@ class ConditionsManager {
 
         card.registerRunListener(async (args) => {
             try {
-                const { count, condition, interval_type, device } = args;
+                // App-level condition: args.device není k dispozici, získáme device přes driver
+                const device = this._getDevice();
+                if (!device) {
+                    this.logger?.warn('Žádné zařízení není k dispozici pro remaining-day-price-condition');
+                    return false;
+                }
+
+                const { count, condition, interval_type } = args;
                 const timeInfo = device.spotPriceApi.getCurrentTimeInfo();
 
                 // ✅ Přepočet hodin na sloty
                 const actualSlotCount = device.priceCalculationEngine.convertToSlotCount(
-                    count, 
+                    count,
                     interval_type
                 );
 
@@ -431,6 +451,27 @@ class ConditionsManager {
 
         this._conditions.set('distribution-tariff-is', card);
         this.logger?.debug('Distribution tariff condition registrována');
+    }
+
+    // ==================== POMOCNÉ METODY ====================
+
+    /**
+     * Vrátí první aktivní instanci zařízení.
+     * App-level conditions nemají args.device — získáváme ho přes driver.
+     * @private
+     */
+    _getDevice() {
+        if (!this.homey || !this.homey.drivers) return null;
+        try {
+            const driver = this.homey.drivers.getDriver('cz-spot-prices-minutes');
+            if (driver) {
+                const devices = driver.getDevices();
+                return devices.length > 0 ? devices[0] : null;
+            }
+        } catch (err) {
+            this.logger?.warn('Nelze získat driver cz-spot-prices-minutes: ' + err.message);
+        }
+        return null;
     }
 
     // ==================== VEŘEJNÉ METODY ====================

@@ -551,7 +551,7 @@ class PriceCalculationEngine {
                 currentTime: `${timeInfo.hour}:${String(timeInfo.minute).padStart(2, '0')}`
             });
             
-            const flows = await triggerCard.getArgumentValues(device);
+            const flows = await triggerCard.getArgumentValues();
 
             this.logger?.debug('📋 Nalezené flows', {
                 flowCount: flows.length,
@@ -596,9 +596,10 @@ class PriceCalculationEngine {
                 const targetCombination = this.getTargetCombination(combinations, condition);
 
                 if (this.isCurrentSlotMatch(targetCombination, currentSlotIndex)) {
-                    await triggerCard.trigger(device, {
+                    // App-level trigger: trigger(tokens, state)
+                    await triggerCard.trigger({
                         average_price: parseFloat(targetCombination.averagePrice.toFixed(2))
-                    }, flow);
+                    });
 
                     this.logger?.info('✅ Average slot price trigger AKTIVOVÁN', {
                         originalCount: count,

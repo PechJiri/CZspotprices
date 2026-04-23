@@ -152,13 +152,22 @@ class CapabilityManager {
 
             // Update low_tariff capability
             const settings = device.getSettings();
+            let lowTariffChanged = false;
+            let newLowTariffValue = null;
             if (device.tariffCalculator) {
                 const isLowTariff = device.tariffCalculator.isLowTariff(timeInfo.hour, settings);
+                const previousLowTariff = device.getCapabilityValue('low_tariff');
+                lowTariffChanged = previousLowTariff !== null
+                    && previousLowTariff !== undefined
+                    && previousLowTariff !== isLowTariff;
+                newLowTariffValue = isLowTariff;
                 updatePromises.push(device.setCapabilityValue('low_tariff', isLowTariff));
-                
+
                 this.logger?.debug('Low tariff aktualizován', {
                     hour: timeInfo.hour,
-                    isLowTariff
+                    isLowTariff,
+                    previousLowTariff,
+                    changed: lowTariffChanged
                 });
             }
 
@@ -170,6 +179,20 @@ class CapabilityManager {
             }
 
             await Promise.all(updatePromises);
+
+            if (lowTariffChanged) {
+                try {
+                    const card = device.triggersManager?.getTrigger('when-distribution-tariff-changes');
+                    if (card) {
+                        await card.trigger({}, { low_tariff: newLowTariffValue });
+                        this.logger?.debug('Tariff change trigger spuštěn (capability změna)', {
+                            newLowTariffValue
+                        });
+                    }
+                } catch (triggerError) {
+                    this.logger?.error('Chyba při spouštění tariff change triggeru z capability', triggerError);
+                }
+            }
 
             this.logger?.debug('Current a next slot aktualizovány', {
                 currentSlot: `${timeInfo.hour}:${String(timeInfo.minute).padStart(2, '0')}`,
