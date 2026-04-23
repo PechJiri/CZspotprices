@@ -80,15 +80,25 @@ class CacheManager {
     }
 
     setupCacheCleanup() {
-        // Čištění každých 15 minut
-        setInterval(() => {
-            this.cleanupExpired();
-        }, 15 * 60 * 1000);
+        // Použití IntervalManager pro jeden master timer místo mnoha syrových intervalů
+        try {
+            const IntervalManager = require('./IntervalManager');
+            const intervalManager = IntervalManager.getInstance(this.homey);
+            
+            intervalManager.setScheduledInterval(
+                'cache_cleanup',
+                () => {
+                    this.cleanupExpired();
+                },
+                15 * 60 * 1000 // 15 minut
+            );
 
-        this.logger?.debug('Automatické čištění cache nastaveno', {
-            interval: 15 * 60 * 1000,
-            nextCleanup: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-        });
+            this.logger?.debug('Automatické čištění cache nastaveno přes IntervalManager', {
+                interval: 15 * 60 * 1000
+            });
+        } catch (e) {
+            this.logger?.error('Chyba při nastavování čištění cache', e);
+        }
     }
 
     has(key) {

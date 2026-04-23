@@ -36,12 +36,14 @@ class IntervalManager {
         }
         
         this.homey = homey;
-        this.intervals = new Map();
-        this.timeouts = new Map();
+        this.tasks = new Map();
+        this.masterIntervalId = null;
         this.logger = Logger.getInstance();
         this.PriceCalculationEngine = PriceCalculationEngine.getInstance(homey);
         
-        this.logger.debug('IntervalManager inicializován (HYBRID cache strategy)');
+        this.startMasterClock();
+        
+        this.logger.debug('IntervalManager inicializován s JEDNÍM master timerem (HYBRID cache strategy)');
     }
 
     static setHomeyInstance(homey) {
@@ -105,16 +107,17 @@ class IntervalManager {
     setScheduledInterval(key, callback, interval, initialDelay = 0) {
         try {
             this.validateIntervalParams(key, callback, interval);
-            this.clearExistingInterval(key);
+            this.clearScheduledInterval(key);
+            
+            const nextRun = Date.now() + initialDelay;
+            this.tasks.set(key, {
+                callback,
+                interval,
+                nextRun
+            });
             
             const timeInfo = this.calculateTimeInfo(initialDelay, interval);
             this.logIntervalSetup(key, timeInfo);
-
-            if (initialDelay > 0) {
-                this.setupDelayedInterval(key, callback, interval, initialDelay);
-            } else {
-                this.setupImmediateInterval(key, callback, interval);
-            }
 
             return true;
         } catch (error) {
@@ -123,10 +126,6 @@ class IntervalManager {
         }
     }
 
-    /**
-     * Validuje parametry intervalu
-     * @private
-     */
     validateIntervalParams(key, callback, interval) {
         if (!key || typeof key !== 'string') {
             throw new Error('Neplatný klíč intervalu');
@@ -139,21 +138,6 @@ class IntervalManager {
         }
     }
 
-    /**
-     * Vyčistí existující interval/timeout
-     * @private
-     */
-    clearExistingInterval(key) {
-        if (this.intervals.has(key) || this.timeouts.has(key)) {
-            this.logger.debug('Čištění existujícího intervalu/timeoutu', { key });
-            this.clearScheduledInterval(key);
-        }
-    }
-
-    /**
-     * Vypočítá informace o čase pro logging
-     * @private
-     */
     calculateTimeInfo(initialDelay, interval) {
         const now = new Date();
         const nextRun = new Date(now.getTime() + initialDelay);
@@ -172,67 +156,48 @@ class IntervalManager {
         };
     }
 
-    /**
-     * Nastaví interval se zpožděným startem
-     * @private
-     */
-    setupDelayedInterval(key, callback, interval, initialDelay) {
-        const timeoutId = this.homey.setTimeout(() => {
-            try {
-                callback();
-                const intervalId = this.homey.setInterval(callback, interval);
-                this.intervals.set(key, intervalId);
-                this.logIntervalStart(key, interval);
-            } catch (error) {
-                this.logger.error('Chyba při spuštění callbacku', error);
-            }
-        }, initialDelay);
-
-        this.timeouts.set(key, timeoutId);
-    }
-
-    /**
-     * Nastaví interval s okamžitým startem
-     * @private
-     */
-    setupImmediateInterval(key, callback, interval) {
-        const intervalId = this.homey.setInterval(callback, interval);
-        this.intervals.set(key, intervalId);
-        this.logIntervalStart(key, interval);
-    }
-
-    /**
-     * Vyčistí naplánovaný interval nebo timeout
-     * 
-     * @param {string} key - klíč intervalu
-     */
     clearScheduledInterval(key) {
-        if (this.intervals.has(key)) {
-            this.homey.clearInterval(this.intervals.get(key));
-            this.intervals.delete(key);
-            this.logger.debug('Interval vyčištěn', { key });
-        }
-        if (this.timeouts.has(key)) {
-            this.homey.clearTimeout(this.timeouts.get(key));
-            this.timeouts.delete(key);
-            this.logger.debug('Timeout vyčištěn', { key });
+        if (this.tasks.has(key)) {
+            this.tasks.delete(key);
+            this.logger.debug('Naplánovaný task vyčištěn', { key });
         }
     }
 
-    /**
-     * Vyčistí všechny intervaly a timeouty
-     */
     clearAll() {
-        this.logger.debug('Vyčišťuji všechny intervaly a timeouty', {
-            intervalsCount: this.intervals.size,
-            timeoutsCount: this.timeouts.size
-        });
+        this.logger.debug('Vyčišťuji všechny naplánované tasky', { count: this.tasks.size });
+        this.tasks.clear();
+        this.logger.debug('Všechny tasky vyčištěny');
+    }
+
+    startMasterClock() {
+        if (this.masterIntervalId) return;
+
+        this.logger.debug('Spouštím Master Timer (každých 30 vteřin) pro všechna naplánovaná volání');
         
-        for (const key of this.intervals.keys()) {
-            this.clearScheduledInterval(key);
+        // Cca každých 30 sekund
+        this.masterIntervalId = this.homey.setInterval(() => this.tick(), 30000);
+    }
+    
+    tick() {
+        const now = Date.now();
+        for (const [key, task] of this.tasks.entries()) {
+            if (now >= task.nextRun) {
+                // Přepočet dalšího spuštění
+                task.nextRun += task.interval;
+                if (now >= task.nextRun) {
+                    task.nextRun = now + task.interval; // ochrana proti masivnímu driftu
+                }
+                
+                // Spuštění neblokujícím způsobem, aby jedno nezdržovalo druhé v tomtéž ticku
+                this.homey.setTimeout(() => {
+                    try {
+                        task.callback();
+                    } catch(error) {
+                        this.logger?.error('Chyba v master tasku', error, { key });
+                    }
+                }, 0);
+            }
         }
-        
-        this.logger.debug('Všechny intervaly a timeouty vyčištěny');
     }
 
     // ==================== ČASOVÉ VÝPOČTY ====================
@@ -571,6 +536,10 @@ class IntervalManager {
      */
     destroy() {
         this.clearAll();
+        if (this.masterIntervalId) {
+            this.homey.clearInterval(this.masterIntervalId);
+            this.masterIntervalId = null;
+        }
         this.logger?.debug('IntervalManager instance ukončena');
         IntervalManager.instance = null;
     }
