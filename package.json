@@ -5,8 +5,5 @@
   "scripts": {},
   "devDependencies": {
     "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.7"
-  },
-  "dependencies": {
-    "sharp": "0.32.6"
   }
 }
