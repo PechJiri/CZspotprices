@@ -1,175 +1,82 @@
 'use strict';
 
 class Logger {
-    constructor(homey, context) {
-        this.homey = homey;
-        this.context = context;
-        this.enabled = false; // Výchozí stav logování
-        
-        // Nastavení pro rotaci logů
-        this.maxLogSize = 1000; // Maximální počet záznamů
-        this.logHistory = [];
-        this.rotationInterval = 60 * 60 * 1000; // 1 hodina
-        this.lastRotation = Date.now();
-        
-        // Nastavení automatické rotace
-        this.setupAutoRotation();
-    }
+   static instance = null;
+   static CONTEXT = 'Logger';
+   static enabled = true;
 
-    // Nastavení rotace logů
-    setupAutoRotation() {
-        setInterval(() => {
-            this.rotateLogsIfNeeded();
-        }, 5 * 60 * 1000); // Kontrola každých 5 minut
-    }
+   constructor(homeyInstance = null) {
+       if (Logger.instance) {
+           return Logger.instance;
+       }
 
-    // Kontrola a provedení rotace logů
-    rotateLogsIfNeeded() {
-        const now = Date.now();
-        if (now - this.lastRotation >= this.rotationInterval) {
-            this.rotateLogs();
-            this.lastRotation = now;
-        }
-    }
+       if (!homeyInstance) {
+           throw new Error('Homey instance je vyžadována pro Logger');
+       }
 
-    // Rotace logů
-    rotateLogs() {
-        try {
-            if (this.logHistory.length > this.maxLogSize) {
-                const timestamp = new Date().toISOString();
-                const oldestLog = this.logHistory[0];
-                const newestLog = this.logHistory[this.logHistory.length - 1];
+       this.homey = homeyInstance;
 
-                // Ponecháme pouze nejnovější logy
-                this.logHistory = this.logHistory.slice(-Math.floor(this.maxLogSize / 2));
+       // Základní log při inicializaci
+       this.homey.log({
+           type: 'info',
+           message: 'Logger inicializován',
+           timestamp: new Date().toISOString(),
+           context: Logger.CONTEXT
+       });
 
-                this.debug('Provedena rotace logů', {
-                    původníPočet: this.logHistory.length,
-                    novýPočet: Math.floor(this.maxLogSize / 2),
-                    nejstaršíLog: oldestLog?.timestamp,
-                    nejnovějšíLog: newestLog?.timestamp,
-                    časRotace: timestamp
-                });
-            }
-        } catch (error) {
-            this.error('Chyba při rotaci logů', error);
-        }
-    }
+       Logger.instance = this;
+   }
 
-    // Přidání záznamu do historie
-    addToHistory(type, message, data = {}) {
-        const logEntry = {
-            timestamp: new Date().toISOString(),
-            type,
-            context: this.context,
-            message,
-            data
-        };
+   static getInstance(homeyInstance = null) {
+       if (!Logger.instance) {
+           Logger.instance = new Logger(homeyInstance);
+       }
+       return Logger.instance;
+   }
 
-        this.logHistory.push(logEntry);
-        this.rotateLogsIfNeeded();
+   static setEnabled(enabled) {
+       const previousState = Logger.enabled;
+       Logger.enabled = enabled;
+       
+       if (Logger.instance && previousState !== enabled) {
+           // Toto logujeme přímo, bez ohledu na stav enabled
+           Logger.instance.homey.log(`Logování ${enabled ? 'zapnuto' : 'vypnuto'}`);
+       }
+   }
 
-        return logEntry;
-    }
+   formatLog(type, message, data = {}) {
+       return {
+           type,
+           message,
+           ...data
+       };
+   }
 
-    // Nastavení stavu logování
-    setEnabled(enabled) {
-        this.enabled = enabled;
-        this.log(`Logování ${enabled ? 'zapnuto' : 'vypnuto'}`);
-    }
+   log(message, data = {}) {
+       if (Logger.enabled) {
+           this.homey.log(this.formatLog('info', message, data));
+       }
+   }
 
-    // Standardní log
-    log(message, data = {}) {
-        if (!this.enabled) return;
-        
-        const logEntry = this.addToHistory('info', message, data);
-        
-        this.homey.log(JSON.stringify({
-            context: this.context,
-            type: 'info',
-            message,
-            ...data,
-            timestamp: logEntry.timestamp
-        }));
-    }
+   error(message, error, data = {}) {
+       // Error logy jdou vždy
+       this.homey.error(this.formatLog('error', message, {
+           error: error?.message,
+           stack: error?.stack,
+           ...data
+       }));
+   }
 
-    // Error log - vždy se loguje bez ohledu na enabled
-    error(message, error, data = {}) {
-        const logEntry = this.addToHistory('error', message, {
-            error: error?.message,
-            stack: error?.stack,
-            ...data
-        });
+   debug(message, data = {}) {
+       if (Logger.enabled) {
+           this.homey.log(this.formatLog('debug', message, data));
+       }
+   }
 
-        this.homey.error(JSON.stringify({
-            context: this.context,
-            type: 'error',
-            message,
-            error: error?.message,
-            stack: error?.stack,
-            ...data,
-            timestamp: logEntry.timestamp
-        }));
-    }
-
-    // Debug log
-    debug(message, data = {}) {
-        if (!this.enabled) return;
-        
-        const logEntry = this.addToHistory('debug', message, data);
-        
-        this.homey.log(JSON.stringify({
-            context: this.context,
-            type: 'debug',
-            message,
-            ...data,
-            timestamp: logEntry.timestamp
-        }));
-    }
-
-    // Warning log
     warn(message, data = {}) {
-        if (!this.enabled) return;
-        
-        const logEntry = this.addToHistory('warning', message, data);
-        
-        this.homey.log(JSON.stringify({
-            context: this.context,
-            type: 'warning',
-            message,
-            ...data,
-            timestamp: logEntry.timestamp
-        }));
-    }
-
-    // Získání historie logů
-    getLogHistory() {
-        return [...this.logHistory];
-    }
-
-    // Vyčištění historie logů
-    clearHistory() {
-        const count = this.logHistory.length;
-        this.logHistory = [];
-        this.debug('Historie logů vyčištěna', { smazanýchZáznamů: count });
-    }
-
-    // Získání statistik logů
-    getLogStats() {
-        const stats = {
-            total: this.logHistory.length,
-            byType: {},
-            oldestLog: this.logHistory[0]?.timestamp,
-            newestLog: this.logHistory[this.logHistory.length - 1]?.timestamp,
-            lastRotation: new Date(this.lastRotation).toISOString()
-        };
-
-        // Počítání logů podle typu
-        this.logHistory.forEach(log => {
-            stats.byType[log.type] = (stats.byType[log.type] || 0) + 1;
-        });
-
-        return stats;
+        if (Logger.enabled) {
+            this.homey.log(this.formatLog('warn', message, data));
+        }
     }
 }
 

@@ -1,0 +1,44 @@
+{
+      "id": "price-index-is-condition",
+      "title": {
+        "en": "Price index is"
+      },
+      "args": [
+        {
+          "name": "index",
+          "type": "dropdown",
+          "title": {
+            "en": "Price Index"
+          },
+          "values": [
+            {
+              "id": "low",
+              "title": {
+                "en": "Low"
+              }
+            },
+            {
+              "id": "medium",
+              "title": {
+                "en": "Medium"
+              }
+            },
+            {
+              "id": "high",
+              "title": {
+                "en": "High"
+              }
+            },
+            {
+              "id": "unknown",
+              "title": {
+                "en": "Unknown"
+              }
+            }
+          ]
+        }
+      ],
+      "titleFormatted": {
+        "en": "Price index for current !{{is|is not}} [[index]]"
+      }
+    }

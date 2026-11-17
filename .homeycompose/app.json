@@ -1,38 +1,16 @@
 {
   "id": "com.spotprice.cz",
-  "version": "2.1.2",
-  "compatibility": ">=12.1.0",
+  "version": "3.0.8",
+  "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
     "local"
   ],
   "name": {
-    "en": "CZ spot prices",
-    "nl": "CZ spotprijzen",
-    "da": "CZ spotpriser",
-    "de": "CZ-Spotpreise",
-    "es": "Precios spot de CZ",
-    "fr": "Prix spot CZ",
-    "it": "Prezzi spot CZ",
-    "no": "CZ spotpriser",
-    "sv": "CZ spotpriser",
-    "pl": "Ceny spotowe CZ",
-    "ru": "СЗ спотовые цены",
-    "ko": "CZ 현물 가격"
+    "en": "CZ spot prices"
   },
   "description": {
-    "en": "Get your CZ spot prices with distribution fees",
-    "nl": "Krijg uw CZ spotprijzen met distributiekosten",
-    "da": "Få dine CZ spotpriser med distributionsgebyrer",
-    "de": "Erhalten Sie Ihre CZ-Spotpreise mit Verteilungsgebühren",
-    "es": "Obtén tus precios spot de CZ con tarifas de distribución",
-    "fr": "Obtenez vos prix spot CZ avec les frais de distribution",
-    "it": "Ottieni i tuoi prezzi spot CZ con tariffe di distribuzione",
-    "no": "Få dine CZ spotpriser med distribusjonsgebyrer",
-    "sv": "Få dina CZ spotpriser med distributionsavgifter",
-    "pl": "Uzyskaj ceny spotowe CZ z opłatami dystrybucyjnymi",
-    "ru": "Получите СЗ спотовые цены с учетом сборов за распределение",
-    "ko": "CZ 현물 가격에 배포 수수료 포함"
+    "en": "Get your CZ spot prices with distribution fees"
   },
   "category": [
     "energy"
@@ -46,7 +24,7 @@
   },
   "author": {
     "name": "Jiri Pech",
-    "email": "jiri.pech@centrum.cz"
+    "email": "jirka@pechovic.cz"
   },
   "contributing": {
     "donate": {
@@ -58,83 +36,6 @@
   "brandColor": "#333333",
   "source": "https://github.com/PechJiri/CZspotprices",
   "homepage": "https://spotovaelektrina.cz/",
-  "support": "mailto:jiri.pech@centrum.cz",
-  "homeyCommunityTopicId": 116949,
-  "drivers": [
-    {
-      "id": "cz-spot-prices",
-      "name": {
-        "en": "CZ spot prices",
-        "nl": "CZ spotprijzen",
-        "da": "CZ spotpriser",
-        "de": "CZ-Spotpreise",
-        "es": "Precios spot de CZ",
-        "fr": "Prix spot CZ",
-        "it": "Prezzi spot CZ",
-        "no": "CZ spotpriser",
-        "sv": "CZ spotpriser",
-        "pl": "Ceny spotowe CZ",
-        "ru": "СЗ спотовые цены",
-        "ko": "CZ 현물 가격"
-      },
-      "class": "sensor",
-      "connectivity": [
-        "lan",
-        "cloud"
-      ],
-      "capabilities": [
-        "measure_current_spot_price_CZK",
-        "measure_current_spot_index",
-        "daily_average_price",
-        "hour_price_CZK_0",
-        "hour_price_index_0",
-        "hour_price_CZK_1",
-        "hour_price_index_1",
-        "hour_price_CZK_2",
-        "hour_price_index_2",
-        "hour_price_CZK_3",
-        "hour_price_index_3",
-        "hour_price_CZK_4",
-        "hour_price_index_4",
-        "hour_price_CZK_5",
-        "hour_price_index_5",
-        "hour_price_CZK_6",
-        "hour_price_index_6",
-        "hour_price_CZK_7",
-        "hour_price_index_7",
-        "hour_price_CZK_8",
-        "hour_price_index_8",
-        "hour_price_CZK_9",
-        "hour_price_index_9",
-        "hour_price_CZK_10",
-        "hour_price_index_10",
-        "hour_price_CZK_11",
-        "hour_price_index_11",
-        "hour_price_CZK_12",
-        "hour_price_index_12",
-        "hour_price_CZK_13",
-        "hour_price_index_13",
-        "hour_price_CZK_14",
-        "hour_price_index_14",
-        "hour_price_CZK_15",
-        "hour_price_index_15",
-        "hour_price_CZK_16",
-        "hour_price_index_16",
-        "hour_price_CZK_17",
-        "hour_price_index_17",
-        "hour_price_CZK_18",
-        "hour_price_index_18",
-        "hour_price_CZK_19",
-        "hour_price_index_19",
-        "hour_price_CZK_20",
-        "hour_price_index_20",
-        "hour_price_CZK_21",
-        "hour_price_index_21",
-        "hour_price_CZK_22",
-        "hour_price_index_22",
-        "hour_price_CZK_23",
-        "hour_price_index_23"
-      ]
-    }
-  ]
+  "support": "mailto:jirka@pechovic.cz",
+  "homeyCommunityTopicId": 116949
 }

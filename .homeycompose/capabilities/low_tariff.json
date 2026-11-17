@@ -1,0 +1,18 @@
+{
+    "id": "low_tariff",
+    "type": "boolean",
+    "title": {
+        "en": "Low tariff"
+    },
+    "getable": true,
+    "setable": false,
+    "uiComponent": "sensor",
+    "icon": "/assets/images/Time_icon.svg",
+    "insights": true,
+    "insightsTitleTrue": {
+        "en": "Low Tariff"
+    },
+    "insightsTitleFalse": {
+        "en": "High Tariff"
+    }
+}

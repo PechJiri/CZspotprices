@@ -1,0 +1,29 @@
+{
+      "id": "distribution-tariff-is",
+      "title": {
+        "en": "Distribution tariff is"
+      },
+      "args": [
+        {
+          "name": "tariff",
+          "type": "dropdown",
+          "values": [
+            {
+              "id": "high",
+              "title": {
+                "en": "High"
+              }
+            },
+            {
+              "id": "low",
+              "title": {
+                "en": "Low"
+              }
+            }
+          ]
+        }
+      ],
+      "titleFormatted": {
+        "en": "Distribution tariff is [[tariff]]"
+      }
+}

@@ -14,6 +14,7 @@ class CZSpotPricesApp extends Homey.App {
 
     // Initialize global listeners or services
     this.initializeGlobalListeners();
+    
   }
 
   /**

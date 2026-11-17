@@ -1,0 +1,41 @@
+{
+  "id": "cz_spot_prices_minutes_device",
+  "name": {
+    "en": "CZ spot prices 15 minutes interval"
+  },
+  "class": "service",
+  "platforms": ["local"],
+
+  "connectivity": ["cloud"],
+
+  "icon": "/drivers/assets/icon.svg",
+  "capabilities": [
+    "measure_current_price",
+    "current_index",
+    "next_price",
+    "next_index",
+    "lowest_price",
+    "highest_price",
+    "daily_average",
+    "spot_price_update_status",
+    "primary_api_fail"
+  ],
+  "images": {
+    "small": "/drivers/cz-spot-prices-minutes/assets/images/device_small.png",
+    "large": "/drivers/cz-spot-prices-minutes/assets/images/device_large.png",
+    "xlarge": "/drivers/cz-spot-prices-minutes/assets/images/device_xlarge.png"
+  },
+  "pair": [
+    {
+      "id": "list_my_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "add_my_devices"
+      }
+    },
+    {
+      "id": "add_my_devices",
+      "template": "add_devices"
+    }
+  ]
+}

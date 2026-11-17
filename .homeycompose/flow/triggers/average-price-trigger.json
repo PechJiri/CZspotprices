@@ -1,0 +1,71 @@
+{
+      "id": "average-price-trigger",
+      "title": {
+        "en": "Average price for next X periods is [lowest/highest] within this day"
+      },
+      "tokens": [
+        {
+          "name": "average_price",
+          "type": "number",
+          "title": {
+            "en": "Average Price for defined period in CZK"
+          },
+          "example": 2.5
+        }
+      ],
+      "args": [
+        {
+          "name": "count",
+          "type": "number",
+          "title": {
+            "en": "Number of periods"
+          },
+          "value": 1
+        },
+        {
+          "name": "interval_type",
+          "type": "dropdown",
+          "title": {
+            "en": "Interval type"
+          },
+          "values": [
+            {
+              "id": "hours",
+              "title": {
+                "en": "hour(s)"
+              }
+            },
+            {
+              "id": "intervals",
+              "title": {
+                "en": "15-minute interval(s)"
+              }
+            }
+          ]
+        },
+        {
+          "name": "condition",
+          "type": "dropdown",
+          "title": {
+            "en": "lowest/highest"
+          },
+          "values": [
+            {
+              "id": "lowest",
+              "title": {
+                "en": "Lowest"
+              }
+            },
+            {
+              "id": "highest",
+              "title": {
+                "en": "Highest"
+              }
+            }
+          ]
+        }
+      ],
+      "titleFormatted": {
+        "en": "Average price for next [[count]] [[interval_type]] is [[condition]] within this day"
+      }
+    }

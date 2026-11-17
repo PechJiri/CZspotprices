@@ -1,173 +1,29 @@
 {
-  "1.0.0": {
-    "en": "New app"
+  "3.0.0": {
+    "en": "BREAKING CHANGE: due to change in czech electricity markets (prices are now per 15 minutes intervals instead of hourly intervals) I had to refactor whole app - i have refactored flow cards, capabilities, widgets. For hourly data in transition period you can stay on production version of the app. If you need 15 minutes data now, you can update to this test version. You will have to delete old device, add new one, and change all your flow with new app level flow cards. "
   },
-  "1.0.1": {
-    "en": "bug fix"
+  "3.0.1": {
+    "en": "Updated api.js to be ready for NodeJS22 update, updated homey package to 3.5.0"
   },
-  "1.0.2": {
-    "en": "Removed CS translations for certification, changes in API calls"
+  "3.0.2": {
+    "en": "Widget bugfix"
   },
-  "1.0.3": {
-    "en": "API changes"
+  "3.0.3": {
+    "en": "added low tariff capability"
   },
-  "1.0.4": {
-    "en": "Added community topic in forum"
+  "3.0.4": {
+    "en": "added low tariff capability"
   },
-  "1.1.0": {
-    "en": "New capability - daily average price, new trigger - price for x hours is highest/lowest for the day"
-  },
-  "1.1.1": {
-    "en": "AND card, text corrections"
-  },
-  "1.0.5": {
-    "en": "new trigger - when api fails, widgets for testing"
-  },
-  "1.0.6": {
-    "en": "Fixed api fail trigger"
-  },
-  "1.0.7": {
-    "en": "fixed device values when api fails, fixed error trigger"
-  },
-  "1.0.8": {
-    "en": "minor fix"
-  },
-  "1.2.0": {
-    "en": "Fixed new WHEN and AND cards, removed extra development log"
-  },
-  "1.2.1": {
-    "en": "Added widgets"
-  },
-  "1.2.2": {
-    "en": "Added WHEN current price changes"
-  },
-  "1.2.4": {
-    "en": "fixed widgets"
-  },
-  "1.2.5": {
-    "en": "Updated widget"
-  },
-  "1.2.6": {
-    "en": "Fixed WHEN price changed card"
-  },
-  "1.2.7": {
-    "en": "Minor fixes thx to Michal Stranik"
-  },
-  "1.2.8": {
-    "en": "Fixed timezone issue on current price, added new flow cards"
-  },
-  "1.2.9": {
-    "en": "fixed today price widget with negative prices"
-  },
-  "1.2.11": {
-    "en": "Users now can set how many hour are in high/low price index."
-  },
-  "1.2.12": {
-    "en": "Changes in today spot price widget"
-  },
-  "1.2.13": {
-    "en": "Updated today price widget - more compact, highlighted current hour bar, color scheme is now based on high/low price index settings in device settings"
-  },
-  "1.2.14": {
-    "en": "Optimized widgets, removed logs"
-  },
-  "1.2.15": {
-    "en": "fixed current spot price widget"
-  },
-  "1.2.16": {
-    "en": "Ability to change price to kWh in device settings"
-  },
-  "2.0.0": {
-    "en": "Major API Refactor - Added backup API (ote-cr) and modified the method for updating capabilities. The app no longer calls the API for the current price; instead, it calculates it based on time and capability. This change removes the need to call the API for current price data. In line with this update, the WHEN API call fails card has also been modified to trigger only if both primary and backup API calls fail. This change significantly improves data stability. However, please note that it may cause breaking changes—check your flows accordingly. Additionally, prices and indices for individual hours have been removed from the UI (they remain available in insights and for use in flows). The UI now only shows the current price, current index, and daily average. You can also use a widget to display a complete daily price chart if desired."
-  },
-  "2.0.1": {
-    "en": "fix in trigger card"
-  },
-  "2.0.2": {
-    "en": "small fix"
-  },
-  "2.0.3": {
-    "en": "fixed widgets"
-  },
-  "2.0.4": {
-    "en": "Fixed tarif change trigger"
-  },
-  "2.0.5": {
-    "en": "The code is now complete and includes all the required features, including: An exponential retry mechanism for updates Price validation (including negative values) An improved API failure trigger with retry information Proper cleanup of timeouts and intervals All necessary flow cards and their handlers"
-  },
-  "2.0.6": {
-    "en": "fixed trigger and condition cards with average for x hours. Added tokens for this trigger card and for api fail trigger."
-  },
-  "2.0.7": {
-    "en": "removed logs"
-  },
-  "2.0.8": {
-    "en": "Fixed issues with time and update current price capability"
-  },
-  "2.0.9": {
-    "en": "Added device timeline with API information, fixed update data flow card, unhide daily prices in device detail - till widgets go public"
-  },
-  "2.0.10": {
-    "en": "fixed timeline for midninght api call"
-  },
-  "2.0.11": {
-    "en": "Bugfix"
-  },
-  "2.0.12": {
+  "3.0.5": {
     "en": "bugfix"
   },
-  "2.0.13": {
-    "en": "Code optimalization, bugfix"
+  "3.0.6": {
+    "en": "Prices bugfix"
   },
-  "2.0.14": {
-    "en": "more code optimalisation"
+  "3.0.7": {
+    "en": "memory optimalization"
   },
-  "2.0.15": {
-    "en": "code optimalisation - added price calculator"
-  },
-  "2.0.16": {
-    "en": "more code optimalisation, moved flow cards to separate flowcardmanager"
-  },
-  "2.0.17": {
-    "en": "code optimalisation - added logger and option to turn off logs in device settings"
-  },
-  "2.0.18": {
-    "en": "fixed api problems"
-  },
-  "2.0.19": {
-    "en": "Price indexes bugfix"
-  },
-  "2.0.20": {
-    "en": "bugfix"
-  },
-  "2.0.21": {
-    "en": "bugfix average trigger and condition"
-  },
-  "2.0.22": {
-    "en": "bugfix"
-  },
-  "2.0.23": {
-    "en": "Added LockManager to better manage updating prices via API"
-  },
-  "2.0.24": {
-    "en": "New condition card - AND avergage price for X hours is lowest/highest for the rest of day"
-  },
-  "2.0.25": {
-    "en": "bugfix"
-  },
-  "2.0.26": {
-    "en": "midnight update bugfix"
-  },
-  "2.0.27": {
-    "en": "New capabilites - daily min/max price, next hour price"
-  },
-  "2.1.0": {
-    "en": "Fixed new capabilities in kWh, updated today spot prices widget"
-  },
-  "2.1.1": {
-    "en": "Bugfix"
-  },
-  "2.1.2": {
-    "en": "updated readme"
+  "3.0.8": {
+    "en": "bugfix of flow cards"
   }
 }

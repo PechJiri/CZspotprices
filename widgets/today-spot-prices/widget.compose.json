@@ -1,24 +1,13 @@
 {
   "name": {
-    "en": "Today Spot Price Graph",
-    "nl": "Vandaag Spotprijs Grafiek",
-    "da": "Dagens Spotpris Graf",
-    "de": "Heutiger Spotpreisdiagramm",
-    "es": "Gráfico del Precio Spot de Hoy",
-    "fr": "Graphique du Prix Spot d'Aujourd'hui",
-    "it": "Grafico del Prezzo Spot di Oggi",
-    "no": "Dagens Spotpris Graf",
-    "sv": "Dagens Spotpris Graf",
-    "pl": "Dzisiejszy Wykres Cen Spot",
-    "ru": "График Спотовой Цены Сегодня",
-    "ko": "오늘의 스팟 가격 그래프"
+    "en": "Spot Price Graph",
+    "cs": "Graf spotových cen"
   },
-  "settings": [],
-  "height": 250,
+  "height": 280,
   "api": {
-    "getHourlyPrices": {
+    "getIntervalPrices": {
       "method": "GET",
-      "path": "/hourly-prices"
+      "path": "/interval-prices"
     }
   }
 }

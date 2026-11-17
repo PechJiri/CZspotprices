@@ -1,3 +1,3 @@
 # CZ spot prices
 
-Get your CZ spot prices with distribution fees
+Get your 15 minutes CZ spot prices with distribution fees
