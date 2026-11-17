@@ -138,7 +138,7 @@ class CapabilityManager {
             const rawNextPrice = nextSlotData ? 
                 device.priceCalculationEngine.convertPrice(nextSlotData.priceCZK, currentPriceInKWh) : 
                 null;
-            const nextPrice = rawNextPrice ? this.roundPrice(rawNextPrice, currentPriceInKWh) : null;
+            const nextPrice = rawNextPrice !== null ? this.roundPrice(rawNextPrice, currentPriceInKWh) : null;
 
             const nextIndexLevel = nextSlotData && nextSlotData.level && validIndexes.includes(nextSlotData.level)
                 ? nextSlotData.level
@@ -152,24 +152,7 @@ class CapabilityManager {
 
             // Update low_tariff capability
             const settings = device.getSettings();
-            let lowTariffChanged = false;
-            let newLowTariffValue = null;
-            if (device.tariffCalculator) {
-                const isLowTariff = device.tariffCalculator.isLowTariff(timeInfo.hour, settings);
-                const previousLowTariff = device.getCapabilityValue('low_tariff');
-                lowTariffChanged = previousLowTariff !== null
-                    && previousLowTariff !== undefined
-                    && previousLowTariff !== isLowTariff;
-                newLowTariffValue = isLowTariff;
-                updatePromises.push(device.setCapabilityValue('low_tariff', isLowTariff));
-
-                this.logger?.debug('Low tariff aktualizován', {
-                    hour: timeInfo.hour,
-                    isLowTariff,
-                    previousLowTariff,
-                    changed: lowTariffChanged
-                });
-            }
+            const tariffUpdate = this.queueLowTariffUpdate(device, timeInfo.hour, settings, updatePromises);
 
             if (nextPrice !== null) {
                 updatePromises.push(
@@ -180,13 +163,13 @@ class CapabilityManager {
 
             await Promise.all(updatePromises);
 
-            if (lowTariffChanged) {
+            if (tariffUpdate.changed) {
                 try {
                     const card = device.triggersManager?.getTrigger('when-distribution-tariff-changes');
                     if (card) {
-                        await card.trigger({}, { low_tariff: newLowTariffValue });
+                        await card.trigger({}, { low_tariff: tariffUpdate.value });
                         this.logger?.debug('Tariff change trigger spuštěn (capability změna)', {
-                            newLowTariffValue
+                            newLowTariffValue: tariffUpdate.value
                         });
                     }
                 } catch (triggerError) {
@@ -214,6 +197,29 @@ class CapabilityManager {
             this.logger?.error('Chyba při aktualizaci current/next slot', error);
             throw error;
         }
+    }
+
+    /** Queue the tariff capability write; the caller waits before triggering Flows. */
+    queueLowTariffUpdate(device, hour, settings, updatePromises) {
+        if (!device.tariffCalculator) {
+            return { changed: false, value: null };
+        }
+
+        const value = device.tariffCalculator.isLowTariff(hour, settings);
+        const previousLowTariff = device.getCapabilityValue('low_tariff');
+        const changed = previousLowTariff !== null
+            && previousLowTariff !== undefined
+            && previousLowTariff !== value;
+        updatePromises.push(device.setCapabilityValue('low_tariff', value));
+
+        this.logger?.debug('Low tariff aktualizován', {
+            hour,
+            isLowTariff: value,
+            previousLowTariff,
+            changed
+        });
+
+        return { changed, value };
     }
 
     // ==================== MIN/MAX A PRŮMĚR ====================

@@ -150,8 +150,6 @@ class SpotPriceAPI {
             
             if (error.name === 'AbortError') {
                 errorMessage = `Timeout (${timeoutMs}ms)`;
-            } else if (error.message.startsWith('HTTP')) {
-                errorMessage = error.message;
             } else {
                 errorMessage = error.message;
             }

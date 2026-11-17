@@ -326,7 +326,7 @@ class DataValidator {
             }
 
             // 3. Validace unikátnosti (loguje jen při duplicitách)
-            if (!this.validateUniqueSlots(data)) {
+            if (priceValidation.isValid && !this.validateUniqueSlots(data)) {
                 errors.push('Duplicitní sloty v datech');
             }
 
@@ -336,7 +336,7 @@ class DataValidator {
             // 🎯 JEDINÝ LOG pro index validaci
             if (isValid) {
                 this.logger?.debug('✅ Validace dat pro cenové indexy úspěšná', {
-                    dataLength: data?.length,
+                    dataLength: priceValidation.validCount,
                     lowIndexSlots,
                     highIndexSlots,
                     duration: `${duration}ms`
