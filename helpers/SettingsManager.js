@@ -213,7 +213,7 @@ class SettingsManager {
         // ✅ OPTIMALIZACE: Vytvoř tariffMap JEDNOU
         const tariffMap = device.tariffCalculator.getTariffMap(newSettings);
 
-        this.logger?.debug('🗺️ TariffMap vytvořena pro settings recalc', {
+        this.logger.debug('🗺️ TariffMap vytvořena pro settings recalc', {
             mapSize: tariffMap.size
         });
         

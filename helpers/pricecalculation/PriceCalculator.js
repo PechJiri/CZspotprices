@@ -71,6 +71,11 @@ class PriceCalculator {
      */
     setIndexes(slotsToday, lowIndexSlots, highIndexSlots) {
         try {
+            if (!Array.isArray(slotsToday)) {
+                this.logger?.error('Neplatná vstupní data pro cenové indexy', new TypeError('Data nejsou pole'));
+                return [];
+            }
+
             const validator = this.getDataValidator();
             const cacheManager = this.getCacheManager();
             
@@ -97,7 +102,7 @@ class PriceCalculator {
             if (!validation.isValid) {
                 this.logger?.error('Validace 15min indexů selhala', {
                     errors: validation.errors,
-                    dataLength: slotsToday?.length
+                    dataLength: slotsToday.length
                 });
                 return slotsToday.map(data => ({ ...data, level: 'unknown' }));
             }
