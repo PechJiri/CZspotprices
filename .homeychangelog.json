@@ -25,5 +25,8 @@
   },
   "3.0.8": {
     "en": "bugfix of flow cards"
+  },
+  "3.0.9": {
+    "en": "Security and reliability improvements: verified chart library integrity, removed unused dependencies, improved price validation and preserved zero prices for the next interval."
   }
 }
